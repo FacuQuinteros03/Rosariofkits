@@ -123,7 +123,7 @@ export function FotoProducto({ producto }: { producto: Producto }) {
           alt={`${producto.nombre}${varias ? ` — foto ${actual + 1} de ${fotos.length}` : ""}`}
           fill
           sizes="100vw"
-          quality={92}
+          quality={90}
           className="object-contain"
         />
       </div>

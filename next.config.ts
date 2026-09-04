@@ -6,6 +6,13 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
 
     /*
+      Next 16 solo acepta las calidades declaradas acá; cualquier otra la
+      ignora en silencio y cae a 75. Sin esta linea, el quality={90} de la
+      portada y el {90} del visor no hacen nada.
+    */
+    qualities: [75, 90],
+
+    /*
       Hoy las fotos son archivos locales en /public/fotos/<SKU>.jpg, así que no
       hace falta ningún host remoto. Si algún día las servís desde afuera,
       descomentá el patrón que corresponda.
