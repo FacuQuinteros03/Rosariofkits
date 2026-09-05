@@ -6,6 +6,7 @@ import { FotoProducto } from "@/components/FotoProducto";
 import { ProductCard } from "@/components/ProductCard";
 import { SelectorTalle } from "@/components/SelectorTalle";
 import { getCatalogo, getProducto, getRelacionados } from "@/lib/sheets";
+import { conStock } from "@/lib/types";
 import { NEGOCIO, SITIO } from "@/lib/site";
 import { precio } from "@/lib/whatsapp";
 
@@ -29,8 +30,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await getProducto(slug);
   if (!p) return { title: "Producto no encontrado" };
 
-  const talles = p.variantes.map((v) => v.talle).join(", ");
-  const descripcion = `${p.nombre} en ${precio(p.precio)}. Talles disponibles: ${talles}. Stock real en Rosario, entrega en mano y envíos a todo el país.`;
+  const disponibles = p.variantes.filter(conStock);
+  const talles = disponibles.map((v) => v.talle).join(", ");
+  const descripcion = disponibles.length
+    ? `${p.nombre} en ${precio(p.precio)}. Talles disponibles: ${talles}. Stock real en Rosario, entrega en mano y envíos a todo el país.`
+    : `${p.nombre}: agotado por ahora. Lo conseguimos por encargue — escribinos y te pasamos plazo y precio. Rosario, entrega en mano y envíos a todo el país.`;
   const url = `${SITIO}/producto/${p.id}`;
 
   return {
@@ -40,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       type: "website",
       url,
-      title: `${p.nombre} · ${precio(p.precio)}`,
+      title: disponibles.length ? `${p.nombre} · ${precio(p.precio)}` : `${p.nombre} · Agotado`,
       description: descripcion,
       images: [p.foto ?? "/og.png"],
     },
@@ -56,9 +60,10 @@ export default async function ProductoPage({ params }: Props) {
   const url = `${SITIO}/producto/${p.id}`;
 
   /**
-   * JSON-LD. Una oferta por talle, cada una con su SKU real: así Google puede
-   * mostrar precio y disponibilidad, y el día que un talle se agote la oferta
-   * desaparece sola porque el Sheet ya no la devuelve.
+   * JSON-LD. Una oferta por talle, cada una con su SKU real, y cada una con su
+   * disponibilidad: los talles agotados siguen declarados como OutOfStock en
+   * vez de desaparecer. Google entiende que el producto existe y está sin
+   * stock, que es justamente lo que queremos que se sepa.
    */
   const jsonLd = {
     "@context": "https://schema.org",
@@ -75,7 +80,8 @@ export default async function ProductoPage({ params }: Props) {
       name: `Talle ${v.talle}`,
       price: p.precio,
       priceCurrency: "ARS",
-      availability: "https://schema.org/InStock",
+      availability:
+        v.disponible > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       url,
       seller: { "@type": "Organization", name: NEGOCIO.nombre },
@@ -120,8 +126,13 @@ export default async function ProductoPage({ params }: Props) {
         {/* ---------- datos y compra ---------- */}
         <div className="flex flex-col gap-5 md:pt-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
               {p.categoria}
+              {p.total === 0 && (
+                <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] tracking-[0.11em] text-white/80">
+                  Agotado
+                </span>
+              )}
             </p>
             <h1 className="mt-2 text-2xl font-bold leading-tight text-ink sm:text-3xl">
               {p.nombre}
@@ -135,9 +146,13 @@ export default async function ProductoPage({ params }: Props) {
           <SelectorTalle producto={p} />
 
           <p className="text-[13px] leading-relaxed text-muted">
-            {p.total === 1 ? "Queda una sola unidad." : `Quedan ${p.total} unidades.`} Entrega en
-            mano en {NEGOCIO.ciudad} y envíos a todo el país. Efectivo o transferencia, sin
-            recargo.
+            {p.total === 0
+              ? "Se agotó, pero lo conseguimos por encargue: escribinos y te pasamos plazo y precio."
+              : p.total === 1
+                ? "Queda una sola unidad."
+                : `Quedan ${p.total} unidades.`}{" "}
+            Entrega en mano en {NEGOCIO.ciudad} y envíos a todo el país. Efectivo o transferencia,
+            sin recargo.
           </p>
         </div>
       </div>

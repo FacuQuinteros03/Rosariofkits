@@ -1,7 +1,7 @@
 import "server-only";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import type { CategoriaReal, Producto, Variante } from "./types";
+import { pesoTalle, type CategoriaReal, type Producto, type Variante } from "./types";
 
 /** Marcas de acento, para comparar "japon" con "Japón". */
 const SIN_TILDES = new RegExp("[" + "\u0300-\u036f" + "]", "g");
@@ -9,7 +9,10 @@ const SIN_TILDES = new RegExp("[" + "\u0300-\u036f" + "]", "g");
 /**
  * Hoja "Web" del libro Stock_RosarioFkits, publicada como CSV.
  * Columnas: SKU | Producto / Descripcion | Categoria | Precio Venta ($) | Disponible
- * Solo trae filas con Disponible > 0 y nunca costo ni margen.
+ * Nunca trae costo ni margen.
+ *
+ * La hoja tiene que incluir tambien las filas con Disponible = 0: de ahi salen
+ * los modelos agotados que el catalogo muestra para pedir por encargue.
  */
 const CSV_URL = process.env.SHEET_CSV_URL ?? "";
 
@@ -117,12 +120,6 @@ function slug(s: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-const ORDEN_TALLE = ["XS", "S", "M", "L", "XL", "XXL", "XXXL", "ÚNICO"];
-const pesoTalle = (t: string) => {
-  const i = ORDEN_TALLE.indexOf(t);
-  return i === -1 ? 99 : i;
-};
-
 /**
  * Busca las fotos en /public/fotos. Convención de nombres:
  *
@@ -184,8 +181,9 @@ export async function getCatalogo(): Promise<Producto[]> {
     const sku = (f[0] ?? "").trim();
     if (!/^\d+$/.test(sku)) continue; // filas de seccion del Sheet
 
-    const disponible = Math.trunc(parsePrecio(f[4] ?? "0"));
-    if (disponible <= 0) continue;
+    // Los agotados entran igual. Ver el filtro de mas abajo: quedan solo los
+    // que tienen foto, porque un agotado sin foto no le dice nada a nadie.
+    const disponible = Math.max(0, Math.trunc(parsePrecio(f[4] ?? "0")));
 
     const { modelo, talle } = partirNombre(f[1] ?? "");
     const categoria = clasificar(modelo, f[2] ?? "");
@@ -221,7 +219,18 @@ export async function getCatalogo(): Promise<Producto[]> {
         fotos,
       } satisfies Producto;
     })
-    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    /*
+      Un agotado sin foto es ruido: ocupa una tarjeta y no muestra nada. Los
+      que tienen foto si valen, porque son la prueba de que ese modelo se
+      vende y son la puerta de entrada al pedido por encargue.
+    */
+    .filter((p) => p.total > 0 || p.fotos.length > 0)
+    /* primero lo que se puede comprar hoy; los agotados al final, alfabeticos */
+    .sort(
+      (a, b) =>
+        Number(b.total > 0) - Number(a.total > 0) ||
+        a.nombre.localeCompare(b.nombre, "es")
+    );
 }
 
 /** Un producto por su slug, para la página de detalle. */

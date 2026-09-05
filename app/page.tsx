@@ -15,7 +15,10 @@ export const revalidate = 60;
 
 export default async function Page() {
   const productos = await getCatalogo();
-  const unidades = productos.reduce((s, p) => s + p.total, 0);
+  /* el contador de arriba habla de lo que se puede comprar hoy: los agotados
+     tienen su propio bloque al final del catálogo */
+  const enStock = productos.filter((p) => p.total > 0);
+  const unidades = enStock.reduce((s, p) => s + p.total, 0);
 
   return (
     <>
@@ -59,7 +62,7 @@ export default async function Page() {
             Stock disponible
           </h2>
           <p className="mt-1.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-muted">
-            {productos.length} modelos · {unidades} unidades en mano
+            {enStock.length} modelos · {unidades} unidades en mano
           </p>
 
           <div className="mt-5">

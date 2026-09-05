@@ -114,6 +114,38 @@ completa con flechas y teclado. Todas entran al JSON-LD.
 Si sumás una selección nueva, agregala al array `SELECCIONES` de `sheets.ts` o
 va a caer en "Clubes".
 
+### Agotados
+
+El catálogo muestra los modelos sin stock, apagados y en su propio bloque al
+final ("Se agotaron"). No es un descuido: son la prueba de que ese modelo se
+vende, y el botón abre un pedido **por encargue** en vez de una compra.
+
+Reglas:
+
+- Un modelo está agotado cuando `total === 0`.
+- Los agotados **sin foto se descartan** (`lib/sheets.ts`): una tarjeta vacía es
+  ruido. Con foto valen, porque muestran qué se vendió.
+- Nunca se mezclan con lo que hay en mano: van después, en su propia sección, y
+  no cuentan en "X modelos · Y unidades".
+- En el JSON-LD cada talle declara su disponibilidad (`InStock` / `OutOfStock`),
+  así Google sabe que el producto existe y está sin stock.
+
+**Depende del Sheet:** la hoja `Web` tiene que traer también las filas con
+`Disponible = 0`. Si filtra por `> 0`, esta sección simplemente no aparece —
+no rompe nada, pero tampoco muestra nada.
+
+### Filtro por talle
+
+Segunda fila de chips debajo de las categorías. Casi todo el stock es una
+unidad por talle, así que "¿lo tenés en mi talle?" es la pregunta principal y
+por eso tiene fila propia en vez de quedar al final del scroll horizontal.
+
+- Los chips salen de los talles **con stock** de la categoría elegida.
+- Si al cambiar de categoría el talle elegido ya no existe, el filtro se ignora
+  solo, pero queda guardado por si vuelve a esa categoría.
+- Un agotado entra en el filtro si **alguna vez** tuvo ese talle: quien busca su
+  medida también quiere ver qué puede encargar.
+
 ### ISR
 
 `export const revalidate = 60` en `page.tsx`. La página se sirve cacheada al

@@ -19,11 +19,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1,
     },
+    /* los agotados se indexan igual — traen visitas que terminan en encargue —
+       pero con menos prioridad que lo que se puede comprar hoy */
     ...productos.map((p) => ({
       url: `${SITIO}/producto/${p.id}`,
       lastModified: ahora,
       changeFrequency: "daily" as const,
-      priority: 0.8,
+      priority: p.total > 0 ? 0.8 : 0.5,
     })),
   ];
 }

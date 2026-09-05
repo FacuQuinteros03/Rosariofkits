@@ -5,11 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { MessageCircle, Shirt } from "lucide-react";
-import type { Producto } from "@/lib/types";
-import { linkWhatsApp, precio } from "@/lib/whatsapp";
+import { conStock, type Producto } from "@/lib/types";
+import { linkWhatsApp, linkWhatsAppEncargue, precio } from "@/lib/whatsapp";
 
 export function ProductCard({ producto, prioridad = false }: { producto: Producto; prioridad?: boolean }) {
-  const [talle, setTalle] = useState(producto.variantes[0]?.talle ?? "");
+  const disponibles = producto.variantes.filter(conStock);
+  const agotado = disponibles.length === 0;
+
+  const [talle, setTalle] = useState(disponibles[0]?.talle ?? "");
   const ultima = producto.total === 1;
 
   return (
@@ -31,7 +34,12 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
             fill
             sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 20vw"
             priority={prioridad}
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+            className={[
+              "object-cover transition-transform duration-500 group-hover:scale-[1.05]",
+              /* el agotado se apaga, pero se sigue viendo: es la prueba de que
+                 ese modelo se vendió, y lo que dispara el pedido por encargue */
+              agotado ? "opacity-45 saturate-[0.35]" : "",
+            ].join(" ")}
           />
         ) : (
           <div className="grid h-full place-items-center text-navy-2">
@@ -39,14 +47,24 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
           </div>
         )}
 
-        {ultima && (
+        {agotado ? (
           <span
-            className="absolute left-2.5 top-2.5 rounded-full bg-red-950/80 px-2.5 py-1
-                       text-[10px] font-bold uppercase tracking-[0.11em] text-red-200
-                       ring-1 ring-inset ring-red-400/40 backdrop-blur-sm"
+            className="absolute left-2.5 top-2.5 rounded-full bg-black/70 px-2.5 py-1
+                       text-[10px] font-bold uppercase tracking-[0.11em] text-white/85
+                       ring-1 ring-inset ring-white/20 backdrop-blur-sm"
           >
-            Última unidad
+            Agotado
           </span>
+        ) : (
+          ultima && (
+            <span
+              className="absolute left-2.5 top-2.5 rounded-full bg-red-950/80 px-2.5 py-1
+                         text-[10px] font-bold uppercase tracking-[0.11em] text-red-200
+                         ring-1 ring-inset ring-red-400/40 backdrop-blur-sm"
+            >
+              Última unidad
+            </span>
+          )
         )}
       </div>
 
@@ -60,54 +78,92 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
           */}
           <Link
             href={`/producto/${producto.id}`}
-            className="text-ink transition-colors after:absolute after:inset-0
-                       after:z-[1] after:content-[''] hover:text-white
-                       focus-visible:underline"
+            className={[
+              "transition-colors after:absolute after:inset-0 after:z-[1]",
+              "after:content-[''] hover:text-white focus-visible:underline",
+              agotado ? "text-muted" : "text-ink",
+            ].join(" ")}
           >
             {producto.nombre}
           </Link>
         </h3>
 
-        <p className="font-display text-3xl font-bold leading-none tabular-nums text-ink">
+        <p
+          className={[
+            "font-display text-3xl font-bold leading-none tabular-nums",
+            agotado ? "text-muted" : "text-ink",
+          ].join(" ")}
+        >
           {precio(producto.precio)}
         </p>
 
-        {/* selector de talle: solo los que tienen stock */}
-        <div className="relative z-10 mt-auto flex flex-wrap gap-1.5" role="group" aria-label="Talles disponibles">
-          {producto.variantes.map((v) => {
-            const activo = v.talle === talle;
-            return (
-              <button
-                key={v.sku}
-                type="button"
-                onClick={() => setTalle(v.talle)}
-                aria-pressed={activo}
-                title={`${v.disponible} ${v.disponible === 1 ? "disponible" : "disponibles"}`}
-                className={[
-                  "min-w-[38px] rounded-lg border px-2.5 py-1.5 text-xs font-bold tabular-nums transition-colors",
-                  activo
-                    ? "border-white/60 bg-white/10 text-white"
-                    : "border-line text-muted hover:border-muted hover:text-ink",
-                ].join(" ")}
-              >
-                {v.talle}
-              </button>
-            );
-          })}
-        </div>
+        {agotado ? (
+          /*
+            Sin chips: un talle clickeable en un producto agotado hace creer
+            que hay stock. Va como texto, que es lo que es — información de
+            qué talles hubo, para quien quiera encargarlo.
+          */
+          <p className="mt-auto text-[11.5px] leading-snug text-muted">
+            Se agotó
+            {producto.variantes.length > 0 && (
+              <> · hubo {producto.variantes.map((v) => v.talle).join(", ")}</>
+            )}
+          </p>
+        ) : (
+          <div className="relative z-10 mt-auto flex flex-wrap gap-1.5" role="group" aria-label="Talles disponibles">
+            {disponibles.map((v) => {
+              const activo = v.talle === talle;
+              return (
+                <button
+                  key={v.sku}
+                  type="button"
+                  onClick={() => setTalle(v.talle)}
+                  aria-pressed={activo}
+                  title={`${v.disponible} ${v.disponible === 1 ? "disponible" : "disponibles"}`}
+                  className={[
+                    "min-w-[38px] rounded-lg border px-2.5 py-1.5 text-xs font-bold tabular-nums transition-colors",
+                    activo
+                      ? "border-white/60 bg-white/10 text-white"
+                      : "border-line text-muted hover:border-muted hover:text-ink",
+                  ].join(" ")}
+                >
+                  {v.talle}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-        <a
-          href={linkWhatsApp(producto.nombre, talle, producto.categoria)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="relative z-10 flex items-center justify-center gap-2 rounded-xl bg-wa px-3 py-2.5
-                     text-[13px] font-bold text-black/85 transition-colors hover:bg-wa-dark
-                     focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-                     focus-visible:outline-wa"
-        >
-          <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
-          Pedir por WhatsApp
-        </a>
+        {agotado ? (
+          /* el verde lleno queda para lo que se puede comprar hoy: así el
+             encargue se ofrece sin competirle a una venta real */
+          <a
+            href={linkWhatsAppEncargue(producto.nombre, producto.categoria)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative z-10 flex items-center justify-center gap-2 rounded-xl border border-wa/45
+                       px-3 py-2.5 text-[13px] font-bold text-wa transition-colors
+                       hover:border-wa hover:bg-wa/10
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                       focus-visible:outline-wa"
+          >
+            <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+            Pedilo por encargue
+          </a>
+        ) : (
+          <a
+            href={linkWhatsApp(producto.nombre, talle, producto.categoria)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative z-10 flex items-center justify-center gap-2 rounded-xl bg-wa px-3 py-2.5
+                       text-[13px] font-bold text-black/85 transition-colors hover:bg-wa-dark
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                       focus-visible:outline-wa"
+          >
+            <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+            Pedir por WhatsApp
+          </a>
+        )}
       </div>
     </motion.article>
   );
