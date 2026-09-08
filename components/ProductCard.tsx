@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { MessageCircle, Shirt } from "lucide-react";
+import { Images, MessageCircle, Shirt } from "lucide-react";
 import { conStock, type Producto } from "@/lib/types";
 import { linkWhatsApp, linkWhatsAppEncargue, precio } from "@/lib/whatsapp";
 
@@ -14,6 +14,22 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
 
   const [talle, setTalle] = useState(disponibles[0]?.talle ?? "");
   const ultima = producto.total === 1;
+
+  /*
+    Frente y dorso. En escritorio el dorso aparece al pasar el mouse; en el
+    celular, donde no hay hover, se toca la pastilla del contador.
+
+    La segunda foto no se monta hasta el primer hover: si se dejara puesta en
+    opacity 0 igual la descargaría, y serían el doble de imágenes en la grilla
+    para algo que la mayoría no va a mirar.
+  */
+  const fotos = producto.fotos.length ? producto.fotos : producto.foto ? [producto.foto] : [];
+  const varias = fotos.length > 1;
+  const [indice, setIndice] = useState(0);
+  const [preparada, setPreparada] = useState(false);
+  const siguiente = varias ? fotos[(indice + 1) % fotos.length] : null;
+
+  const apagado = agotado ? "opacity-45 saturate-[0.35]" : "";
 
   return (
     <motion.article
@@ -26,25 +42,58 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
                  shadow-lg shadow-black/20 transition-colors hover:border-navy-2"
     >
       {/* ---------- foto ---------- */}
-      <div className="relative aspect-square overflow-hidden bg-navy">
-        {producto.foto ? (
-          <Image
-            src={producto.foto}
-            alt={producto.nombre}
-            fill
-            sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 20vw"
-            priority={prioridad}
-            className={[
-              "object-cover transition-transform duration-500 group-hover:scale-[1.05]",
-              /* el agotado se apaga, pero se sigue viendo: es la prueba de que
-                 ese modelo se vendió, y lo que dispara el pedido por encargue */
-              agotado ? "opacity-45 saturate-[0.35]" : "",
-            ].join(" ")}
-          />
+      <div
+        className="relative aspect-square overflow-hidden bg-navy"
+        onMouseEnter={() => setPreparada(true)}
+      >
+        {fotos.length ? (
+          <>
+            <Image
+              src={fotos[indice]}
+              alt={producto.nombre}
+              fill
+              sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 20vw"
+              priority={prioridad}
+              className={[
+                "object-cover transition-transform duration-500 group-hover:scale-[1.05]",
+                /* el agotado se apaga, pero se sigue viendo: es la prueba de que
+                   ese modelo se vendió, y lo que dispara el pedido por encargue */
+                apagado,
+              ].join(" ")}
+            />
+            {siguiente && preparada && (
+              <Image
+                src={siguiente}
+                alt=""
+                fill
+                sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 20vw"
+                className={[
+                  "object-cover opacity-0 transition-all duration-300",
+                  "group-hover:scale-[1.05] group-hover:opacity-100",
+                  apagado,
+                ].join(" ")}
+              />
+            )}
+          </>
         ) : (
           <div className="grid h-full place-items-center text-navy-2">
             <Shirt className="h-12 w-12" strokeWidth={1.25} aria-hidden />
           </div>
+        )}
+
+        {varias && (
+          <button
+            type="button"
+            onClick={() => setIndice((i) => (i + 1) % fotos.length)}
+            aria-label={`Ver la otra foto de ${producto.nombre}`}
+            className="absolute bottom-2 right-2 z-10 flex items-center gap-1 rounded-full
+                       bg-black/55 px-2 py-1 text-[10px] font-bold tabular-nums text-white/85
+                       backdrop-blur-sm transition-colors hover:bg-black/75
+                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+          >
+            <Images className="h-3 w-3" strokeWidth={2.4} aria-hidden />
+            {indice + 1}/{fotos.length}
+          </button>
         )}
 
         {agotado ? (

@@ -156,6 +156,7 @@ export function FotoProducto({ producto }: { producto: Producto }) {
           alt={producto.nombre}
           fill
           sizes="(max-width:768px) 100vw, 50vw"
+          quality={90}
           priority
           className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.03]"
         />

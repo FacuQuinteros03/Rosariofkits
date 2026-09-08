@@ -114,6 +114,32 @@ completa con flechas y teclado. Todas entran al JSON-LD.
 Si sumás una selección nueva, agregala al array `SELECCIONES` de `sheets.ts` o
 va a caer en "Clubes".
 
+### Frente y dorso
+
+```
+3029.jpg    el frente, la que sale en la grilla
+3029-2.jpg  el dorso
+3029-3.jpg  detalles, y así hasta 8
+```
+
+Para sumar una foto no se toca código ni el Sheet:
+
+```bash
+python herramientas/agregar-foto.py 3029 "C:/ruta/a/la/foto.jpeg"
+```
+
+El script arregla la rotación del EXIF (las de WhatsApp vienen giradas), limita
+el lado largo a 1600 px y la guarda con el nombre que corresponde.
+
+En la tarjeta, el dorso aparece **al pasar el mouse**. En el celular no hay
+hover, así que se toca la pastilla con el contador (`1/2`) abajo a la derecha.
+La segunda foto **no se monta hasta el primer hover**: dejarla en `opacity: 0`
+la descargaría igual y serían el doble de imágenes en la grilla para algo que
+la mayoría no mira.
+
+Las fotos del proveedor son de 800×800 — ese es el techo de calidad. Las
+propias entran a 1200×1600 y se ven bastante mejor en pantalla completa.
+
 ### Agotados
 
 El catálogo muestra los modelos sin stock, apagados y en su propio bloque al
