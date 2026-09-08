@@ -3,11 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { FotoProducto } from "@/components/FotoProducto";
+import { PieDePagina } from "@/components/PieDePagina";
 import { ProductCard } from "@/components/ProductCard";
 import { SelectorTalle } from "@/components/SelectorTalle";
 import { getCatalogo, getProducto, getRelacionados } from "@/lib/sheets";
 import { conStock } from "@/lib/types";
-import { NEGOCIO, SITIO } from "@/lib/site";
+import { INSTAGRAM, NEGOCIO, SITIO } from "@/lib/site";
 import { precio } from "@/lib/whatsapp";
 
 /** Mismo ISR que el catálogo. Tiene que ser literal. */
@@ -75,7 +76,8 @@ export default async function ProductoPage({ params }: Props) {
     description: `${p.nombre} — indumentaria deportiva en Rosario.`,
     image: p.fotos.length ? p.fotos.map((f) => `${SITIO}${f}`) : [`${SITIO}/og.png`],
     category: p.categoria,
-    brand: { "@type": "Brand", name: NEGOCIO.nombre },
+    /* sameAs le dice a Google que esta marca y esa cuenta de Instagram son lo mismo */
+    brand: { "@type": "Brand", name: NEGOCIO.nombre, sameAs: [INSTAGRAM] },
     offers: (p.total === 0 ? [] : p.variantes).map((v) => ({
       "@type": "Offer",
       "@id": `${url}#${v.sku}`,
@@ -179,6 +181,8 @@ export default async function ProductoPage({ params }: Props) {
           </div>
         </section>
       )}
+
+      <PieDePagina />
     </main>
   );
 }

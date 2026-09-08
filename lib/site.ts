@@ -8,6 +8,9 @@
 export const SITIO =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://rosariofkits.vercel.app";
 
+export const INSTAGRAM = "https://www.instagram.com/rosariofkits/";
+export const USUARIO_IG = "@rosariofkits";
+
 export const NEGOCIO = {
   nombre: "Rosario F Kits",
   ciudad: "Rosario",

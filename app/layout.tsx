@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Big_Shoulders } from "next/font/google";
 import "./globals.css";
+import { SITIO } from "@/lib/site";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -16,8 +17,6 @@ const bigShoulders = Big_Shoulders({
   fallback: ["Arial Narrow", "sans-serif"],
   adjustFontFallback: false,
 });
-
-const SITIO = "https://rosariofkits.com.ar";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITIO),
