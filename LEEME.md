@@ -127,8 +127,12 @@ Reglas:
   ruido. Con foto valen, porque muestran qué se vendió.
 - Nunca se mezclan con lo que hay en mano: van después, en su propia sección, y
   no cuentan en "X modelos · Y unidades".
+- **No se muestra el precio.** Entre que se agota y llega el encargue el
+  proveedor puede aumentar; un número viejo es una promesa que no podemos
+  sostener. Dice "Precio a confirmar" y el JSON-LD no declara ninguna oferta.
 - En el JSON-LD cada talle declara su disponibilidad (`InStock` / `OutOfStock`),
-  así Google sabe que el producto existe y está sin stock.
+  así Google sabe que el producto existe y está sin stock. Un talle agotado
+  dentro de un modelo que sí tiene stock conserva el precio: ese es real.
 
 **Depende del Sheet:** la hoja `Web` tiene que traer también las filas con
 `Disponible = 0`. Si filtra por `> 0`, esta sección simplemente no aparece —

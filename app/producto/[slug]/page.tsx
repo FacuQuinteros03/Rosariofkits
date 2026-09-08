@@ -64,6 +64,9 @@ export default async function ProductoPage({ params }: Props) {
    * disponibilidad: los talles agotados siguen declarados como OutOfStock en
    * vez de desaparecer. Google entiende que el producto existe y está sin
    * stock, que es justamente lo que queremos que se sepa.
+   *
+   * Si el modelo está agotado entero no se declara ninguna oferta: publicar un
+   * precio que todavía no confirmamos con el proveedor es prometer de más.
    */
   const jsonLd = {
     "@context": "https://schema.org",
@@ -73,7 +76,7 @@ export default async function ProductoPage({ params }: Props) {
     image: p.fotos.length ? p.fotos.map((f) => `${SITIO}${f}`) : [`${SITIO}/og.png`],
     category: p.categoria,
     brand: { "@type": "Brand", name: NEGOCIO.nombre },
-    offers: p.variantes.map((v) => ({
+    offers: (p.total === 0 ? [] : p.variantes).map((v) => ({
       "@type": "Offer",
       "@id": `${url}#${v.sku}`,
       sku: v.sku,
@@ -139,9 +142,16 @@ export default async function ProductoPage({ params }: Props) {
             </h1>
           </div>
 
-          <p className="font-display text-5xl font-bold leading-none tabular-nums text-ink">
-            {precio(p.precio)}
-          </p>
+          {/* ver la nota del JSON-LD: el agotado no muestra precio */}
+          {p.total === 0 ? (
+            <p className="text-[15px] font-semibold text-muted">
+              Precio a confirmar al hacer el encargue
+            </p>
+          ) : (
+            <p className="font-display text-5xl font-bold leading-none tabular-nums text-ink">
+              {precio(p.precio)}
+            </p>
+          )}
 
           <SelectorTalle producto={p} />
 

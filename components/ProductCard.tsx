@@ -88,14 +88,18 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
           </Link>
         </h3>
 
-        <p
-          className={[
-            "font-display text-3xl font-bold leading-none tabular-nums",
-            agotado ? "text-muted" : "text-ink",
-          ].join(" ")}
-        >
-          {precio(producto.precio)}
-        </p>
+        {/*
+          El agotado no lleva precio. Entre que se agota y llega el encargue el
+          proveedor puede haber aumentado, y un número viejo en pantalla es una
+          promesa que no podemos sostener.
+        */}
+        {agotado ? (
+          <p className="text-[12.5px] font-semibold text-muted">Precio a confirmar</p>
+        ) : (
+          <p className="font-display text-3xl font-bold leading-none tabular-nums text-ink">
+            {precio(producto.precio)}
+          </p>
+        )}
 
         {agotado ? (
           /*
