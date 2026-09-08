@@ -114,6 +114,23 @@ completa con flechas y teclado. Todas entran al JSON-LD.
 Si sumás una selección nueva, agregala al array `SELECCIONES` de `sheets.ts` o
 va a caer en "Clubes".
 
+### Favicon
+
+`app/favicon.ico`, `app/icon.png` y `app/apple-icon.png`. Next los detecta por
+el nombre y arma los `<link>` solo: no hay que declarar nada en el layout.
+
+```bash
+python herramientas/hacer-favicon.py
+```
+
+Usa **solo el monograma RF**, no el escudo completo: el texto circular a 16 px
+es una mancha. El corte salió de medir la tinta por anillo — el monograma
+termina en el radio 0.55 y el texto arranca en 0.60, así que en 0.575 se
+separan sin tocar ninguno de los dos.
+
+La fuente es el logo **negro**, no el blanco: al blanco lo generamos desde un
+gris y le quedó un halo en el canal alfa que ensuciaba el recorte.
+
 ### Frente y dorso
 
 ```
