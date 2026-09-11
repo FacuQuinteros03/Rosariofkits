@@ -20,18 +20,21 @@ import {
 } from "./ruleta";
 
 /**
- * Probabilidades, en partes de 100. Cambiar acá cambia el juego entero.
- * Ojo con subir el 15%: sobre una camiseta de $34.999 son $5.250, lo mismo
- * que la promo del short.
+ * Probabilidades, en partes de 100. Cambiar acá cambia el juego entero, y la
+ * rueda no se entera: los gajos son los mismos, solo cambia lo que sale.
+ *
+ * El costo promedio de un cupón con estos números es ~$3.950 sobre una camiseta
+ * de $52.500, un 7,5%. El 15% arrancó en 14 y se bajó a 7 (uno de cada catorce
+ * giros): son $7.875, más caro que la promo del short, que cuesta $5.000.
  *
  * El 2x1 está en la rueda pero su peso es 0: se ve y no sale. Es una decisión
- * del negocio, no un descuido — ponerle 1 lo vuelve real (uno de cada cien) y
- * el resto del código ya está listo para emitirlo.
+ * del negocio, no un descuido — un 2x1 real dejaría $1.500 de ganancia sobre
+ * dos camisetas, que es trabajar gratis.
  */
 const PESOS: Record<PremioId, number> = {
-  "5": 55,
+  "5": 62,
   "10": 28,
-  "15": 14,
+  "15": 7,
   envio: 3,
   "2x1": 0,
 };
