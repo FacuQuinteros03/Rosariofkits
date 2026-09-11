@@ -60,7 +60,18 @@ Después copiás encima las carpetas `app/`, `components/`, `lib/` y el
 ```
 SHEET_CSV_URL=https://docs.google.com/spreadsheets/d/e/2PACX-1vROoCo0W5DOhGSZI42MinLymGPVOz3ZPxpR54GepCEU0smX7DAvsIfdmPQ_hWncRdh0_wMo9XPTCl0o/pub?gid=194079658&single=true&output=csv
 NEXT_PUBLIC_SITE_URL=https://rosariofkits.vercel.app
+
+# la ruleta
+RULETA_SECRET=<cadena larga y secreta, distinta en local y en produccion>
+CUPONES_URL=<la URL /exec del Apps Script de cupones, vacia = sin registro>
+CUPONES_TOKEN=<la misma cadena que esta pegada en Cupones.gs>
 ```
+
+`RULETA_SECRET` firma los cupones. **No se cambia con cupones vigentes**: los
+que ya están emitidos dejan de verificar de golpe y sus dueños se quedan sin
+premio. Si falta en producción, la ruleta directamente no aparece — es
+preferible a emitirlos firmados con la clave de desarrollo, que está escrita
+en el código y puede leerla cualquiera.
 
 `NEXT_PUBLIC_SITE_URL` tiene que ser el dominio real: de ahí salen las URLs
 canónicas, las imágenes de Open Graph y el JSON-LD. Si queda mal, Google indexa
@@ -253,6 +264,52 @@ Cada una lleva dos bloques de JSON-LD:
 
 Para verificarlo en producción: `search.google.com/test/rich-results`.
 
+## La ruleta de descuentos
+
+Un botón flotante abre una rueda de ocho gajos. El visitante pone nombre y
+WhatsApp, gira una vez y se lleva un cupón que canjea escribiendo.
+
+```
+components/Ruleta.tsx  ->  POST /api/ruleta  ->  lib/ruleta-server.ts  (sortea y firma)
+                                              ->  lib/cupones.ts       (anota en el Sheet)
+```
+
+**El sorteo pasa en el servidor.** `lib/ruleta.ts` tiene lo que puede ver el
+navegador (premios y geometría); las probabilidades viven en `PESOS`, dentro de
+`lib/ruleta-server.ts`, y nunca salen de ahí. Si estuvieran en el cliente,
+cualquiera abriría las devtools para ver qué gajo conviene.
+
+**El cupón no se guarda en ningún lado: el código *es* el comprobante.**
+`RFK-15-HR4QZ-K3M7-46Z9VY` lleva adentro el premio, el minuto en que se emitió,
+cuatro caracteres al azar y una firma HMAC con `RULETA_SECRET`. La página
+`/cupon/CODIGO` lo verifica sin consultar nada. Inventar un código no sirve: la
+firma no cierra.
+
+> Los cuatro caracteres al azar no son decorativos. Sin ellos, dos personas que
+> giran en el mismo minuto y sacan el mismo premio se llevan el **mismo código**
+> — el resto del código solo depende del premio y de la hora. Apareció en la
+> primera prueba con dos teléfonos distintos.
+
+**Un giro por persona, con dos cerrojos de distinta fuerza:**
+
+1. una cookie `httpOnly` que el JS de la página no puede borrar. Frena el
+   reintento fácil, pero no sobrevive a una ventana de incógnito;
+2. el teléfono en la hoja CUPONES. Ese sí: un número que ya giró recibe siempre
+   el mismo cupón, desde cualquier navegador. Y como el premio se canjea por
+   WhatsApp **desde ese número**, inventar teléfonos tampoco sirve — queda un
+   cupón que su dueño no puede usar.
+
+El registro vive en `apps-script/cupones/Cupones.gs` (en la carpeta
+`RosarioFkits`), un proyecto de Apps Script **separado** del de cargar ventas
+porque este tiene que estar abierto a internet. Si `CUPONES_URL` está vacía, la
+ruleta funciona igual con la cookie sola — es el modo para probar en localhost.
+Si está configurada y Google no contesta, **no se emiten cupones**: es preferible
+a repartir descuentos que no quedan anotados.
+
+El 2x1 está dibujado en la rueda con peso **0**: se ve y no sale. Es una
+decisión del negocio, no un descuido — está en `PESOS` con un comentario al
+lado, y ponerle `1` lo vuelve real.
+
 ## Lo que falta y sabemos que falta
 
 - **Carrito y checkout.** Cuando llegue, el stock tiene que salir de una base
@@ -260,3 +317,6 @@ Para verificarlo en producción: `search.google.com/test/rich-results`.
   venden la misma camiseta.
 - **`sitemap.ts` y `robots.ts`**, para que Google descubra las 36 páginas sin
   depender de los links internos.
+- **Marcar el cupón como usado desde la web.** Hoy se pone `SI` a mano en la
+  hoja CUPONES: la página `/cupon/CODIGO` es pública para cualquiera que tenga
+  el código, así que no escribe nada.

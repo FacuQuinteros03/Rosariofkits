@@ -48,4 +48,16 @@ export function linkWhatsAppGeneral(): string {
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;
 }
 
+/**
+ * Consulta con un cupon de la ruleta.
+ *
+ * El codigo va en el mensaje porque es el unico comprobante que existe: no se
+ * guarda en ningun lado, la firma que lleva adentro alcanza para validarlo en
+ * /cupon/CODIGO.
+ */
+export function linkWhatsAppCupon(codigo: string, frase: string): string {
+  const texto = `¡Hola Rosario F Kits! Giré la ruleta y me salió ${frase}. Mi cupón es ${codigo}.`;
+  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;
+}
+
 export const precio = (n: number) => `$${Math.round(n).toLocaleString("es-AR")}`;

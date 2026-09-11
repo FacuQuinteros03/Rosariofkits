@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Big_Shoulders } from "next/font/google";
 import "./globals.css";
+import { Ruleta } from "@/components/Ruleta";
 import { SITIO } from "@/lib/site";
 
 const archivo = Archivo({
@@ -46,7 +47,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${archivo.variable} ${bigShoulders.variable}`}>
-      <body className="min-h-dvh bg-ground font-sans text-ink antialiased">{children}</body>
+      <body className="min-h-dvh bg-ground font-sans text-ink antialiased">
+        {children}
+        {/* el boton flotante vive en todo el sitio, tambien en la ficha de producto */}
+        <Ruleta />
+      </body>
     </html>
   );
 }
