@@ -200,7 +200,11 @@ export function Ruleta() {
   const abrir = () => setEstado(yaGiro ? "resultado" : "listo");
 
   const rueda = (
-    <div className="relative mx-auto w-[min(74vw,290px)]">
+    <div
+      className={`relative mx-auto transition-[width] duration-500 ${
+        mostrandoResultado ? "w-[min(42vw,168px)]" : "w-[min(74vw,290px)]"
+      }`}
+    >
       {/* la aguja, fija arriba: la rueda gira debajo */}
       <div
         aria-hidden
@@ -286,9 +290,11 @@ export function Ruleta() {
         <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-gold">
           {mostrandoResultado ? "Tu cupón" : "Un giro, un premio"}
         </p>
-        <h2 className="mt-1 text-center font-display text-3xl font-extrabold uppercase leading-none text-ink">
-          {mostrandoResultado && cupon ? cupon.titulo : "Girá y ganá"}
-        </h2>
+        {!mostrandoResultado && (
+          <h2 className="mt-1 text-center font-display text-3xl font-extrabold uppercase leading-none text-ink">
+            Girá y ganá
+          </h2>
+        )}
 
         <div className="mt-5">{rueda}</div>
 
@@ -302,39 +308,72 @@ export function Ruleta() {
             </div>
           ) : (
             <div className="mt-5">
-              <p className="text-center text-[13px] leading-snug text-muted">{cupon.detalle}</p>
+              {/* El cupón como ticket: borde dorado, el premio grande y el corte
+                  punteado con sus dos muescas. Es lo que la persona vino a
+                  buscar, y antes era un párrafo más abajo de la rueda. */}
+              <div
+                className="cupon-entra cupon-brillo relative overflow-hidden rounded-2xl border-2
+                           border-gold/70 bg-gradient-to-br from-navy-2 to-navy p-5 text-center
+                           shadow-[0_12px_40px_rgba(226,183,74,0.18)]"
+              >
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-gold">
+                  Ganaste
+                </p>
+                <p className="mt-1 font-display text-4xl font-extrabold uppercase leading-none text-white">
+                  {cupon.titulo}
+                </p>
+                <p className="mx-auto mt-2 max-w-[15rem] text-[13px] leading-snug text-muted">
+                  {cupon.detalle}
+                </p>
 
-              <div className="mt-3 flex items-center gap-2 rounded-2xl border border-dashed border-gold/60 bg-ground/60 p-3">
-                <code className="flex-1 text-center font-display text-lg font-bold tracking-wider text-gold">
-                  {cupon.codigo}
-                </code>
-                <button
-                  type="button"
-                  onClick={copiar}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line
-                             text-muted transition-colors hover:border-gold hover:text-gold"
-                  aria-label="Copiar el código"
-                >
-                  {copiado ? (
-                    <Check className="h-4 w-4 text-wa" strokeWidth={2.5} />
-                  ) : (
-                    <Copy className="h-4 w-4" strokeWidth={2.2} />
-                  )}
-                </button>
+                {/* el corte del ticket: las muescas son del color del panel */}
+                <div className="relative my-4">
+                  <span
+                    aria-hidden
+                    className="absolute -left-[30px] top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-surface"
+                  />
+                  <span
+                    aria-hidden
+                    className="absolute -right-[30px] top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-surface"
+                  />
+                  <div className="border-t-2 border-dashed border-gold/40" />
+                </div>
+
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted">
+                  Tu código
+                </p>
+                <div className="mt-1.5 flex items-center justify-center gap-2">
+                  {/* 25 caracteres: a más de 22px se parte en dos renglones y
+                      deja de leerse como un código */}
+                  <code className="whitespace-nowrap font-display text-[19px] font-bold leading-none tracking-[0.04em] text-gold sm:text-[22px]">
+                    {cupon.codigo}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={copiar}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-gold/40
+                               text-gold/80 transition-colors hover:border-gold hover:text-gold"
+                    aria-label="Copiar el código"
+                  >
+                    {copiado ? (
+                      <Check className="h-4 w-4 text-wa" strokeWidth={2.5} />
+                    ) : (
+                      <Copy className="h-4 w-4" strokeWidth={2.2} />
+                    )}
+                  </button>
+                </div>
+
+                <p className="mt-2.5 text-[12px] text-muted">Vence el {cuando(cupon.vence)}</p>
               </div>
-
-              <p className="mt-2 text-center text-[12px] text-muted">
-                Vence el {cuando(cupon.vence)}
-              </p>
 
               <a
                 href={linkWhatsAppCupon(cupon.codigo, cupon.frase)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-wa px-4 py-3
-                           text-[15px] font-bold text-[#04310f] transition-colors hover:bg-wa-dark"
+                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-wa px-4 py-3.5
+                           text-[16px] font-bold text-[#04310f] transition-colors hover:bg-wa-dark"
               >
-                <MessageCircle className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden />
+                <MessageCircle className="h-[19px] w-[19px]" strokeWidth={2.4} aria-hidden />
                 Usarlo por WhatsApp
               </a>
             </div>

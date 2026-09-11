@@ -73,6 +73,53 @@ html {
   transform-origin: 50% 100%;
 }
 
+/*
+  La tarjeta del cupón. Es el premio: tiene que entrar con un golpe y no
+  aparecer como un párrafo más. Va en CSS como el resto de las entradas —
+  Motion solo para hover y layout.
+*/
+@keyframes cupon-entra {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(12px);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.025) translateY(0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cupon-entra {
+  animation: cupon-entra 0.55s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+/* un brillo que cruza la tarjeta una sola vez, apenas termina de entrar */
+@keyframes cupon-brillo {
+  from {
+    transform: translateX(-130%);
+  }
+  to {
+    transform: translateX(130%);
+  }
+}
+
+.cupon-brillo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 65%
+  );
+  animation: cupon-brillo 1.1s ease-out 0.4s both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
