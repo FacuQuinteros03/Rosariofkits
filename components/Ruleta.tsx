@@ -157,7 +157,14 @@ export function Ruleta() {
       const r = await fetch("/api/ruleta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, telefono }),
+        /*
+          `document.referrer` viaja en el body y no se deduce del lado del
+          servidor, porque no se puede: este fetch sale de la propia página, así
+          que el header `referer` que le llega al API dice siempre rosariofkits,
+          venga de Instagram o de donde sea. El navegador es el único que se
+          acuerda del origen real de la visita.
+        */
+        body: JSON.stringify({ nombre, telefono, vieneDe: document.referrer }),
       });
       const d = await r.json();
       /* El servidor explica qué está mal (el número, el nombre, o que el

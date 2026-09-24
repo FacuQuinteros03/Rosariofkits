@@ -77,6 +77,13 @@ export async function registrarCupon(datos: {
   codigo: string;
   premio: string;
   vence: number;
+  /* De donde vino y con que. Son opcionales y pueden llegar vacíos: el dato de
+     marketing nunca puede ser el motivo por el que alguien se quede sin cupón.
+     Si el Apps Script todavía no tiene esas columnas, las ignora. */
+  vieneDe?: string;
+  dispositivo?: string;
+  zona?: string;
+  pais?: string;
 }): Promise<CuponRegistrado> {
   const d = await llamar({ accion: "registrar", ...datos });
   if (!d.cupon) throw new Error("El registro no devolvió el cupón");

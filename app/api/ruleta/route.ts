@@ -19,11 +19,12 @@
  *      queda un cupón que su dueño no puede usar.
  */
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { RULETA_ACTIVA, girar, verificar } from "@/lib/ruleta-server";
 import { REGISTRO_ACTIVO, cuponDeTelefono, registrarCupon } from "@/lib/cupones";
-import { normalizarTelefono } from "@/lib/telefono";
+import { normalizarTelefono, zonaDeTelefono } from "@/lib/telefono";
+import { conQueEntro, deDondeVino, paisDe } from "@/lib/visita";
 import type { Cupon } from "@/lib/ruleta";
 
 /** Nada de esto se puede cachear: cada visita tiene su propia respuesta. */
@@ -126,6 +127,17 @@ export async function POST(req: Request) {
       return NextResponse.json(respuesta(v.cupon, false));
     }
 
+    /*
+      De donde vino y con que. Se lee recien acá, cuando el giro es nuevo de
+      verdad: al que ya tenía cupón no se le vuelve a anotar nada.
+
+      `datos.vieneDe` es el `document.referrer` que manda el componente. Tiene
+      que venir del navegador porque el `referer` de este pedido dice siempre
+      la propia web — el giro sale de un fetch de la página. Ver lib/visita.ts.
+    */
+    const cabeceras = await headers();
+    const agente = cabeceras.get("user-agent") ?? "";
+
     const cupon = girar();
     const anotado = await registrarCupon({
       nombre,
@@ -133,6 +145,10 @@ export async function POST(req: Request) {
       codigo: cupon.codigo,
       premio: cupon.premio.titulo,
       vence: cupon.vence,
+      vieneDe: deDondeVino(agente, String(datos?.vieneDe ?? "").slice(0, 300)),
+      dispositivo: conQueEntro(agente),
+      zona: zonaDeTelefono(telefono),
+      pais: paisDe(cabeceras.get("x-vercel-ip-country")),
     });
 
     /* Puede volver otro código: son dos giros del mismo número en el mismo

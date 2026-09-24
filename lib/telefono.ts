@@ -45,3 +45,66 @@ export function mostrarTelefono(normalizado: string): string {
   const resto = n.slice(area);
   return `${n.slice(0, area)} ${resto.slice(0, resto.length - 4)}-${resto.slice(-4)}`;
 }
+
+/**
+ * De donde es, segun el codigo de area del celular.
+ *
+ * Es mas confiable que ubicar por IP: las companias de celular sacan a todo el
+ * mundo por una misma IP (CGNAT), asi que alguien parado en Rosario puede
+ * figurar en Buenos Aires. El codigo de area no se mueve.
+ *
+ * Lo que si falla: el que se mudo y conservo el numero. Sirve para saber a
+ * donde se vende, no para afirmar donde esta parada una persona.
+ *
+ * Solo estan las areas que se pueden afirmar. Cualquier otra sale como
+ * "area NNN" en vez de inventar una ciudad.
+ */
+const ZONAS: Record<string, string> = {
+  // el area de siempre
+  "341": "Rosario",
+  "3476": "San Lorenzo",
+  "3464": "Casilda",
+  "3471": "Cañada de Gómez",
+  "3400": "Villa Constitución",
+  "3462": "Venado Tuerto",
+  "3492": "Rafaela",
+  "336": "San Nicolás",
+  "2477": "Pergamino",
+  // el resto del pais
+  "11": "Buenos Aires",
+  "221": "La Plata",
+  "223": "Mar del Plata",
+  "291": "Bahía Blanca",
+  "351": "Córdoba",
+  "358": "Río Cuarto",
+  "342": "Santa Fe",
+  "343": "Paraná",
+  "345": "Concordia",
+  "261": "Mendoza",
+  "264": "San Juan",
+  "266": "San Luis",
+  "299": "Neuquén",
+  "362": "Resistencia",
+  "376": "Posadas",
+  "379": "Corrientes",
+  "380": "La Rioja",
+  "381": "Tucumán",
+  "383": "Catamarca",
+  "385": "Santiago del Estero",
+  "387": "Salta",
+  "388": "Jujuy",
+};
+
+export function zonaDeTelefono(normalizado: string): string {
+  const n = (normalizado || "").replace(/^549/, "");
+  if (n.length !== 10) return "";
+
+  /* Las areas miden 2, 3 o 4 digitos y no hay forma de saberlo del largo del
+     numero — se prueba de la mas larga a la mas corta, que es la unica que no
+     confunde 3476 (San Lorenzo) con 347 (que no existe). */
+  for (const largo of [4, 3, 2]) {
+    const area = n.slice(0, largo);
+    if (ZONAS[area]) return ZONAS[area];
+  }
+  return `área ${n.slice(0, 3)}`;
+}

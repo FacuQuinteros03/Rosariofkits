@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Big_Shoulders } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Ruleta } from "@/components/Ruleta";
 import { SITIO } from "@/lib/site";
@@ -51,6 +52,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         {/* el boton flotante vive en todo el sitio, tambien en la ficha de producto */}
         <Ruleta />
+        {/*
+          Visitas, de donde vienen y con que entran. Es de Vercel, sin cookies y
+          sin seguir a nadie de un sitio a otro: cuenta paginas vistas, no
+          personas. Los numeros salen en el panel de Vercel, pestaña Analytics,
+          y hay que prenderlo ahi una vez.
+
+          Va aca y no en la ruleta porque son dos preguntas distintas: esto mide
+          TODA la web, la ruleta solo mide a los que se animan a girar (que en
+          los numeros de hoy son siete).
+        */}
+        <Analytics />
       </body>
     </html>
   );
