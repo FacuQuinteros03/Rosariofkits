@@ -91,18 +91,17 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
   const agotados = visibles.filter((p) => p.total === 0);
   const unidades = enStock.reduce((s, p) => s + p.total, 0);
 
-  // dos productos reales, con stock, para ilustrar la promo
-  const ejemploCamiseta = productos.find((p) => p.categoria !== "Shorts" && p.foto && p.total > 0);
-  const ejemploShort = productos.find((p) => p.categoria === "Shorts" && p.foto && p.total > 0);
+  /* Dos camisetas reales, con stock, para ilustrar la promo. Las de $52.500
+     para arriba, que son las que entran: mostrar una FAN seria prometer algo
+     que la promo no cubre. Ver el comentario de PromoBanner. */
+  const deLaPromo = productos.filter(
+    (p) => p.categoria !== "Shorts" && p.foto && p.total > 0 && p.precio >= 52500
+  );
 
   return (
     <section aria-label="Catálogo">
       <div className="mb-4">
-        <PromoBanner
-          camiseta={ejemploCamiseta}
-          short={ejemploShort}
-          onVerShorts={() => setCategoria("Shorts")}
-        />
+        <PromoBanner primera={deLaPromo[0]} segunda={deLaPromo[1]} />
       </div>
 
       {/* ---------- controles ---------- */}
