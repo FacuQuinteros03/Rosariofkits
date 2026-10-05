@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Expand, Shirt, X } from "lucide-react";
+import { useDeslizar } from "@/lib/deslizar";
 import type { Producto } from "@/lib/types";
 
 /**
@@ -32,6 +33,10 @@ export function FotoProducto({ producto }: { producto: Producto }) {
     (paso: number) => setActual((i) => (i + paso + fotos.length) % fotos.length),
     [fotos.length]
   );
+
+  /* Deslizar para pasar de foto. En el celular es el gesto que la gente prueba
+     primero sobre una foto grande, antes que cualquier flecha. */
+  const deslizar = useDeslizar(mover, fotos.length > 1);
 
   useEffect(() => {
     if (!abierta) return;
@@ -117,7 +122,11 @@ export function FotoProducto({ producto }: { producto: Producto }) {
       )}
 
       {/* el clic sobre la foto no cierra: solo el fondo */}
-      <div className="relative h-full w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="relative h-full w-full max-w-5xl"
+        onClick={(e) => e.stopPropagation()}
+        {...deslizar}
+      >
         <Image
           src={fotos[actual]}
           alt={`${producto.nombre}${varias ? ` — foto ${actual + 1} de ${fotos.length}` : ""}`}
@@ -145,6 +154,7 @@ export function FotoProducto({ producto }: { producto: Producto }) {
         ref={disparadorRef}
         type="button"
         onClick={() => setAbierta(true)}
+        {...deslizar}
         aria-label={`Ver ${producto.nombre} en pantalla completa`}
         className="group relative block aspect-square w-full cursor-zoom-in overflow-hidden
                    rounded-2xl border border-line bg-navy
