@@ -16,6 +16,12 @@ export interface Producto {
   id: string;
   nombre: string;
   categoria: CategoriaReal;
+  /** "Boca", "Real Madrid", "Argentina"; null si no es un equipo */
+  equipo: string | null;
+  /** ruta del escudo en /public/escudos, o null si no hay archivo */
+  escudo: string | null;
+  /** marcado en la columna Nuevo del Sheet: sale en "Recién llegadas" */
+  nuevo: boolean;
   precio: number;
   /** suma de unidades de todos los talles; 0 = agotado */
   total: number;

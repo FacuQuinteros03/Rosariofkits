@@ -4,6 +4,7 @@ import { Catalogo } from "@/components/Catalogo";
 import { IconoInstagram } from "@/components/IconoInstagram";
 import { Hero } from "@/components/Hero";
 import { PieDePagina } from "@/components/PieDePagina";
+import { RecienLlegadas } from "@/components/RecienLlegadas";
 import { TrustBar } from "@/components/TrustBar";
 import { getCatalogo } from "@/lib/sheets";
 import { INSTAGRAM } from "@/lib/site";
@@ -72,6 +73,8 @@ export default async function Page() {
         <div className="mt-8">
           <TrustBar />
         </div>
+
+        <RecienLlegadas productos={productos} />
 
         <section id="catalogo" className="mt-10 scroll-mt-4">
           <h2 className="font-display text-3xl font-extrabold uppercase leading-none text-ink sm:text-4xl">

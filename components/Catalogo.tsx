@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Search, X } from "lucide-react";
 import { CATEGORIAS, pesoTalle, type Categoria, type Producto } from "@/lib/types";
+import { EncontraTuEquipo, equiposConStock } from "./EncontraTuEquipo";
 import { ProductCard } from "./ProductCard";
 import { PromoBanner } from "./PromoBanner";
 
@@ -38,6 +39,24 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
   const [texto, setTexto] = useState("");
   const [categoria, setCategoria] = useState<Categoria>("Todas");
   const [talle, setTalle] = useState<string | null>(null);
+  const [equipo, setEquipo] = useState<string | null>(null);
+
+  const equipos = useMemo(() => equiposConStock(productos), [productos]);
+
+  /*
+    Elegir un equipo vuelve a "Todas": el hincha de Boca quiere ver la camiseta
+    y el short juntos, no descubrir que tenía un filtro de Selecciones puesto.
+    Después baja hasta la grilla, que es donde se ve el resultado.
+  */
+  const elegirEquipo = (e: string | null) => {
+    setEquipo(e);
+    if (e) {
+      setCategoria("Todas");
+      requestAnimationFrame(() =>
+        document.getElementById("grilla")?.scrollIntoView({ behavior: "smooth", block: "start" })
+      );
+    }
+  };
 
   // el indice de busqueda se calcula una sola vez
   const indexados = useMemo(
@@ -74,13 +93,14 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
     const q = normalizar(texto.trim());
     return indexados
       .filter(({ p, buscar }) => {
+        if (equipo && p.equipo !== equipo) return false;
         if (categoria !== "Todas" && p.categoria !== categoria) return false;
         if (talleActivo && !tieneTalle(p, talleActivo)) return false;
         if (q && !buscar.includes(q)) return false;
         return true;
       })
       .map(({ p }) => p);
-  }, [indexados, texto, categoria, talleActivo]);
+  }, [indexados, texto, categoria, talleActivo, equipo]);
 
   /*
     Los agotados van aparte y al final. Se muestran a propósito: son la prueba
@@ -102,6 +122,10 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
     <section aria-label="Catálogo">
       <div className="mb-4">
         <PromoBanner primera={deLaPromo[0]} segunda={deLaPromo[1]} />
+      </div>
+
+      <div className="mb-5">
+        <EncontraTuEquipo equipos={equipos} activo={equipo} onElegir={elegirEquipo} />
       </div>
 
       {/* ---------- controles ---------- */}
@@ -202,7 +226,7 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
         )}
       </div>
 
-      <p className="flex items-center gap-2.5 py-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
+      <p id="grilla" className="flex scroll-mt-40 flex-wrap items-center gap-x-2.5 gap-y-1.5 py-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
         <span
           className="h-3 w-2.5 shrink-0 bg-navy-2"
           style={{ clipPath: "polygon(38% 0,100% 0,62% 100%,0 100%)" }}
@@ -211,6 +235,18 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
         {enStock.length} {enStock.length === 1 ? "modelo" : "modelos"} · {unidades}{" "}
         {unidades === 1 ? "unidad" : "unidades"}
         {talleActivo && <span className="text-muted/70">· talle {talleActivo}</span>}
+        {equipo && (
+          <button
+            type="button"
+            onClick={() => setEquipo(null)}
+            aria-label={`Quitar el filtro ${equipo}`}
+            className="inline-flex items-center gap-1 rounded-full border border-white/40 bg-white/10
+                       py-0.5 pl-2.5 pr-1.5 normal-case tracking-normal text-white hover:bg-white/20"
+          >
+            {equipo}
+            <X className="h-3 w-3" aria-hidden />
+          </button>
+        )}
         {agotados.length > 0 && (
           <span className="text-muted/70">
             · {agotados.length} {agotados.length === 1 ? "agotado" : "agotados"}
@@ -221,7 +257,13 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
       {/* ---------- grilla ---------- */}
       {visibles.length === 0 ? (
         <p className="py-16 text-center text-sm leading-relaxed text-muted">
-          {talleActivo ? (
+          {equipo ? (
+            <>
+              No nos queda nada de {equipo} con ese filtro.
+              <br />
+              Probá sacando el talle o la búsqueda, o escribinos y lo conseguimos por encargue.
+            </>
+          ) : talleActivo ? (
             <>
               No nos queda nada en talle {talleActivo} con ese filtro.
               <br />
