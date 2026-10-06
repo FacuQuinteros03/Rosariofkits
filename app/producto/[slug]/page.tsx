@@ -125,7 +125,13 @@ export default async function ProductoPage({ params }: Props) {
         </Link>
       </nav>
 
-      <div className="grid gap-6 md:grid-cols-2 md:gap-10">
+      {/*
+        grid-cols-1 y no la columna implícita: esa usa min-width auto, y la tira
+        de miniaturas (una fila que no se achica) la estiraba más que la
+        pantalla. En el celular la página quedaba de 440px y el navegador la
+        abría con zoom.
+      */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10">
         {/* ---------- foto: contenida, y ampliable a pantalla completa ---------- */}
         <FotoProducto producto={p} />
 

@@ -157,10 +157,26 @@ export function FotoProducto({ producto }: { producto: Producto }) {
         {...deslizar}
         aria-label={`Ver ${producto.nombre} en pantalla completa`}
         className="group relative block aspect-square w-full cursor-zoom-in overflow-hidden
-                   rounded-2xl border border-line bg-navy
+                   rounded-2xl border border-line bg-surface
                    focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
                    focus-visible:outline-gold"
       >
+        {/*
+          Fondo: la misma foto, desenfocada y oscura. El recuadro es cuadrado y
+          las fotos vienen cuadradas (proveedor) o verticales (las propias); el
+          espacio que sobra antes era una franja azul plana que peleaba con la
+          camiseta. Así toma sus colores. Mismo src y sizes que la de adelante:
+          el navegador la baja una sola vez.
+        */}
+        <Image
+          src={fotos[actual]}
+          alt=""
+          aria-hidden
+          fill
+          sizes="(max-width:768px) 100vw, 50vw"
+          quality={90}
+          className="scale-125 object-cover opacity-60 blur-2xl brightness-50 saturate-150"
+        />
         <Image
           src={fotos[actual]}
           alt={producto.nombre}
@@ -168,7 +184,7 @@ export function FotoProducto({ producto }: { producto: Producto }) {
           sizes="(max-width:768px) 100vw, 50vw"
           quality={90}
           priority
-          className="object-contain p-2 transition-transform duration-500 group-hover:scale-[1.03]"
+          className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
         />
         <span
           className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5
