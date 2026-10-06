@@ -10,6 +10,7 @@ import { getCatalogo, getProducto, getRelacionados } from "@/lib/sheets";
 import { conStock } from "@/lib/types";
 import { INSTAGRAM, NEGOCIO, SITIO } from "@/lib/site";
 import { precio } from "@/lib/whatsapp";
+import { Precio } from "@/components/Precio";
 
 /** Mismo ISR que el catálogo. Tiene que ser literal. */
 export const revalidate = 60;
@@ -150,8 +151,8 @@ export default async function ProductoPage({ params }: Props) {
               Precio a confirmar al hacer el encargue
             </p>
           ) : (
-            <p className="font-display text-5xl font-bold leading-none tabular-nums text-ink">
-              {precio(p.precio)}
+            <p>
+              <Precio producto={p} tamano="text-5xl" />
             </p>
           )}
 

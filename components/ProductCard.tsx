@@ -6,7 +6,8 @@ import { motion } from "motion/react";
 import { MessageCircle } from "lucide-react";
 import { CarruselFotos } from "./CarruselFotos";
 import { conStock, type Producto } from "@/lib/types";
-import { linkWhatsApp, linkWhatsAppEncargue, precio } from "@/lib/whatsapp";
+import { linkWhatsApp, linkWhatsAppEncargue } from "@/lib/whatsapp";
+import { Precio } from "./Precio";
 
 export function ProductCard({ producto, prioridad = false }: { producto: Producto; prioridad?: boolean }) {
   const disponibles = producto.variantes.filter(conStock);
@@ -46,6 +47,14 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
                        ring-1 ring-inset ring-white/20 backdrop-blur-sm"
           >
             Agotado
+          </span>
+        ) : producto.precioAntes ? (
+          <span
+            className="absolute left-2.5 top-2.5 z-10 rounded-full bg-red-600 px-2.5 py-1
+                       text-[10px] font-extrabold uppercase tracking-[0.11em] text-white
+                       shadow-md shadow-black/30"
+          >
+            Rebajada
           </span>
         ) : (
           ultima && (
@@ -88,8 +97,8 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
         {agotado ? (
           <p className="text-[12.5px] font-semibold text-muted">Precio a confirmar</p>
         ) : (
-          <p className="font-display text-3xl font-bold leading-none tabular-nums text-ink">
-            {precio(producto.precio)}
+          <p>
+            <Precio producto={producto} />
           </p>
         )}
 

@@ -23,6 +23,8 @@ export interface Producto {
   /** marcado en la columna Nuevo del Sheet: sale en "Recién llegadas" */
   nuevo: boolean;
   precio: number;
+  /** el precio al que estuvo publicada, si se rebajó; se muestra tachado */
+  precioAntes: number | null;
   /** suma de unidades de todos los talles; 0 = agotado */
   total: number;
   /**

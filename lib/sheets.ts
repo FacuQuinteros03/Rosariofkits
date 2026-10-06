@@ -9,7 +9,7 @@ const SIN_TILDES = new RegExp("[" + "\u0300-\u036f" + "]", "g");
 /**
  * Hoja "WEB" del libro Stock_RosarioFkits, publicada como CSV.
  * Columnas: SKU | Producto / Descripcion | Categoria | Precio Venta ($) | Disponible
- * y, opcionales, Estado_Pub y Nuevo. Nunca trae costo ni margen.
+ * y, opcionales, Estado_Pub, Nuevo y Precio Antes. Nunca trae costo ni margen.
  *
  * Las cinco primeras se leen por posicion; las opcionales, por el nombre del
  * encabezado. Asi se puede agregar una columna al QUERY de la hoja sin que
@@ -39,16 +39,31 @@ const ESTADO_PUBLICABLE = "stock";
 interface Columnas {
   estado: number;
   nuevo: number;
+  precioAntes: number;
 }
 
 function ubicarColumnas(encabezado: string[]): Columnas {
   const nombres = encabezado.map((h) => h.trim().toLowerCase());
-  return { estado: nombres.indexOf("estado_pub"), nuevo: nombres.indexOf("nuevo") };
+  return {
+    estado: nombres.indexOf("estado_pub"),
+    nuevo: nombres.indexOf("nuevo"),
+    precioAntes: nombres.findIndex((n) => n.startsWith("precio antes")),
+  };
 }
 
 function estadoPub(fila: string[], col: Columnas): string {
   const v = col.estado === -1 ? "" : (fila[col.estado] ?? "").trim().toLowerCase();
   return v === "" ? ESTADO_PUBLICABLE : v;
+}
+
+/**
+ * El precio que se muestra tachado. Tiene que ser uno que de verdad se cobro:
+ * tachar un numero inventado para que el real parezca oferta es publicidad
+ * enganosa, y el que lo detecta no vuelve. Por eso no se calcula: lo escribe
+ * Facu, con el precio al que estuvo publicada.
+ */
+function precioAntes(fila: string[], col: Columnas): number {
+  return col.precioAntes === -1 ? 0 : parsePrecio(fila[col.precioAntes] ?? "");
 }
 
 /**
@@ -281,6 +296,7 @@ export async function getCatalogo(): Promise<Producto[]> {
       nombre: string;
       categoria: CategoriaReal;
       precio: number;
+      precioAntes: number;
       nuevo: boolean;
       variantes: Variante[];
     }
@@ -299,6 +315,7 @@ export async function getCatalogo(): Promise<Producto[]> {
     const categoria = clasificar(modelo, f[2] ?? "");
     const precio = parsePrecio(f[3] ?? "0");
     const nuevo = esNuevo(f, col);
+    const antes = precioAntes(f, col);
     const clave = `${categoria}::${modelo.toLowerCase()}`;
 
     const actual = porModelo.get(clave);
@@ -306,12 +323,14 @@ export async function getCatalogo(): Promise<Producto[]> {
       if (precio > 0 && (actual.precio === 0 || precio < actual.precio)) actual.precio = precio;
       // con un talle marcado alcanza: el modelo es nuevo
       actual.nuevo ||= nuevo;
+      actual.precioAntes = Math.max(actual.precioAntes, antes);
       actual.variantes.push({ sku, talle, disponible });
     } else {
       porModelo.set(clave, {
         nombre: modelo,
         categoria,
         precio,
+        precioAntes: antes,
         nuevo,
         variantes: [{ sku, talle, disponible }],
       });
@@ -331,6 +350,8 @@ export async function getCatalogo(): Promise<Producto[]> {
         escudo: buscarEscudo(equipo),
         nuevo: m.nuevo,
         precio: m.precio,
+        /* solo si de verdad baja: un "antes" igual o menor no es rebaja */
+        precioAntes: m.precioAntes > m.precio && m.precio > 0 ? m.precioAntes : null,
         total: variantes.reduce((s, v) => s + v.disponible, 0),
         variantes,
         foto: fotos[0] ?? null,

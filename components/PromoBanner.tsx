@@ -77,7 +77,7 @@ export function PromoBanner({
             </span>
           </p>
           <p className="mt-1.5 text-[12px] leading-snug text-on-navy-muted sm:text-[12.5px]">
-            Sobre las camisetas versión jugador, con o sin dorsal, mientras haya stock.
+            Sobre las camisetas versión jugador, con o sin dorsal, mientras haya stock. No suma con las rebajadas.
           </p>
         </div>
       </div>

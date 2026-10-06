@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Producto } from "@/lib/types";
-import { precio } from "@/lib/whatsapp";
+import { Precio } from "./Precio";
 import { FranjaDeslizable } from "./FranjaDeslizable";
 
 /**
@@ -79,10 +79,8 @@ export function RecienLlegadas({ productos }: { productos: Producto[] }) {
               </span>
               <span className="block p-3.5">
                 <span className="line-clamp-2 text-sm font-semibold leading-snug text-ink">{p.nombre}</span>
-                <span className="mt-2 flex items-baseline justify-between gap-2">
-                  <span className="font-display text-2xl font-bold leading-none tabular-nums text-ink">
-                    {precio(p.precio)}
-                  </span>
+                <span className="mt-2 flex items-end justify-between gap-2">
+                  <Precio producto={p} tamano="text-2xl" />
                   <span className="text-[11px] font-bold tabular-nums text-muted">{talles.join(" · ")}</span>
                 </span>
               </span>
