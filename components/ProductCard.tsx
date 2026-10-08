@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { MessageCircle } from "lucide-react";
 import { CarruselFotos } from "./CarruselFotos";
-import { conStock, type Producto } from "@/lib/types";
+import { conStock, esLanzamiento, type Producto } from "@/lib/types";
 import { linkWhatsApp, linkWhatsAppEncargue } from "@/lib/whatsapp";
 import { Precio } from "./Precio";
 
@@ -47,6 +47,14 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
                        ring-1 ring-inset ring-white/20 backdrop-blur-sm"
           >
             Agotado
+          </span>
+        ) : esLanzamiento(producto) ? (
+          <span
+            className="absolute left-2.5 top-2.5 z-10 rounded-full bg-gold px-2.5 py-1
+                       text-[10px] font-extrabold uppercase tracking-[0.11em] text-black/85
+                       shadow-md shadow-black/30"
+          >
+            Lanzamiento
           </span>
         ) : producto.precioAntes ? (
           <span

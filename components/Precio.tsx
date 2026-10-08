@@ -1,4 +1,4 @@
-import type { Producto } from "@/lib/types";
+import { esLanzamiento, type Producto } from "@/lib/types";
 import { precio } from "@/lib/whatsapp";
 
 /**
@@ -12,11 +12,12 @@ export function Precio({
   producto,
   tamano = "text-3xl",
 }: {
-  producto: Pick<Producto, "precio" | "precioAntes">;
+  producto: Pick<Producto, "precio" | "precioAntes" | "nuevo">;
   /** clase de tamaño del número grande */
   tamano?: string;
 }) {
   const { precio: actual, precioAntes } = producto;
+  const lanzamiento = esLanzamiento(producto);
   const descuento = precioAntes ? Math.round((1 - actual / precioAntes) * 100) : 0;
   /* un porcentaje chico no le dice nada a nadie: "−8%" pasa de largo,
      "−$4.000" se entiende de una. Desde el 10% el porcentaje pega más. */
@@ -27,10 +28,18 @@ export function Precio({
     <span className="flex flex-col gap-1">
       {precioAntes && (
         <span className="flex items-center gap-2">
-          <s className="text-[13px] font-semibold tabular-nums text-muted decoration-red-400/80 decoration-2">
+          <s
+            className={`text-[13px] font-semibold tabular-nums text-muted decoration-2 ${
+              lanzamiento ? "decoration-gold/80" : "decoration-red-400/80"
+            }`}
+          >
             {precio(precioAntes)}
           </s>
-          <span className="rounded-md bg-red-500/15 px-1.5 py-0.5 text-[11px] font-extrabold tabular-nums text-red-300 ring-1 ring-inset ring-red-400/30">
+          <span
+            className={`rounded-md px-1.5 py-0.5 text-[11px] font-extrabold tabular-nums ring-1 ring-inset ${
+              lanzamiento ? "bg-gold/15 text-gold ring-gold/30" : "bg-red-500/15 text-red-300 ring-red-400/30"
+            }`}
+          >
             {etiqueta}
           </span>
         </span>

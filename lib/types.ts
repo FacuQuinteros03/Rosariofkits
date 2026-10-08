@@ -39,6 +39,14 @@ export interface Producto {
   fotos: string[];
 }
 
+/**
+ * Recién llegada con precio tachado: se anuncia como precio de lanzamiento,
+ * no como rebaja. Una "Rebajada" en algo que acaba de entrar se lee como que
+ * no se vende; "Lanzamiento" cuenta lo mismo como una oportunidad.
+ */
+export const esLanzamiento = (p: Pick<Producto, "nuevo" | "precioAntes">) =>
+  p.nuevo && p.precioAntes !== null;
+
 /** Los talles que se pueden comprar hoy. */
 export const conStock = (v: Variante) => v.disponible > 0;
 
