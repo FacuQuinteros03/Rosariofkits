@@ -4,10 +4,12 @@
 
 ## 1. Por qué, en una página
 
-Hasta el 2026-10-10 había dos libros de Google Sheets que no sabían uno del otro: el
-viejo (`Stock_RosarioFkits`) alimentaba la web y el nuevo (`Libro_RosarioFkits`) llevaba
-la plata, así que una venta cargada en uno no aparecía en el otro. Ese día se unificó
-todo en el libro nuevo, que es la base de esta migración.
+Hay dos libros de Google Sheets. El viejo (`Stock_RosarioFkits`) alimenta la web por un
+CSV publicado y es donde se cargan las ventas con el Apps Script. El nuevo
+(`Libro_RosarioFkits`) lleva la plata: pedidos, costos, señas, caja. Durante mucho tiempo
+una venta cargada en uno no aparecía en el otro; el 2026-10-10 se unificó el stock en el
+libro nuevo, pero la web y la carga diaria siguen en el viejo hasta que el ERP lo
+reemplace.
 
 Lo que la unificación no arregla es que las fórmulas fallan **en silencio**:
 `SUMIFS` sobre columnas enteras no se queja si un SKU está mal tipeado, si una fila quedó
@@ -30,6 +32,22 @@ La idea es una sola base de datos que:
 Dato a favor: de los cuatro disparadores para migrar que dejamos anotados en
 septiembre, uno ya se cumplió (hay **tres pedidos en tránsito a la vez**: P-003, P-004 y
 P-005), y el carrito de la web va camino a cobrar online, que es otro.
+
+### La regla de Facu: producción no se toca hasta el final
+
+**Nada de lo que hoy funciona en producción se toca hasta que el ERP esté completo y
+probado.** Mientras se construye:
+
+- La web (`rosariofkits.vercel.app`) sigue leyendo el CSV publicado de
+  `Stock_RosarioFkits`, y las ventas se siguen cargando ahí con el Apps Script actual.
+- Todo el ERP se construye **en paralelo**: un proyecto de Supabase propio, una rama
+  `erp` del repo que **no se mergea a `main`**, y los deploys de preview que Vercel arma
+  solo para esa rama. Las variables de entorno del ERP se cargan en Vercel con alcance
+  **Preview**, nunca Production.
+- Los scripts de migración **solo leen** los libros: no escriben ni una celda, no
+  publican ni protegen hojas.
+- El paso a producción es **uno solo, al final** (sección 6.3), y se puede deshacer
+  cambiando una variable de entorno (`CATALOGO_FUENTE=sheets|supabase`).
 
 ### Decisiones de base
 
@@ -706,25 +724,31 @@ después de cada carga y en el job nocturno; el tablero no cambia.
 Hoy: `hoja WEB → CSV publicado → lib/sheets.ts (parseCSV) → getCatalogo()`, con ISR de
 60 segundos.
 
-El cambio se hace **solo en la fuente**, no en lo que se arma con ella:
+El cambio se hace **solo en la fuente**, no en lo que se arma con ella, y todo vive en
+la rama `erp` hasta el corte:
 
-1. `lib/sheets.ts` se parte en dos: `leerFilasCSV()` (lo de hoy) y `leerFilasDB()`, que
-   llama a `catalogo_web()` por la API REST de Supabase con la clave `anon`. Las dos
-   devuelven **las mismas filas** (`sku, producto, categoria, precio, disponible,
-   estado_pub, nuevo, precio_antes`), así todo lo de abajo —agrupar por modelo,
-   `clasificar()`, `equipoDe()`, fotos, carrito, `/api/stock`— no se toca.
-2. Una variable `CATALOGO_FUENTE=sheets|supabase` elige cuál. Si es `supabase` y la base
-   no contesta o devuelve error, **cae al CSV** y deja un `console.error`. Mientras el
-   CSV siga publicado, el sitio no se puede quedar sin catálogo.
-3. Se mantiene el ISR de 60 s: ninguna visita espera a la base, y si la base está caída
+1. `lib/sheets.ts` se parte en dos: `leerFilasCSV()` (lo de hoy, sin cambios) y
+   `leerFilasDB()`, que llama a `catalogo_web()` por la API REST de Supabase con la
+   clave `anon`. Las dos devuelven **las mismas filas** (`sku, producto, categoria,
+   precio, disponible, estado_pub, nuevo, precio_antes`), así todo lo de abajo —agrupar
+   por modelo, `clasificar()`, `equipoDe()`, fotos, carrito, `/api/stock`— no se toca.
+2. Una variable `CATALOGO_FUENTE=sheets|supabase` elige cuál. **Si no está definida, es
+   `sheets`**: el mismo código, mergeado, se comporta exactamente como hoy. Si es
+   `supabase` y la base no contesta o devuelve error, **cae al CSV** y deja un
+   `console.error`. Mientras el CSV siga publicado, el sitio no se puede quedar sin
+   catálogo.
+3. En Vercel, `CATALOGO_FUENTE=supabase` y las claves de Supabase se cargan **solo para
+   Preview**. Producción no tiene ninguna variable nueva hasta el corte.
+4. Se mantiene el ISR de 60 s: ninguna visita espera a la base, y si la base está caída
    en el momento de revalidar, Next sigue sirviendo la última página buena.
-4. Además, cada Server Action del panel que cambia stock o precios llama a
+5. Cada Server Action del panel que cambia stock o precios llama a
    `updateTag('catalogo')`: la venta cargada desde el celular se ve en la web al
    instante, no a los 7 minutos de hoy.
-5. Verificación antes de prender: un script compara fila por fila la salida de las dos
-   fuentes (después de migrar) y tiene que dar cero diferencias. Primero se prende en un
-   **deploy de preview** de Vercel, después en producción.
-6. Para volver atrás: cambiar la variable a `sheets` y redeployar. Un minuto.
+6. Verificación en el preview: un script compara fila por fila el catálogo del preview
+   (Supabase, recién migrado) contra el de producción (CSV) y tiene que dar cero
+   diferencias.
+7. Para volver atrás después del corte: `CATALOGO_FUENTE=sheets` en Production y
+   redeploy. Un minuto, sin tocar código.
 
 `/preventa` sigue con su JSON por ahora. Su `SHEET_PREVENTA_CSV_URL` (los "quedan N")
 se reemplaza en una etapa posterior por `catalogo_web()` filtrando `estado_pub =
@@ -732,27 +756,42 @@ se reemplaza en una etapa posterior por `catalogo_web()` filtrando `estado_pub =
 
 ## 6. Migración desde el libro
 
-### 6.1 Qué sale de cada hoja
+### 6.1 Qué sale de cada libro
 
-El 2026-10-10 se unificó el stock en `Libro_RosarioFkits`: tiene todas las ventas
-(hasta V-0026 a esa fecha), `Nuevo` y `Precio_Antes` en `PRODUCTOS!R:S`, y los ajustes.
-**Es la única fuente de la migración.** `Stock_RosarioFkits` queda de archivo y no se lee.
+Hasta el corte la producción sigue como hoy, así que la migración tiene que leer **los
+dos libros**, sin escribir en ninguno:
 
-| Dato | Hoja del libro | Qué se hace al migrar |
+- **`Libro_RosarioFkits`** es la base: el 2026-10-10 se unificó ahí el stock, con todas
+  las ventas hasta V-0026, `Nuevo` y `Precio_Antes` en `PRODUCTOS!R:S`, pedidos, pagos,
+  caja y ajustes.
+- **`Stock_RosarioFkits`** es donde se siguen cargando las ventas (Apps Script) y de donde
+  lee la web. Aporta **lo que se cargó ahí después de la unificación**: ventas nuevas,
+  altas de productos y cambios de precio, `Nuevo` o `Precio Antes`.
+
+Si en la sesión principal se termina cargando todo también en el libro nuevo, la
+segunda fuente queda vacía y no pasa nada; el script lo detecta solo.
+
+| Dato | De dónde | Qué se hace al migrar |
 |---|---|---|
-| Modelos, SKUs, talles, estampados, precio, `Nuevo`, `Precio Antes` | `PRODUCTOS` | Se separa en `modelos` + `skus`; `linea` y `equipo` se calculan con `clasificar()` y `equipoDe()` de `lib/sheets.ts` |
-| Pedidos e items con costo | `PEDIDOS`, `PEDIDO_ITEMS` | `proveedores` sale de los nombres de `PEDIDOS!C`; `recibido_en` = fecha del pedido para los ya recibidos |
-| Clientes | `CLIENTES` | `tipo = Mayorista` para los que tengan "Mayorista" en alguna venta |
-| Ventas | `VENTAS` | Cabecera + items; `pedido_id` por FIFO; `precio_lista` desde `PRODUCTOS`; lo que diga "Mayorista" o una promo en `Motivo_Descuento` pasa a `promo` |
-| Pagos, caja, ajustes | `PAGOS`, `CAJA`, `AJUSTES` | Tal cual, atando `Ref` a `pago_id` / `pedido_id` |
+| Modelos, SKUs, talles, estampados | `Libro_RosarioFkits!PRODUCTOS` + SKUs nuevos de `Stock_RosarioFkits!STOCK` | Se separa en `modelos` + `skus`; `linea` y `equipo` se calculan con `clasificar()` y `equipoDe()` de `lib/sheets.ts` |
+| Precio, `Nuevo`, `Precio Antes` | **`Stock_RosarioFkits!STOCK`**, que es el que se ve en la web | Si difiere del libro nuevo, gana el viejo y queda en el informe |
+| Pedidos e items con costo | `Libro_RosarioFkits` | `proveedores` sale de `PEDIDOS!C`; `recibido_en` = fecha del pedido para los ya recibidos |
+| Clientes | `Libro_RosarioFkits!CLIENTES` + los nombres nuevos de las ventas del viejo | `tipo = Mayorista` para los que tengan "Mayorista" en alguna venta |
+| Ventas hasta la unificación | `Libro_RosarioFkits!VENTAS` | Cabecera + items; `pedido_id` por FIFO; `precio_lista` desde `PRODUCTOS`; "Mayorista" o una promo en `Motivo_Descuento` pasa a `promo` |
+| Ventas posteriores | `Stock_RosarioFkits!VENTAS` | Se suman con su pago y su movimiento de caja (el viejo no tiene ni pagos ni caja: se asume cobro total en la fecha de la venta, y queda marcado) |
+| Pagos, caja, ajustes | `Libro_RosarioFkits` | Tal cual, atando `Ref` a `pago_id` / `pedido_id` |
 
 ### 6.2 Cómo
 
-Un script Python, `herramientas/migrar_erp.py`, que reusa la cuenta de servicio del MCP
-de Sheets para leer el libro y escribe en Supabase. Corre en tres modos:
+Un script Python, `herramientas/migrar_erp.py` (en la rama `erp`), que reusa la cuenta
+de servicio del MCP de Sheets **solo para leer** los dos libros y escribe en Supabase.
+Corre en tres modos:
 
-1. **`--revisar`** — lee el libro, no escribe nada, y genera un informe de
-   inconsistencias que Facu resuelve **en el libro** antes de seguir:
+1. **`--revisar`** — lee, no escribe nada en ningún lado, y genera un informe de
+   inconsistencias. Lo que haya que corregir, Facu lo corrige en el libro cuando le
+   parezca, como cualquier carga de todos los días:
+   - Ventas del viejo posteriores a la unificación, y diferencias de stock, precio,
+     `Nuevo` o `Precio Antes` por SKU entre los dos libros.
    - SKUs de `VENTAS`, `PEDIDO_ITEMS` o `AJUSTES` que no están en `PRODUCTOS`.
    - SKUs con `Disponible` o `Fisico` negativo.
    - Nombres de modelo que difieren entre talles del mismo modelo.
@@ -765,28 +804,60 @@ de Sheets para leer el libro y escribe en Supabase. Corre en tres modos:
    - Fechas guardadas como número (P-005: `46300` = 05/10/2026; V-0020: `46287` =
      22/09/2026) o como texto.
    - Estados escritos sin eñe o con espacios.
-2. **`--ensayo`** — carga todo en un proyecto Supabase de prueba (o en un esquema
-   `ensayo`) y compara el `TABLERO` de la base contra el del libro: saldo de caja,
-   facturado, ganancia, a cobrar, físico, disponible. Tienen que dar igual (salvo las
-   diferencias explicadas por el informe, como los cancelados que hoy suman en el saldo
-   de cliente). Se repite hasta que cierre.
-3. **`--final`** — lo mismo contra producción, y deja las secuencias (`venta_seq`,
-   `pago_seq`...) en el máximo migrado para que la próxima venta sea `V-00xx + 1`.
+2. **`--ensayo`** — **borra y vuelve a cargar** la base del ERP desde los libros, y
+   compara el `TABLERO` de la base contra el del libro (saldo de caja, facturado,
+   ganancia, a cobrar, físico, disponible) y el stock por SKU contra el CSV de la web.
+   Tienen que dar igual, salvo las diferencias explicadas por el informe (como los
+   cancelados que hoy suman en el saldo de cliente). Se puede correr todas las noches:
+   así el preview siempre tiene los datos reales de ayer y se prueba contra eso.
+3. **`--final`** — lo mismo, pero se corre una sola vez, en el corte, y deja las
+   secuencias (`venta_seq`, `pago_seq`...) en el máximo migrado para que la próxima
+   venta sea `V-00xx + 1`.
 
-### 6.3 El corte
+Hasta el corte, la base del ERP es **descartable**: cualquier cosa que se cargue en el
+preview para probar se pisa con el próximo `--ensayo`. Por eso no hace falta un segundo
+proyecto de Supabase.
 
-1. Elegir una noche sin ventas en curso.
-2. **Congelar el libro**: proteger todas las hojas (Datos → Proteger hojas y rangos),
-   y cambiar el Apps Script del celular para que muestre "ya no se usa, entrá a
-   /admin". Desde acá no se carga más nada en Sheets.
-3. `migrar_erp.py --revisar` tiene que salir limpio; `--final`.
-4. Comparar el tablero; comparar `catalogo_web()` contra el CSV.
-5. `CATALOGO_FUENTE=supabase` en Vercel → redeploy.
-6. A la mañana, cargar la primera venta real desde `/admin` y verla en la web.
+### 6.3 El corte: el único paso que toca producción
 
-Los libros **no se borran**: quedan congelados como histórico. El CSV que la web lea al
-momento del corte (el del libro que haya dejado publicado la unificación) sigue vivo
-como red de seguridad durante un mes; después se despublica.
+Recién cuando se cumple **todo** esto (la etapa 8 de la sección 8):
+
+- [ ] Todas las pantallas de `/admin` y `/admin/metricas` andan en el preview.
+- [ ] Facu cargó en el preview, sobre datos reales recién migrados, al menos una de cada
+      operación: venta entregada, venta con seña, saldo, reserva cancelada, gasto,
+      recepción de pedido y ajuste. Y el tablero dio lo esperado.
+- [ ] `--ensayo` corrió una semana seguida sin diferencias.
+- [ ] Hay backups de varias noches y se probó restaurar uno.
+- [ ] Facu aprobó.
+
+El corte, en una noche sin ventas en curso:
+
+1. **Congelar la carga en Sheets**: proteger las hojas de los dos libros (Datos →
+   Proteger hojas y rangos) y cambiar el Apps Script para que muestre "ya no se usa,
+   entrá a /admin".
+2. `migrar_erp.py --revisar` limpio; `--final`.
+3. Comparar el tablero de la base con el del libro, y `catalogo_web()` con el CSV.
+4. Cargar en Vercel, con alcance **Production**, las claves de Supabase y
+   `CATALOGO_FUENTE=supabase`.
+5. Mergear `erp` a `main`. Es el deploy de producción.
+6. Revisar el sitio en vivo; a la mañana, cargar la primera venta real desde `/admin` y
+   verla en la web.
+
+**Volver atrás**, si algo sale mal en los días siguientes:
+
+1. `CATALOGO_FUENTE=sheets` en Production y redeploy: la web vuelve a leer el CSV, que
+   nunca se despublicó.
+2. Desproteger las hojas y volver a poner el Apps Script como estaba (su código actual
+   queda guardado en `apps-script/`).
+3. `migrar_erp.py --volver` lista lo que se cargó en el ERP desde el corte (ventas,
+   pagos, ajustes), para cargarlo en el libro a mano. Con pocos días de diferencia son
+   unas pocas filas.
+
+El código del ERP puede quedar mergeado: con la variable en `sheets`, la web se comporta
+como antes, y `/admin` sin claves de Supabase muestra "panel no configurado".
+
+Los libros **no se borran**: quedan congelados como histórico. El CSV publicado sigue
+vivo como red de seguridad durante un mes; después se despublica.
 
 ### 6.4 Backups nocturnos
 
@@ -804,7 +875,8 @@ el tiempo. Se arma afuera, gratis:
 - La cadena de conexión va como *secret* del repo, nunca en el código.
 - El job falla en rojo si el dump sale vacío o mide menos que el anterior por más de un
   20%, y GitHub manda mail.
-- **Restaurar se prueba una vez** en la etapa 2, contra un proyecto vacío. Un backup que
+- **Restaurar se prueba una vez** en la etapa 2, contra un Postgres local o un
+  proyecto vacío que se borra después. Un backup que
   nunca se restauró no es un backup.
 
 (No se usa Drive porque la Drive API está deshabilitada en el proyecto de la cuenta de
@@ -831,7 +903,7 @@ Supabase al crear el proyecto**, porque cambian.
 | **Sin backups** | Un error borra datos sin vuelta | Backups nocturnos propios (6.4) y auditoría en `eventos` |
 | Base de 500 MB | — | Hoy todo el negocio son unos cientos de filas: menos de 5 MB. No es un riesgo real por años |
 | Tráfico (egress) ~5 GB/mes | — | La web pide el catálogo cada 60 s como mucho, unos KB. No hay fotos en Supabase: siguen en `public/fotos` |
-| Dos proyectos gratis por cuenta | Si se usa uno para ensayo, no queda lugar | Ensayar en un esquema aparte, o borrar el de ensayo después del corte |
+| Dos proyectos gratis por cuenta | — | Alcanza con uno: hasta el corte la base del ERP es descartable y se recarga con `--ensayo`. El segundo queda libre para probar restauraciones |
 | Sin SLA ni soporte | Una caída de Supabase deja el panel sin andar | La web pública sigue (fallback CSV + ISR). Para cargar ventas en la caída: anotar y cargar después. Si algún día molesta, el plan Pro sale ~25 USD/mes |
 | Dependencia de un proveedor | — | Es Postgres estándar: el `pg_dump` se levanta en cualquier lado (Neon, Railway, un Postgres propio) |
 | La clave `anon` es pública | Cualquiera puede llamar a la API | RLS en todas las tablas sin política para `anon`; lo único ejecutable es `catalogo_web()`, que devuelve lo mismo que ya se ve en la web |
@@ -843,29 +915,43 @@ devolución, ajuste con motivo) vienen en el mínimo, y por eso existe `eventos`
 
 ## 8. Orden de implementación
 
-Etapas chicas, cada una se puede probar y frenar sin dejar nada roto. Las primeras tres
-no cambian nada de lo que ve el cliente ni de cómo carga Facu.
+Dos fases. En la **fase A** se construye y se prueba todo en paralelo, sin tocar
+producción: otra base (Supabase), otra rama (`erp`) y su deploy de preview. La web en
+`rosariofkits.vercel.app`, el CSV de `Stock_RosarioFkits` y el Apps Script siguen
+exactamente como hoy, y Facu sigue cargando ahí. La **fase B** es un solo paso, el corte,
+con vuelta atrás.
 
-| # | Etapa | Termina cuando | Toca producción |
+### Fase A — en paralelo
+
+| # | Etapa | Dónde | Termina cuando |
 |---|---|---|---|
-| 0 | **Aprobar este documento.** Facu crea la cuenta de Supabase (con su mail, 2FA) y el proyecto en São Paulo | Hay URL y claves | No |
-| 1 | Esquema, vistas, triggers y RPC como migraciones SQL en `supabase/migrations/` del repo. Tests en SQL de las reglas: vender sin stock falla, pago sin venta falla, dos ventas simultáneas de la última unidad → una falla | Los tests pasan | No |
-| 2 | Backups nocturnos + export a Sheets. **Probar restaurar** | Hay un backup de anoche y se restauró en limpio | No |
-| 3 | `migrar_erp.py --revisar`. Facu limpia los libros con el informe. `--ensayo` hasta que el tablero cierre | Tablero de la base = tablero del libro | No |
-| 4 | Web: `leerFilasDB()` + `CATALOGO_FUENTE` + fallback al CSV. Probar en preview con datos del ensayo | Comparación fila por fila da cero diferencias | Solo código, con la fuente en `sheets` |
-| 5 | Auth + lista blanca + `/admin` con el **tablero de solo lectura** | Facu y Vani entran desde el celular; un tercer mail no | No (la base todavía es de ensayo) |
-| 5b | **`/admin/metricas`** sobre los datos del ensayo: primero Ventas, Pedidos y Caja; después Talles, Rotación, Clientes, Promos y Preventa | Las métricas de agosto a hoy se ven, con los datos estimados marcados | No |
-| 6 | **Cargar venta** y **cargar pago / gasto** | Se cargan contra el ensayo y el tablero da lo esperado | No |
-| 7 | **Recibir pedido**, **ajustar stock**, **productos** | Se puede vivir sin abrir los libros | No |
-| 8 | **El corte** (6.3) | Primera venta real desde `/admin`, vista en la web | **Sí** |
-| 9 | Un mes con el CSV viejo como respaldo. Después: despublicarlo, sacar el fallback, archivar el Apps Script | — | Sí |
-| 10 | Después, en orden de valor: `/preventa` leyendo la base, listado de ventas y ficha de cliente, alta de pedidos desde el panel, y el checkout del carrito escribiendo ventas `Reservada` directo en la base | — | Sí |
+| 0 | **Aprobar este documento.** Facu crea la cuenta de Supabase (con su mail, 2FA) y el proyecto en São Paulo. Se crea la rama `erp` | Supabase nuevo · rama `erp` | Hay URL y claves, cargadas en Vercel solo para Preview |
+| 1 | Esquema, vistas, triggers y RPC como migraciones SQL en `supabase/migrations/`. Tests en SQL de las reglas: vender sin stock falla, pago sin venta falla, dos ventas simultáneas de la última unidad → una falla | Supabase · rama `erp` | Los tests pasan |
+| 2 | Backups nocturnos (repo privado aparte) + export al libro de consulta nuevo. **Probar restaurar** | GitHub Actions · libro nuevo de consulta | Hay un backup de anoche y se restauró en limpio |
+| 3 | `migrar_erp.py --revisar` y `--ensayo`, leyendo los dos libros sin escribirlos. Facu corrige lo que el informe marque, en su carga normal | Supabase | Tablero de la base = tablero del libro; stock = CSV de la web |
+| 4 | Web: `leerFilasDB()` + `CATALOGO_FUENTE` + fallback al CSV | Preview de `erp` | El catálogo del preview es idéntico al de producción, fila por fila |
+| 5 | Auth + lista blanca + `/admin` con el **tablero de solo lectura** | Preview de `erp` | Facu y Vani entran desde el celular; un tercer mail no |
+| 5b | **`/admin/metricas`**: primero Ventas, Pedidos y Caja; después Talles, Rotación, Clientes, Promos y Preventa | Preview de `erp` | Las métricas de agosto a hoy se ven, con los datos estimados marcados |
+| 6 | **Cargar venta** y **cargar pago / gasto** | Preview de `erp` | Se cargan sobre la copia de ayer y el tablero da lo esperado |
+| 7 | **Recibir pedido**, **ajustar stock**, **productos** | Preview de `erp` | Se puede hacer todo lo de hoy sin abrir un libro |
+| 8 | **Prueba completa**: `--ensayo` todas las noches durante una semana; Facu ensaya cada operación en el preview sobre datos reales; checklist de la sección 6.3 | Preview de `erp` | Checklist completa y Facu aprueba |
 
-Las métricas van tan temprano a propósito: son solo lectura, ya sirven con la historia
+Ninguna etapa de la fase A mergea a `main`, cambia una variable de Production, escribe
+en los libros ni toca el Apps Script.
+
+### Fase B — el corte
+
+| # | Etapa | Termina cuando |
+|---|---|---|
+| 9 | **El corte** (6.3): congelar Sheets, `--final`, variables en Production, merge de `erp` a `main` | Primera venta real desde `/admin`, vista en la web. Vuelta atrás: `CATALOGO_FUENTE=sheets` |
+| 10 | Un mes con el CSV como respaldo. Después: despublicarlo, sacar el fallback, archivar el Apps Script | — |
+| 11 | En orden de valor: `/preventa` leyendo la base, listado de ventas y ficha de cliente, alta de pedidos desde el panel, y el checkout del carrito escribiendo ventas `Reservada` directo en la base. Cada una en su rama, con su preview | — |
+
+Las métricas van temprano a propósito: son solo lectura, ya sirven con la historia
 migrada, y usarlas antes del corte es la mejor forma de encontrar datos mal migrados.
 
-Entre la etapa 3 y el corte, **se sigue cargando en los libros como hoy**. Cada ensayo
-vuelve a leer de cero, así que no hay doble carga.
+Hasta el corte **se carga solo en Sheets, como hoy**. Cada ensayo vuelve a leer de
+cero, así que no hay doble carga: lo que se prueba en el preview se descarta.
 
 Lo que se descarta con esto: instalar el `apps-script/libro-nuevo/` y escribirle el
 `Index.html` que le falta. El panel de la etapa 6 hace lo mismo y más.
@@ -886,4 +972,6 @@ Lo que se descarta con esto: instalar el `apps-script/libro-nuevo/` y escribirle
    las consultas por encargue de la web (tabla `consultas`) para medir demanda de lo
    agotado?
 7. **Fecha del corte**: tiene sentido hacerlo **antes de que llegue el pedido de China
-   en diciembre**, para recibir esas 189 unidades ya en el sistema nuevo.
+   en diciembre**, para recibir esas 189 unidades ya en el sistema nuevo. Si la fase A
+   no está completa para entonces, el pedido se recibe en Sheets como siempre y se
+   migra igual: la regla de no tocar producción manda sobre la fecha.
