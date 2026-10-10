@@ -4,14 +4,12 @@
 
 ## 1. Por qué, en una página
 
-Hoy hay dos libros de Google Sheets y ninguno sabe del otro:
+Hasta el 2026-10-10 había dos libros de Google Sheets que no sabían uno del otro: el
+viejo (`Stock_RosarioFkits`) alimentaba la web y el nuevo (`Libro_RosarioFkits`) llevaba
+la plata, así que una venta cargada en uno no aparecía en el otro. Ese día se unificó
+todo en el libro nuevo, que es la base de esta migración.
 
-- `Stock_RosarioFkits` (el viejo) alimenta la web por un CSV publicado. Tiene precio,
-  `Nuevo` y `Precio Antes`, pero no tiene plata: ni pagos, ni caja, ni pedidos.
-- `Libro_RosarioFkits` (el nuevo) lleva la contabilidad: pedidos, costos, señas, caja.
-  No alimenta la web.
-
-Una venta cargada en uno no aparece en el otro. Y las fórmulas fallan **en silencio**:
+Lo que la unificación no arregla es que las fórmulas fallan **en silencio**:
 `SUMIFS` sobre columnas enteras no se queja si un SKU está mal tipeado, si una fila quedó
 corrida de modelo (pasó con los shorts Argentina) o si alguien escribe un número encima
 de una fórmula (pasó con el SKU 3004, que ofreció en la web una camiseta que no existía).
@@ -24,6 +22,10 @@ La idea es una sola base de datos que:
    pisar a mano.
 3. Sea la **única** fuente: la web pública, el panel `/admin` y la exportación a Sheets
    leen de ahí.
+4. Dé **métricas propias**, que es uno de los objetivos principales y no un agregado:
+   qué se vende, con qué margen, cuánto tarda en venderse, qué talles pedir y cuánto
+   dejó cada pedido. Por eso el esquema guarda desde el principio los datos que esas
+   cuentas necesitan (sección 4), aunque las pantallas de carga no los muestren.
 
 Dato a favor: de los cuatro disparadores para migrar que dejamos anotados en
 septiembre, uno ya se cumplió (hay **tres pedidos en tránsito a la vez**: P-003, P-004 y
@@ -48,14 +50,14 @@ P-005), y el carrito de la web va camino a cobrar online, que es otro.
 proveedores ─┐
              └─< pedidos ─< pedido_items >─┐
                                            │
-modelos ─< skus ───────────────────────────┤
+equipos ─< modelos ─< skus ────────────────┤
                                            │
 clientes ─< ventas ─< venta_items >────────┤
               │                            │
               └─< pagos ── caja_movimientos│
                                            │
                      ajustes >─────────────┘
-admins (quién puede entrar)    eventos (auditoría)
+admins (quién puede entrar)    eventos (auditoría)    stock_diario (foto nocturna)
 ```
 
 `>─` = muchos a uno. Todo `sku` de `pedido_items`, `venta_items` y `ajustes` es **clave
@@ -78,7 +80,25 @@ foránea** a `skus`: un SKU mal tipeado no entra.
 5. **Pagos y caja quedan atados.** Cada pago genera su movimiento de caja **solo**, en la
    misma transacción. Hoy hay que cargar las dos filas a mano y por eso existe el
    control "caja = pagos"; acá no se pueden desincronizar.
-6. **`Nuevo` y `Precio Antes`** pasan a la base (hoy solo están en el libro viejo).
+6. **`Nuevo` y `Precio Antes`** pasan a la base (en el libro están en `PRODUCTOS!R:S`
+   desde la unificación del 10-10).
+7. **Los datos que piden las métricas** (sección 4), que el libro no tiene o tiene
+   mezclados:
+   - `equipos` y `modelos.linea` (Clubes / Selecciones / Retro / Shorts): hoy se deducen
+     del nombre en `equipoDe()` y `clasificar()` de `lib/sheets.ts`, y no se pueden
+     agrupar en SQL. La migración los llena con esas mismas funciones y desde ahí se
+     editan en la pantalla de productos.
+   - `pedidos.recibido_en`: la fecha en que llegó, para medir rotación.
+   - `venta_items.pedido_id`: de qué pedido salió cada unidad vendida. Sin esto no hay
+     margen por pedido ni por proveedor.
+   - `venta_items.precio_lista`, `precio_antes` y `promo`: foto del precio publicado al
+     momento de vender, para medir cuánto se resignó en descuentos y promos.
+   - `clientes.tipo` (Minorista / Mayorista): hoy "Mayorista" está escrito en
+     `Motivo_Descuento`.
+   - `ventas.canal` como lista cerrada: hoy la columna `Canal` del libro tiene el **medio
+     de pago** ("Efectivo", "Transferencia"), no el canal.
+   - `stock_diario`: una foto por noche del stock de cada SKU, para saber cuántos días
+     estuvo agotado cada talle.
 
 ### 2.3 Esquema SQL
 
@@ -90,11 +110,21 @@ usar.
 create type tipo_producto  as enum ('FAN', 'Jugador', 'Retro', 'Short');
 create type estado_pub     as enum ('Stock', 'Preventa', 'Archivado');
 
+create type linea as enum ('Clubes', 'Selecciones', 'Retro', 'Shorts');
+
+create table equipos (
+  id      bigint generated always as identity primary key,
+  nombre  text not null unique,              -- "Boca", "Real Madrid", "Argentina"
+  escudo  text                               -- slug de public/escudos
+);
+
 create table modelos (
   id          bigint generated always as identity primary key,
   nombre      text not null unique,          -- "Camiseta Boca 25/26"
   categoria   text not null check (categoria in ('Camiseta', 'Short')),
   tipo        tipo_producto not null,
+  linea       linea not null,                -- la categoría fina de la web
+  equipo_id   bigint references equipos,     -- null si no es un equipo (Oasis)
   nuevo       boolean not null default false, -- franja "Recién llegadas"
   creado_en   timestamptz not null default now()
 );
@@ -126,6 +156,7 @@ create table pedidos (
   fecha            date not null,
   proveedor_id     bigint not null references proveedores,
   estado           estado_pedido not null default 'Encargado',
+  recibido_en      date,                     -- lo pone recibir_pedido(); base de la rotación
   costo_mercaderia numeric(12,2) check (costo_mercaderia >= 0),
   costo_envio      numeric(12,2) check (costo_envio >= 0),
   otros            numeric(12,2) check (otros >= 0),
@@ -153,6 +184,7 @@ create sequence cliente_seq;
 create table clientes (
   id        text primary key default 'C-' || lpad(nextval('cliente_seq')::text, 3, '0'),
   nombre    text not null,
+  tipo      text not null default 'Minorista' check (tipo in ('Minorista', 'Mayorista')),
   telefono  text unique,                     -- normalizado con lib/telefono.ts
   notas     text
 );
@@ -162,7 +194,7 @@ create table ventas (
   id         text primary key default 'V-' || lpad(nextval('venta_seq')::text, 4, '0'),
   fecha      date not null default current_date,
   cliente_id text not null references clientes,
-  canal      text,                           -- WhatsApp, Instagram, web, en persona
+  canal      text check (canal in ('WhatsApp', 'Instagram', 'Web', 'En persona', 'Grupo de stock')),
   cupon      text,
   notas      text,
   creado_por uuid references auth.users,
@@ -175,8 +207,12 @@ create table venta_items (
   sku              integer not null references skus,
   cantidad         integer not null check (cantidad > 0),
   precio_unit      numeric(12,2) not null check (precio_unit >= 0),
+  precio_lista     numeric(12,2) not null,   -- skus.precio al vender (foto)
+  precio_antes     numeric(12,2),            -- skus.precio_antes al vender (foto)
   costo_unit       numeric(12,2) not null,   -- foto del costo al vender (ver v_costo_sku)
+  pedido_id        text references pedidos,  -- de qué pedido sale la unidad (FIFO, ver abajo)
   estado           estado_item not null,
+  promo            text,                     -- "2x100000", "Mayorista", "Short promo"...
   motivo_descuento text,
   -- si se cobra menos que la lista, tiene que decir por qué (se valida en la RPC)
   entregado_en     timestamptz
@@ -230,6 +266,14 @@ create table ajustes (
 
 -- ============ acceso y auditoría ============
 create table admins (email text primary key);   -- Facu y Vani
+
+create table stock_diario (                      -- la escribe el job nocturno (sección 6.4)
+  fecha      date not null,
+  sku        integer not null references skus,
+  fisico     integer not null,
+  disponible integer not null,
+  primary key (fecha, sku)
+);
 
 create table eventos (                           -- quién hizo qué, para cuando algo no cierra
   id      bigint generated always as identity primary key,
@@ -309,19 +353,28 @@ left join (select pedido_id, sum(monto) pagado from caja_movimientos
 ```
 
 **Costo unitario de un SKU** — lo que hoy se tipea a mano en `VENTAS!H`. Si el item del
-pedido tiene costo propio (P-001, P-002) se usa ese; si no, el promedio del pedido
-(que ya incluye el envío). Si el SKU vino en más de un pedido, promedio ponderado:
+pedido tiene costo propio (P-001, P-002, las de Diez Store) se usa ese; si no, la
+mercadería del pedido dividida por unidades. En los dos casos se le suma el envío y los
+otros gastos prorrateados por unidad (sección 4.2). Si el SKU vino en más de un pedido,
+promedio ponderado:
 
 ```sql
-create view v_costo_sku as
-select i.sku,
-  sum(i.cantidad * coalesce(i.costo_unit, p.costo_unit_prom)) / sum(i.cantidad) as costo_unit
+create view v_costo_item as
+select i.id, i.pedido_id, i.sku, i.cantidad,
+  coalesce(i.costo_unit, coalesce(p.costo_mercaderia, 0) / nullif(p.unidades, 0))
+  + (coalesce(p.costo_envio, 0) + coalesce(p.otros, 0)) / nullif(p.unidades, 0) as costo_unit_real
 from pedido_items i join v_pedidos p on p.id = i.pedido_id
-where p.estado <> 'Cancelado'
-group by i.sku;
+where p.estado <> 'Cancelado';
+
+create view v_costo_sku as
+select sku, sum(cantidad * costo_unit_real) / sum(cantidad) as costo_unit
+from v_costo_item group by sku;
 ```
 
-`registrar_venta` copia ese número a `venta_items.costo_unit` en el momento de vender.
+`registrar_venta` copia ese número a `venta_items.costo_unit` en el momento de vender, y
+asigna `venta_items.pedido_id` por **FIFO**: el pedido más viejo de ese SKU que todavía
+tiene unidades sin vender (casi siempre hay uno solo, porque casi todo es una unidad por
+talle).
 Es una foto a propósito: si después llega la factura del envío y el promedio cambia, la
 ganancia de las ventas viejas se puede recalcular con una función explícita
 (`recalcular_costos(pedido_id)`), no cambia sola sin que nadie se entere.
@@ -384,7 +437,7 @@ lista, reservadas sin señar, señadas, pagadas sin entregar), armada sobre las 
 arriba.
 
 **Catálogo público** — lo único que puede leer la web sin loguearse. Devuelve
-exactamente las columnas que hoy publica la hoja `WEB` del libro viejo, así
+exactamente las columnas que hoy publica la hoja `WEB` de hoy, así
 `lib/sheets.ts` no cambia su lógica:
 
 ```sql
@@ -510,7 +563,7 @@ entregar.
 **5. Ajustar stock** (`/admin/ajuste`) — SKU, más o menos N, motivo (lista: "conteo",
 "falla", "regalo", "devolución", "otro" + texto). Muestra el stock antes y después.
 
-**6. Productos** (`/admin/productos`) — necesaria para dejar el libro viejo: alta de un
+**6. Productos** (`/admin/productos`) — necesaria para dejar el libro: alta de un
 modelo con sus talles, precio, `Nuevo`, `Precio Antes` y estado de publicación. Es lo
 que hoy se hace escribiendo filas en `STOCK`. Ojo con la regla de `rosariofkits-negocio`:
 `Precio Antes` nunca es un número inventado, y si se saca `Nuevo` a un "Lanzamiento",
@@ -519,7 +572,136 @@ sacarle también el `Precio Antes`. La pantalla lo avisa.
 Fuera del mínimo, para después: listado de ventas con filtros, ficha de cliente, alta de
 pedidos desde el panel (al principio se pueden crear con el script de migración).
 
-## 4. La web pública: de CSV a Supabase sin cortar
+## 4. Métricas
+
+Las métricas son uno de los motivos principales del ERP. Hoy, para saber qué talle pedir
+o cuánto dejó un pedido, hay que armar la cuenta a mano. Acá salen de **vistas SQL**:
+nadie las calcula, nadie las tipea, y se actualizan con cada venta.
+
+### 4.1 La base de todo: una fila por unidad vendida
+
+Todas las métricas de ventas se arman sobre una sola vista "ancha", con cada item de
+venta y todas sus dimensiones ya resueltas. Agrupar por modelo, equipo, línea, talle,
+proveedor, canal o mes es un `group by` sobre esta vista:
+
+```sql
+create view v_hechos_venta as
+select
+  vi.id, v.id as venta_id, v.fecha, date_trunc('month', v.fecha)::date as mes,
+  v.cliente_id, c.tipo as tipo_cliente, coalesce(v.canal, 'Sin dato') as canal, v.cupon,
+  vi.sku, s.talle, m.id as modelo_id, m.nombre as modelo, m.tipo, m.linea,
+  e.nombre as equipo, vi.pedido_id, pr.nombre as proveedor,
+  vi.estado, vi.cantidad,
+  vi.cantidad * vi.precio_unit                      as facturado,
+  vi.cantidad * vi.costo_unit                       as costo,
+  vi.cantidad * (vi.precio_unit - vi.costo_unit)    as ganancia,
+  vi.cantidad * (vi.precio_lista - vi.precio_unit)  as descuento,
+  vi.promo, vi.precio_lista, vi.precio_antes,
+  p.recibido_en,
+  p.recibido_en is null or v.fecha < p.recibido_en  as fue_preventa,
+  greatest(v.fecha - p.recibido_en, 0)              as dias_en_stock
+from venta_items vi
+join ventas v            on v.id = vi.venta_id
+join clientes c          on c.id = v.cliente_id
+join skus s              on s.sku = vi.sku
+join modelos m           on m.id = s.modelo_id
+left join equipos e      on e.id = m.equipo_id
+left join pedidos p      on p.id = vi.pedido_id
+left join proveedores pr on pr.id = p.proveedor_id
+where vi.estado <> 'Cancelada';
+```
+
+Las canceladas quedan afuera de todas las métricas de ventas, pero se cuentan aparte:
+cuántas reservas se cayeron es en sí una métrica.
+
+### 4.2 Las vistas
+
+| Pregunta | Vista | Qué devuelve |
+|---|---|---|
+| **¿Qué se vende y con qué margen?** | `v_ventas_por_modelo`, `_equipo`, `_linea`, `_talle`, `_proveedor` | Por mes: unidades, facturado, costo, ganancia, margen % y participación sobre el total |
+| **¿Cuánto tarda en venderse?** | `v_rotacion` | Por modelo, línea y proveedor: días promedio y mediana entre `recibido_en` y la venta. Las ventas de preventa van aparte (`fue_preventa`), porque se vendieron antes de llegar |
+| **¿Qué plata está quieta?** | `v_stock_inmovilizado` | Cada unidad física sin vender, con su antigüedad desde que llegó, en tramos 0-30 / 31-60 / 61-90 / +90 días, valuada a costo y a precio de lista |
+| **¿Qué talles se agotan?** | `v_talles` | Por talle y tipo (FAN, Jugador, Short): recibidas, vendidas, **tasa de venta** (vendidas / recibidas), días promedio hasta venderse y **días agotado** (sale de `stock_diario`) |
+| **¿Cuánto pedir de cada talle?** | `v_curva_talles` | La participación de cada talle en las ventas de los últimos 6 meses por tipo, convertida en "de cada 10 camisetas: 1 S, 3 M, 3 L, 2 XL, 1 XXL". Es la sugerencia para armar el próximo pedido |
+| **¿Cuánto dejó cada pedido?** | `v_margen_pedido` | Costo total (mercadería + envío + otros), unidades pedidas / recibidas / vendidas, facturado y ganancia **realizada**, valor de lo que queda sin vender, **% recuperado** (facturado / costo total: cuándo se pagó solo el pedido) y margen proyectado si se vende todo a lista |
+| **¿Quién compra?** | `v_clientes_metricas` | Por cliente: compras, unidades, total, ticket promedio, primera y última compra, recurrente (2 compras o más), minorista o mayorista |
+| **¿Cómo compran?** | `v_ticket` | Por mes: cantidad de ventas, ticket promedio, unidades por venta, % recurrentes, % mayorista; y el mismo corte por canal y por medio de pago (de `pagos.metodo`) |
+| **¿Sirven las promos?** | `v_promos` | Por promo y por cupón: ventas, unidades, descuento total resignado (`precio_lista − precio_unit`), margen con y sin descuento |
+| **¿Sirven las rebajas?** | `v_rebajas` | Por SKU rebajado: precio antes contra precio de venta, y **unidades por semana antes y después** del cambio de precio. La fecha del cambio sale de `eventos`, que guarda cada `update` de `skus.precio` |
+| **¿Cómo viene la preventa?** | `v_preventa` | Por pedido y por SKU: unidades pedidas, vendidas antes de llegar, señadas, recibidas y **faltantes** (vendidas en preventa > recibidas), con los clientes afectados. Es la cuenta que hubo que hacer a mano con los rebotes de octubre |
+| **¿Cómo está la caja?** | `v_posicion` | Saldo de caja, **señas cobradas de mercadería que todavía no se entregó** (plata que es de los clientes hasta entregar), a cobrar, **saldo a pagar a proveedores**, y la posición neta: caja + a cobrar − deuda con proveedores |
+| **¿Cómo se movió la plata?** | `v_flujo_mensual` | Por mes y categoría de caja: ingresos, egresos, neto y saldo acumulado |
+
+Dos cuentas que conviene dejar escritas porque no son obvias:
+
+**Costo real de una unidad, con la importación prorrateada.** El envío y los otros
+gastos del pedido se reparten por unidad. Si el item tiene costo propio (en Diez Store,
+$27.000 con dorsal y $24.000 sin), se respeta esa diferencia:
+
+```
+costo_unit_real = coalesce(item.costo_unit, pedido.costo_mercaderia / unidades)
+                + (pedido.costo_envio + pedido.otros) / unidades
+```
+
+Es la cuenta que tiene que usar `v_costo_sku` (sección 2.4) en vez del promedio liso.
+Con esto las de P-005 dan $27.666,67 y $24.666,67, como están anotadas en el libro.
+
+**Días agotado por talle.** No se puede sacar de las ventas solas: un talle que nunca
+se vende y uno que se agota el primer día dan "cero ventas" por igual mientras no hay
+stock. Por eso existe `stock_diario`, que el job nocturno llena con una fila por SKU
+por noche. Días agotado = noches con `disponible = 0` habiendo tenido stock antes.
+Arranca el día del corte; para atrás solo hay una estimación desde las fechas de venta.
+
+Lo que **no** se puede medir con este esquema es la demanda que no se concretó: cuánta
+gente pidió un talle agotado por encargue. Si interesa, es un paso chico: que el botón
+de encargue de la web registre el SKU en una tabla `consultas` antes de abrir WhatsApp,
+como ya hace la ruleta con `CUPONES`.
+
+### 4.3 Dónde se ven: `/admin/metricas`
+
+Un tablero aparte de la portada de `/admin`. La portada es "qué tengo que hacer hoy"
+(alertas, saldos, a quién cobrarle); métricas es "cómo viene el negocio".
+
+- **Arriba, filtros**: período (este mes / últimos 3 meses / últimos 12 / todo), línea y
+  proveedor. Viven en la URL, así un link a una vista filtrada se puede compartir.
+- **Una fila de números**: facturado, ganancia, margen %, unidades, ticket promedio y
+  posición neta, cada uno con la diferencia contra el período anterior.
+- **Pestañas**, una por pregunta: Ventas · Rotación y stock quieto · Talles · Pedidos ·
+  Clientes · Promos · Preventa · Caja.
+- En el celular, cada pestaña es una lista con barras horizontales simples (CSS, sin
+  librería de gráficos), ordenada de mayor a menor. En la compu, la misma tabla con más
+  columnas. Si más adelante hace falta un gráfico de línea (ventas por mes), se suma una
+  librería en ese momento.
+- Cada fila lleva al detalle: tocar un modelo muestra sus ventas, tocar un pedido su
+  margen item por item.
+- La pestaña **Talles** termina con la curva sugerida y un botón "copiar" para pegarla en
+  el mensaje al proveedor.
+
+Las mismas vistas salen todas las noches al libro de consulta (sección 6.5), una hoja
+por vista, para quien quiera armar una tabla dinámica.
+
+### 4.4 Qué tan buenos son los números viejos
+
+Las métricas se calculan sobre todo lo migrado, pero la historia previa al ERP tiene
+huecos, y el tablero lo tiene que decir en vez de mostrar números falsamente precisos:
+
+- **Costo**: las ventas de agosto y septiembre usan el costo supuesto ($10.000 / $15.000 /
+  $25.500 fijos). El margen de esos meses es optimista.
+- **Canal**: el libro tiene el medio de pago en la columna `Canal`; la migración lo pasa
+  a `pagos.metodo` y deja el canal en "Sin dato".
+- **Rotación**: P-001 y P-002 no tienen fecha de llegada; se usa la fecha del pedido.
+- **Días agotado**: solo desde el corte (ver 4.2).
+
+Las vistas llevan una columna `dato_estimado` (true para lo anterior al corte o con
+costo supuesto) y el tablero marca esas filas con un asterisco.
+
+### 4.5 Rendimiento
+
+A esta escala (cientos de ventas por año) las vistas comunes responden en
+milisegundos. Si algún día tardan, se pasan a vistas materializadas que se refrescan
+después de cada carga y en el job nocturno; el tablero no cambia.
+
+## 5. La web pública: de CSV a Supabase sin cortar
 
 Hoy: `hoja WEB → CSV publicado → lib/sheets.ts (parseCSV) → getCatalogo()`, con ISR de
 60 segundos.
@@ -533,7 +715,7 @@ El cambio se hace **solo en la fuente**, no en lo que se arma con ella:
    `clasificar()`, `equipoDe()`, fotos, carrito, `/api/stock`— no se toca.
 2. Una variable `CATALOGO_FUENTE=sheets|supabase` elige cuál. Si es `supabase` y la base
    no contesta o devuelve error, **cae al CSV** y deja un `console.error`. Mientras el
-   libro viejo siga publicado, el sitio no se puede quedar sin catálogo.
+   CSV siga publicado, el sitio no se puede quedar sin catálogo.
 3. Se mantiene el ISR de 60 s: ninguna visita espera a la base, y si la base está caída
    en el momento de revalidar, Next sigue sirviendo la última página buena.
 4. Además, cada Server Action del panel que cambia stock o precios llama a
@@ -548,34 +730,40 @@ El cambio se hace **solo en la fuente**, no en lo que se arma con ella:
 se reemplaza en una etapa posterior por `catalogo_web()` filtrando `estado_pub =
 'Preventa'`, con el estampado como parte de la unidad, que ya está en `skus`.
 
-## 5. Migración desde los dos libros
+## 6. Migración desde el libro
 
-### 5.1 Qué sale de cada libro
+### 6.1 Qué sale de cada hoja
 
-| Dato | Fuente | Por qué |
+El 2026-10-10 se unificó el stock en `Libro_RosarioFkits`: tiene todas las ventas
+(hasta V-0026 a esa fecha), `Nuevo` y `Precio_Antes` en `PRODUCTOS!R:S`, y los ajustes.
+**Es la única fuente de la migración.** `Stock_RosarioFkits` queda de archivo y no se lee.
+
+| Dato | Hoja del libro | Qué se hace al migrar |
 |---|---|---|
-| Modelos, SKUs, talles, estampados | `Libro_RosarioFkits!PRODUCTOS` | Ya tiene modelo y talle separados |
-| Precio, `Nuevo`, `Precio Antes` | `Stock_RosarioFkits!STOCK` | Es el que se mantiene al día para la web |
-| Pedidos e items con costo | Libro nuevo | Solo existen ahí |
-| Clientes, ventas, pagos, caja, ajustes | Libro nuevo | Solo existen ahí |
-| Ventas cargadas **solo** en el viejo | `Stock_RosarioFkits!VENTAS` | Las que se cargaron ahí después de la migración del 22-09 y no pasaron al nuevo |
+| Modelos, SKUs, talles, estampados, precio, `Nuevo`, `Precio Antes` | `PRODUCTOS` | Se separa en `modelos` + `skus`; `linea` y `equipo` se calculan con `clasificar()` y `equipoDe()` de `lib/sheets.ts` |
+| Pedidos e items con costo | `PEDIDOS`, `PEDIDO_ITEMS` | `proveedores` sale de los nombres de `PEDIDOS!C`; `recibido_en` = fecha del pedido para los ya recibidos |
+| Clientes | `CLIENTES` | `tipo = Mayorista` para los que tengan "Mayorista" en alguna venta |
+| Ventas | `VENTAS` | Cabecera + items; `pedido_id` por FIFO; `precio_lista` desde `PRODUCTOS`; lo que diga "Mayorista" o una promo en `Motivo_Descuento` pasa a `promo` |
+| Pagos, caja, ajustes | `PAGOS`, `CAJA`, `AJUSTES` | Tal cual, atando `Ref` a `pago_id` / `pedido_id` |
 
-### 5.2 Cómo
+### 6.2 Cómo
 
 Un script Python, `herramientas/migrar_erp.py`, que reusa la cuenta de servicio del MCP
-de Sheets para leer y escribe en Supabase. Corre en tres modos:
+de Sheets para leer el libro y escribe en Supabase. Corre en tres modos:
 
-1. **`--revisar`** — lee los dos libros, no escribe nada, y genera un informe de
-   inconsistencias que Facu resuelve **en los libros** antes de seguir:
-   - SKUs en un libro y no en el otro.
-   - `Disponible` distinto entre el viejo y el nuevo, por SKU (acá van a aparecer el
-     3004 y los shorts Argentina).
-   - Ventas del viejo que no están en el nuevo (por fecha + SKU + monto).
+1. **`--revisar`** — lee el libro, no escribe nada, y genera un informe de
+   inconsistencias que Facu resuelve **en el libro** antes de seguir:
+   - SKUs de `VENTAS`, `PEDIDO_ITEMS` o `AJUSTES` que no están en `PRODUCTOS`.
+   - SKUs con `Disponible` o `Fisico` negativo.
    - Nombres de modelo que difieren entre talles del mismo modelo.
+   - Modelos a los que `clasificar()` / `equipoDe()` no les encuentran línea o equipo.
+   - Ventas cuyo `Canal` es en realidad un medio de pago ("Efectivo", "Transferencia"):
+     hoy son casi todas.
    - Un mismo `Venta_ID` con cliente o fecha distintos entre filas.
    - Pagos cuyo `Cliente_ID` no coincide con el de su venta.
    - Movimientos de caja `Venta` sin `PG-` en `Ref`, egresos a proveedor sin `P-`.
-   - Fechas guardadas como número (P-005: `46300` = 05/10/2026) o como texto.
+   - Fechas guardadas como número (P-005: `46300` = 05/10/2026; V-0020: `46287` =
+     22/09/2026) o como texto.
    - Estados escritos sin eñe o con espacios.
 2. **`--ensayo`** — carga todo en un proyecto Supabase de prueba (o en un esquema
    `ensayo`) y compara el `TABLERO` de la base contra el del libro: saldo de caja,
@@ -585,10 +773,10 @@ de Sheets para leer y escribe en Supabase. Corre en tres modos:
 3. **`--final`** — lo mismo contra producción, y deja las secuencias (`venta_seq`,
    `pago_seq`...) en el máximo migrado para que la próxima venta sea `V-00xx + 1`.
 
-### 5.3 El corte
+### 6.3 El corte
 
 1. Elegir una noche sin ventas en curso.
-2. **Congelar los libros**: proteger todas las hojas (Datos → Proteger hojas y rangos),
+2. **Congelar el libro**: proteger todas las hojas (Datos → Proteger hojas y rangos),
    y cambiar el Apps Script del celular para que muestre "ya no se usa, entrá a
    /admin". Desde acá no se carga más nada en Sheets.
 3. `migrar_erp.py --revisar` tiene que salir limpio; `--final`.
@@ -596,10 +784,11 @@ de Sheets para leer y escribe en Supabase. Corre en tres modos:
 5. `CATALOGO_FUENTE=supabase` en Vercel → redeploy.
 6. A la mañana, cargar la primera venta real desde `/admin` y verla en la web.
 
-Los libros **no se borran**: quedan congelados como histórico. El CSV publicado del libro
-viejo sigue vivo como red de seguridad de la web durante un mes; después se despublica.
+Los libros **no se borran**: quedan congelados como histórico. El CSV que la web lea al
+momento del corte (el del libro que haya dejado publicado la unificación) sigue vivo
+como red de seguridad durante un mes; después se despublica.
 
-### 5.4 Backups nocturnos
+### 6.4 Backups nocturnos
 
 El plan gratis de Supabase no tiene backups descargables ni restauración a un punto en
 el tiempo. Se arma afuera, gratis:
@@ -610,6 +799,8 @@ el tiempo. Se arma afuera, gratis:
   día. A esta escala son decenas de KB por noche; un año entero entra de sobra en el
   límite de GitHub, y la historia de git es la historia de los backups. Se pueden podar
   a uno por semana después de 30 días.
+- Antes del dump, el job inserta la foto del día en `stock_diario` (una fila por SKU
+  desde `v_stock`), que es lo que alimenta los "días agotado" de las métricas.
 - La cadena de conexión va como *secret* del repo, nunca en el código.
 - El job falla en rojo si el dump sale vacío o mide menos que el anterior por más de un
   20%, y GitHub manda mail.
@@ -619,7 +810,7 @@ el tiempo. Se arma afuera, gratis:
 (No se usa Drive porque la Drive API está deshabilitada en el proyecto de la cuenta de
 servicio; se podría habilitar, pero GitHub es más simple y ya está.)
 
-### 5.5 Exportación a Sheets para consulta
+### 6.5 Exportación a Sheets para consulta
 
 El mismo job nocturno, después del backup, escribe un libro nuevo **solo de lectura**,
 `ERP_RosarioFkits_consulta`, con una hoja por vista: `TABLERO`, `STOCK`, `VENTAS`,
@@ -629,7 +820,7 @@ todas las noches". Sirve para mirar desde la compu, filtrar o armar una tabla di
 y como tercer respaldo. Usa la cuenta de servicio que ya existe; el libro se comparte
 con Facu como lector.
 
-## 6. Riesgos del plan gratis
+## 7. Riesgos del plan gratis
 
 Los límites son los publicados a hoy; **confirmarlos en la página de precios de
 Supabase al crear el proyecto**, porque cambian.
@@ -637,7 +828,7 @@ Supabase al crear el proyecto**, porque cambian.
 | Riesgo | Qué pasa | Mitigación |
 |---|---|---|
 | **Pausa por inactividad** (~7 días sin actividad) | La base se apaga; hay que reactivarla a mano desde el panel | El job nocturno de backup se conecta todas las noches y además hace un pedido a la API REST (no está documentado cuál de las dos cuenta como actividad, así que van las dos), y la web consulta cada vez que revalida. Además la web cae al CSV, y el ISR sigue sirviendo la última página |
-| **Sin backups** | Un error borra datos sin vuelta | Backups nocturnos propios (5.4) y auditoría en `eventos` |
+| **Sin backups** | Un error borra datos sin vuelta | Backups nocturnos propios (6.4) y auditoría en `eventos` |
 | Base de 500 MB | — | Hoy todo el negocio son unos cientos de filas: menos de 5 MB. No es un riesgo real por años |
 | Tráfico (egress) ~5 GB/mes | — | La web pide el catálogo cada 60 s como mucho, unos KB. No hay fotos en Supabase: siguen en `public/fotos` |
 | Dos proyectos gratis por cuenta | Si se usa uno para ensayo, no queda lugar | Ensayar en un esquema aparte, o borrar el de ensayo después del corte |
@@ -650,7 +841,7 @@ Un riesgo que **no** es del plan gratis pero es el más probable: **cargar mal a
 base y no tener cómo corregirlo sin SQL**. Por eso las RPC de "corregir" (`cambiar_estado`,
 devolución, ajuste con motivo) vienen en el mínimo, y por eso existe `eventos`.
 
-## 7. Orden de implementación
+## 8. Orden de implementación
 
 Etapas chicas, cada una se puede probar y frenar sin dejar nada roto. Las primeras tres
 no cambian nada de lo que ve el cliente ni de cómo carga Facu.
@@ -663,11 +854,15 @@ no cambian nada de lo que ve el cliente ni de cómo carga Facu.
 | 3 | `migrar_erp.py --revisar`. Facu limpia los libros con el informe. `--ensayo` hasta que el tablero cierre | Tablero de la base = tablero del libro | No |
 | 4 | Web: `leerFilasDB()` + `CATALOGO_FUENTE` + fallback al CSV. Probar en preview con datos del ensayo | Comparación fila por fila da cero diferencias | Solo código, con la fuente en `sheets` |
 | 5 | Auth + lista blanca + `/admin` con el **tablero de solo lectura** | Facu y Vani entran desde el celular; un tercer mail no | No (la base todavía es de ensayo) |
+| 5b | **`/admin/metricas`** sobre los datos del ensayo: primero Ventas, Pedidos y Caja; después Talles, Rotación, Clientes, Promos y Preventa | Las métricas de agosto a hoy se ven, con los datos estimados marcados | No |
 | 6 | **Cargar venta** y **cargar pago / gasto** | Se cargan contra el ensayo y el tablero da lo esperado | No |
 | 7 | **Recibir pedido**, **ajustar stock**, **productos** | Se puede vivir sin abrir los libros | No |
-| 8 | **El corte** (5.3) | Primera venta real desde `/admin`, vista en la web | **Sí** |
+| 8 | **El corte** (6.3) | Primera venta real desde `/admin`, vista en la web | **Sí** |
 | 9 | Un mes con el CSV viejo como respaldo. Después: despublicarlo, sacar el fallback, archivar el Apps Script | — | Sí |
 | 10 | Después, en orden de valor: `/preventa` leyendo la base, listado de ventas y ficha de cliente, alta de pedidos desde el panel, y el checkout del carrito escribiendo ventas `Reservada` directo en la base | — | Sí |
+
+Las métricas van tan temprano a propósito: son solo lectura, ya sirven con la historia
+migrada, y usarlas antes del corte es la mejor forma de encontrar datos mal migrados.
 
 Entre la etapa 3 y el corte, **se sigue cargando en los libros como hoy**. Cada ensayo
 vuelve a leer de cero, así que no hay doble carga.
@@ -675,7 +870,7 @@ vuelve a leer de cero, así que no hay doble carga.
 Lo que se descarta con esto: instalar el `apps-script/libro-nuevo/` y escribirle el
 `Index.html` que le falta. El panel de la etapa 6 hace lo mismo y más.
 
-## 8. Lo que necesito que Facu decida
+## 9. Lo que necesito que Facu decida
 
 1. **¿Va Supabase + `/admin` en la misma web?** (la propuesta). La alternativa sería un
    panel aparte, pero duplica deploy y estilos sin ganar nada.
@@ -687,5 +882,8 @@ Lo que se descarta con esto: instalar el `apps-script/libro-nuevo/` y escribirle
 5. **¿El panel debe dejar vender sin stock "por encargue"** sin cargar antes el pedido?
    El diseño dice que no (primero el pedido); es la regla que evita prometer lo que no
    se compró.
-6. **Fecha del corte**: tiene sentido hacerlo **antes de que llegue el pedido de China
+6. **Métricas**: ¿falta alguna pregunta en la tabla de la sección 4.2? ¿Se registran
+   las consultas por encargue de la web (tabla `consultas`) para medir demanda de lo
+   agotado?
+7. **Fecha del corte**: tiene sentido hacerlo **antes de que llegue el pedido de China
    en diciembre**, para recibir esas 189 unidades ya en el sistema nuevo.
