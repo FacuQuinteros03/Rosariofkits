@@ -100,4 +100,8 @@ nada del ERP; todo está en `rosariofkits-web-erp`.
 - Las variables públicas usan los nombres que propone Supabase para Next:
   `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Son públicas por
   diseño (el login con Google corre en el navegador); lo que protege los datos es RLS.
-- `.env.local` de la rama `erp` armado; falta que Facu pegue `SUPABASE_DB_URL`.
+- `.env.local` de la rama `erp` completo. Conexión a la base probada desde la compu por el
+  Session pooler (`aws-1-us-west-2`): Postgres 17.11, igual que la base local.
+- Vercel: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y
+  `CATALOGO_FUENTE=supabase`, las tres solo en Preview.
+- **Etapa 0 cerrada.** Pendiente de Facu: confirmar que activó MFA en la cuenta.
