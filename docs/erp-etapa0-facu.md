@@ -32,9 +32,9 @@ Hacen falta tres datos. Están en **Project Settings** (el engranaje):
 
 | Dato | Dónde | Cómo se ve |
 |---|---|---|
-| `SUPABASE_URL` | **Data API** (o **API**) → Project URL | `https://abcdefgh.supabase.co` |
-| `SUPABASE_ANON_KEY` | **API Keys** → la **publishable** (si tu panel muestra las "legacy", la **anon public**) | `sb_publishable_...` o un texto largo que empieza con `eyJ` |
-| `SUPABASE_DB_URL` | Botón **Connect** arriba → **Connection string** → **Session pooler** | `postgresql://postgres.abcdefgh:[YOUR-PASSWORD]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres` |
+| `NEXT_PUBLIC_SUPABASE_URL` | **Data API** (o **API**) → Project URL | `https://abcdefgh.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | **API Keys** → la **publishable** (si tu panel muestra las "legacy", la **anon public**) | `sb_publishable_...` o un texto largo que empieza con `eyJ` |
+| `SUPABASE_DB_URL` | Botón **Connect** arriba → **Connection string** → **Session pooler** | `postgresql://postgres.abcdefgh:[YOUR-PASSWORD]@aws-0-us-west-2.pooler.supabase.com:5432/postgres` |
 
 En la del pooler, reemplazá `[YOUR-PASSWORD]` por la contraseña del paso 1.3. Se usa el
 **Session pooler** y no la conexión directa porque la directa en el plan gratis es solo
@@ -57,9 +57,9 @@ está en el `.gitignore`) con:
 SHEET_CSV_URL=...
 
 # ERP
-SUPABASE_URL=https://abcdefgh.supabase.co
-SUPABASE_ANON_KEY=sb_publishable_...
-SUPABASE_DB_URL=postgresql://postgres.abcdefgh:LA_CONTRASEÑA@aws-0-sa-east-1.pooler.supabase.com:5432/postgres
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefgh.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_DB_URL=postgresql://postgres.abcdefgh:LA_CONTRASEÑA@aws-0-us-west-2.pooler.supabase.com:5432/postgres
 CATALOGO_FUENTE=sheets
 ```
 
@@ -75,8 +75,8 @@ y en cada una dejar tildado **solo Preview** (destildar **Production** y
 
 | Nombre | Valor |
 |---|---|
-| `SUPABASE_URL` | el del paso 3 |
-| `SUPABASE_ANON_KEY` | el del paso 3 |
+| `NEXT_PUBLIC_SUPABASE_URL` | el del paso 3 |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | el del paso 3 |
 | `CATALOGO_FUENTE` | `supabase` |
 
 `SUPABASE_DB_URL` **no** va a Vercel.
@@ -91,3 +91,13 @@ Con un "listo" alcanza. Yo pruebo la conexión desde la compu y cierro la etapa 
 
 **No hagas push de `main` con nada del ERP.** En `rosariofkits-web` (main) no quedó
 nada del ERP; todo está en `rosariofkits-web-erp`.
+
+## Estado (2026-10-11)
+
+- Proyecto creado: `rosariofkits-erp`, ref `pllefavvclhtkgbnmvuo`, West US (Oregon),
+  organización `RosarioFkits`, plan Free. Se dejó en Oregon a propósito (ver diseño).
+- Registro cerrado (`disable_signup = true`, verificado por API).
+- Las variables públicas usan los nombres que propone Supabase para Next:
+  `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Son públicas por
+  diseño (el login con Google corre en el navegador); lo que protege los datos es RLS.
+- `.env.local` de la rama `erp` armado; falta que Facu pegue `SUPABASE_DB_URL`.

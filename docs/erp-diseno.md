@@ -53,7 +53,7 @@ probado.** Mientras se construye:
 
 | Tema | Decisión | Por qué |
 |---|---|---|
-| Base | **Supabase**, plan gratis, región São Paulo (`sa-east-1`) | Postgres de verdad, auth incluida, API REST, la más cercana a Rosario |
+| Base | **Supabase**, plan gratis, región West US, Oregon (`us-west-2`) | Postgres de verdad, auth incluida, API REST. Quedó en Oregon al crearlo; se dejó así porque a la base la consulta Vercel (que corre en EE.UU.), no el celular |
 | Panel | **`/admin` dentro de la misma web Next.js** | Un solo repo, un solo deploy en Vercel; reusa estilos y tipos |
 | Escrituras | **Funciones SQL (RPC)** que hacen la operación entera en una transacción | Una venta = items + pago + caja, o nada. Igual que `registrarVenta` del Apps Script, pero con garantías |
 | Plata | `numeric(12,2)` en pesos | El costo unitario tiene centavos ($17.703,71) |
@@ -925,7 +925,7 @@ con vuelta atrás.
 
 | # | Etapa | Dónde | Termina cuando |
 |---|---|---|---|
-| 0 | **Aprobar este documento.** Facu crea la cuenta de Supabase (con su mail, 2FA) y el proyecto en São Paulo. Se crea la rama `erp` | Supabase nuevo · rama `erp` | Hay URL y claves, cargadas en Vercel solo para Preview |
+| 0 | **Aprobar este documento.** Facu crea la cuenta de Supabase (con su mail, 2FA) y el proyecto `rosariofkits-erp`. Se crea la rama `erp` | Supabase nuevo · rama `erp` | Hay URL y claves, cargadas en Vercel solo para Preview |
 | 1 | Esquema, vistas, triggers y RPC como migraciones SQL en `supabase/migrations/`. Tests en SQL de las reglas: vender sin stock falla, pago sin venta falla, dos ventas simultáneas de la última unidad → una falla | Supabase · rama `erp` | Los tests pasan |
 | 2 | Backups nocturnos (repo privado aparte) + export al libro de consulta nuevo. **Probar restaurar** | GitHub Actions · libro nuevo de consulta | Hay un backup de anoche y se restauró en limpio |
 | 3 | `migrar_erp.py --revisar` y `--ensayo`, leyendo los dos libros sin escribirlos. Facu corrige lo que el informe marque, en su carga normal | Supabase | Tablero de la base = tablero del libro; stock = CSV de la web |

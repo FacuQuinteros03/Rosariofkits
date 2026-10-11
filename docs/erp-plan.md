@@ -79,12 +79,12 @@ dic          llega China      se recibe ya en el ERP
       commiteados en el `main` local sin push; se sacan de `main` para que el primer
       push de `main` no los publique por accidente.
 - [ ] 👤 Facu crea la cuenta de Supabase con su mail, activa **2FA**, y crea el proyecto
-      `rosariofkits-erp` en **South America (São Paulo)**, plan Free. Guarda la
+      `rosariofkits-erp` (quedó en West US, Oregon), plan Free. Guarda la
       contraseña de la base en su gestor de contraseñas.
 - [ ] 👤 Facu deshabilita el registro abierto (Authentication → Sign In / Providers →
       "Allow new users to sign up": off) y, si se elige Google, activa el proveedor.
 - [ ] 👤 Facu copia en `rosariofkits-web/.env.local` (que está en `.gitignore`):
-      `SUPABASE_URL`, `SUPABASE_ANON_KEY`, y la cadena de conexión de la base para los
+      `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, y la cadena de conexión de la base para los
       scripts (`SUPABASE_DB_URL`). La `service_role` key **no** va a Vercel nunca.
 - [ ] 👤 Facu carga en Vercel las mismas dos primeras variables con alcance
       **Preview**, más `CATALOGO_FUENTE=supabase`, también solo Preview.
