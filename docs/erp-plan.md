@@ -138,6 +138,15 @@ Tests mínimos (cada uno es "esto tiene que fallar" o "esto tiene que dar X"):
 se aplican limpias al proyecto real (`npx supabase db push`).
 **Toca producción:** no.
 
+> **Estado 2026-10-11: terminada.** 12 migraciones en `supabase/migrations/`, 57 tests
+> pgTAP en verde (`01_reglas`, `02_acceso`, `03_metricas`), `supabase/tests/concurrencia.py`
+> OK (la segunda venta de la última unidad se rechaza), `db lint` sin errores. Aplicadas
+> al proyecto real con `db push --db-url`: 17 tablas, todas con RLS; `anon` solo ejecuta
+> `catalogo_web()` y `registrar_consulta()` (verificado por la API REST).
+> Para correr los tests: Docker abierto (su disco vive en `D:\DockerDesktop`) y
+> `npx supabase start -x storage-api,studio,postgres-meta,imgproxy,realtime,edge-runtime,logflare,vector,mailpit`,
+> después `npx supabase test db`.
+
 ### Etapa 2 — Backups y libro de consulta
 
 **Objetivo:** que antes de que haya un dato que importe, ya haya backup.
