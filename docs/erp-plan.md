@@ -173,8 +173,13 @@ se aplican limpias al proyecto real (`npx supabase db push`).
 > el esquema entero y quedó idéntico (filas, tablero, permisos, RLS 17/17). El libro de
 > consulta probado en seco. Migraciones 0013 y 0014 (vistas del libro de consulta)
 > aplicadas en local y en el proyecto real; 63 tests en verde.
-> **Falta de Facu:** el repo privado `rosariofkits-backups` con sus 5 secrets y el libro
-> vacío `ERP_RosarioFkits_consulta` compartido con la cuenta de servicio.
+> **Cerrada 2026-10-13.** Repo privado `FacuQuinteros03/rosariofkits-backup` (singular),
+> secrets en su environment `SUPABASE_DB_URL`. Primer run manual en verde (1m 9s): commit
+> `respaldos/2026-10-13/`, y ese backup real se restauró en la base local sin errores
+> (17 tablas con RLS, 33 vistas, anon solo `catalogo_web` y `registrar_consulta`).
+> El workflow se crea/edita desde la web de GitHub: el token de la compu no tiene scope
+> `workflow`. Pendiente menor: pasar `actions/checkout@v4` y `setup-python@v5` a sus
+> versiones con Node 24 (hoy anda, con aviso de deprecación).
 **Toca producción:** no. El libro de consulta es nuevo; los dos libros vivos ni se abren.
 
 ### Etapa 3 — Migración en ensayo
