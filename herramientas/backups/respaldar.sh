@@ -13,6 +13,13 @@
 #   tablas/*.csv     una por tabla, para abrir sin saber SQL
 set -euo pipefail
 
+for v in SUPABASE_DB_URL NEXT_PUBLIC_SUPABASE_URL SUPABASE_PUBLISHABLE_KEY; do
+  if [ -z "${!v:-}" ]; then
+    echo "ERROR: falta $v. Revisar los secrets del repo (o del environment del workflow)."
+    exit 1
+  fi
+done
+
 hoy=$(TZ=America/Argentina/Buenos_Aires date +%F)
 dir="respaldos/$hoy"
 mkdir -p "$dir/tablas"

@@ -1,6 +1,6 @@
 # Backups nocturnos del ERP
 
-Estos archivos van en el repo **privado** `rosariofkits-backups` de GitHub (no en la web):
+Estos archivos van en el repo **privado** `rosariofkits-backup` de GitHub (no en la web):
 
 | Archivo de acá | Dónde va en el repo de backups |
 |---|---|
@@ -20,7 +20,8 @@ Si algo falla, GitHub manda un mail y el run queda en rojo en la pestaña **Acti
 
 ## Secrets del repo
 
-**Settings → Secrets and variables → Actions → New repository secret**:
+Están cargados en **Settings → Environments → `SUPABASE_DB_URL`** (por eso el workflow
+dice `environment: SUPABASE_DB_URL`):
 
 | Nombre | Valor |
 |---|---|

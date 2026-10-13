@@ -19,6 +19,9 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Los secrets se cargaron dentro del environment "SUPABASE_DB_URL" del repo
+    # (Settings → Environments), no como secrets sueltos: por eso va esta línea.
+    environment: SUPABASE_DB_URL
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
