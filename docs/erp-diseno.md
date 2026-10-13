@@ -695,8 +695,8 @@ Un tablero aparte de la portada de `/admin`. La portada es "qué tengo que hacer
 - La pestaña **Talles** termina con la curva sugerida y un botón "copiar" para pegarla en
   el mensaje al proveedor.
 
-Las mismas vistas salen todas las noches al libro de consulta (sección 6.5), una hoja
-por vista, para quien quiera armar una tabla dinámica.
+Las métricas se miran en `/admin/metricas`. El libro de consulta (sección 6.5) lleva
+solo el resumen por mes, para no repetir el problema del libro nuevo.
 
 ### 4.4 Qué tan buenos son los números viejos
 
@@ -768,8 +768,12 @@ dos libros**, sin escribir en ninguno:
   lee la web. Aporta **lo que se cargó ahí después de la unificación**: ventas nuevas,
   altas de productos y cambios de precio, `Nuevo` o `Precio Antes`.
 
-Si en la sesión principal se termina cargando todo también en el libro nuevo, la
-segunda fuente queda vacía y no pasa nada; el script lo detecta solo.
+**El libro nuevo no se sigue cargando** (Facu, 2026-10-13: tiene demasiadas hojas). Queda
+como fuente histórica de lo que el viejo no tiene: costos reales de pedidos, señas, pagos
+al proveedor y caja hasta su último dato. Lo posterior sale del viejo, que no tiene
+pagos: `--revisar` lista las ventas sin pago registrado y Facu marca en el informe cuáles
+están cobradas, con qué medio y si hubo seña. Así no hace falta cargar nada en paralelo
+hasta el corte.
 
 | Dato | De dónde | Qué se hace al migrar |
 |---|---|---|
@@ -882,15 +886,27 @@ el tiempo. Se arma afuera, gratis:
 (No se usa Drive porque la Drive API está deshabilitada en el proyecto de la cuenta de
 servicio; se podría habilitar, pero GitHub es más simple y ya está.)
 
-### 6.5 Exportación a Sheets para consulta
+### 6.5 El libro de consulta: simple y por mes
 
-El mismo job nocturno, después del backup, escribe un libro nuevo **solo de lectura**,
-`ERP_RosarioFkits_consulta`, con una hoja por vista: `TABLERO`, `STOCK`, `VENTAS`,
-`CLIENTES`, `PAGOS`, `CAJA`, `PEDIDOS`. Valores, no fórmulas (`RAW`, así no aplica la
-trampa del `;` del locale), y en la fila 1 "Actualizado: <fecha>. No editar: se pisa
-todas las noches". Sirve para mirar desde la compu, filtrar o armar una tabla dinámica,
-y como tercer respaldo. Usa la cuenta de servicio que ya existe; el libro se comparte
-con Facu como lector.
+Facu, 2026-10-13: el libro nuevo "no se entiende al tener tantas cosas". El libro de
+consulta tiene que ser lo contrario: pocas hojas, una fila por cosa, sin cruzar nada.
+
+El mismo job nocturno, después del backup, escribe `ERP_RosarioFkits_consulta`:
+
+| Hoja | Qué tiene |
+|---|---|
+| `STOCK` | Una fila por camiseta y talle, como el libro viejo: SKU, producto, precio, comprado, vendido, en casa, disponible |
+| `RESUMEN` | Una fila por mes: ventas, unidades, facturado, ganancia, cobrado, gastos, caja al cierre |
+| `2026-10`, `2026-09`... | Una hoja por mes: arriba los totales del mes, abajo una fila por venta (fecha, cliente, qué llevó, total, pagado, debe, estado) y después los movimientos de caja del mes |
+
+Solo valores (`RAW`, sin fórmulas ni la trampa del `;`), la fila 1 dice "Actualizado:
+<fecha>. No editar: se pisa todas las noches". Es para mirar, filtrar y como respaldo;
+se carga en `/admin`. Lo arman tres vistas de la base (`v_consulta_stock`,
+`v_consulta_ventas`, `v_resumen_mensual`, migración 0013), así las mismas cuentas sirven
+para el panel.
+
+Facu crea el libro vacío y lo comparte como editor con la cuenta de servicio (la Drive API
+está deshabilitada y no se puede crear por API).
 
 ## 7. Riesgos del plan gratis
 

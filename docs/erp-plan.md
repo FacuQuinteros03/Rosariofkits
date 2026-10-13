@@ -159,13 +159,22 @@ se aplican limpias al proyecto real (`npx supabase db push`).
       2. hace un pedido a la API REST (para que el proyecto no se pause);
       3. `pg_dump` comprimido + un CSV por tabla, commit al repo;
       4. falla en rojo si el dump sale vacío o cae más de 20 % contra el anterior.
-- [ ] Script `exportar_consulta.py` en el mismo workflow: escribe las vistas en un libro
-      **nuevo** `ERP_RosarioFkits_consulta`, solo valores. 👤 Facu crea ese libro vacío
-      y lo comparte como editor con la cuenta de servicio (la Drive API está
-      deshabilitada y no se puede crear por API). Ese *secret* también va al repo.
+- [ ] Script `exportar_consulta.py` en el mismo workflow: escribe el libro **nuevo**
+      `ERP_RosarioFkits_consulta`, simple y por mes (diseño 6.5): `STOCK`, `RESUMEN` y una
+      hoja por mes. 👤 Facu crea ese libro vacío y lo comparte como editor con la cuenta de
+      servicio (la Drive API está deshabilitada y no se puede crear por API).
 - [ ] **Probar restaurar**: bajar el dump de anoche y levantarlo en la base local.
 
 **Terminada cuando:** hay dos noches seguidas de backup en verde y uno se restauró.
+
+> **Estado 2026-10-13: lista la parte de Claude.** Scripts en `herramientas/backups/`
+> (`backup.yml`, `respaldar.sh`, `exportar_consulta.py`, `LEEME.md`). Probados contra la
+> base local en un Linux con Postgres 17: backup OK, y **restauración probada**: se borró
+> el esquema entero y quedó idéntico (filas, tablero, permisos, RLS 17/17). El libro de
+> consulta probado en seco. Migraciones 0013 y 0014 (vistas del libro de consulta)
+> aplicadas en local y en el proyecto real; 63 tests en verde.
+> **Falta de Facu:** el repo privado `rosariofkits-backups` con sus 5 secrets y el libro
+> vacío `ERP_RosarioFkits_consulta` compartido con la cuenta de servicio.
 **Toca producción:** no. El libro de consulta es nuevo; los dos libros vivos ni se abren.
 
 ### Etapa 3 — Migración en ensayo
