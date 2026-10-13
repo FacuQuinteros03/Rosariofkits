@@ -192,8 +192,9 @@ se aplican limpias al proyecto real (`npx supabase db push`).
       `spreadsheets.readonly`, así ni por error puede escribir.
 - [ ] Para `linea` y `equipo` reusa la lógica de `clasificar()` y `equipoDe()`: se porta a
       Python con un test que compara contra la salida de la web para todos los modelos.
-- [ ] Primer `--revisar` → informe en `docs/migracion/informe-AAAA-MM-DD.md` (en la rama
-      `erp`). 👤 Facu corrige en el libro lo que corresponda, en su carga normal.
+- [ ] Primer `--revisar` → informe en `herramientas/migracion/informes/informe-AAAA-MM-DD.md`.
+      **No se commitea** (está en `.gitignore`): tiene nombres de clientes y montos, y el
+      repo de la web es público. 👤 Facu corrige en el libro lo que corresponda.
 - [ ] `--ensayo` → compara tablero de la base contra `TABLERO` del libro, y stock por SKU
       contra el CSV de la web. Las diferencias explicadas (cancelados en saldo de
       cliente, ventas del viejo sin pago) quedan listadas en el informe, no escondidas.
@@ -201,6 +202,17 @@ se aplican limpias al proyecto real (`npx supabase db push`).
       dump), así el preview siempre tiene los datos de ayer.
 
 **Terminada cuando:** `--ensayo` cierra sin diferencias sin explicar.
+
+> **Estado 2026-10-13: el script anda; falta que Facu confirme 9 supuestos.**
+> `herramientas/migracion/migrar_erp.py` (`--revisar`, `--ensayo`, `--final`, `--destino local|real`).
+> Primer ensayo cargado en local y en el proyecto real: 126 modelos, 237 SKU, 5 pedidos,
+> 26 clientes, 31 ventas, 31 pagos, 35 movimientos de caja. **0 bloqueantes**, **0
+> diferencias de stock** con la web (84/84 SKU iguales en nombre, precio, disponible y
+> Nuevo, comparado por la API pública), tablero igual al libro salvo $306.500 = las 5
+> ventas que estaban solo en el libro viejo. Se agregó la migración 0015 (columna
+> Aportes en el resumen del libro de consulta). Los informes quedan en
+> `herramientas/migracion/informes/` y no se commitean (el repo es público).
+> `--volver` queda para la etapa 8, cuando haya algo cargado en el ERP que devolver.
 **Toca producción:** no. Lee los libros; no escribe.
 
 ### Etapa 4 — La web leyendo Supabase, en el preview

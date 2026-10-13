@@ -42,3 +42,7 @@ next-env.d.ts
 
 # Python
 __pycache__/
+
+# Migración del ERP: los informes tienen nombres de clientes y montos, y este repo es
+# público. Se generan en la compu y no se suben.
+herramientas/migracion/informes/

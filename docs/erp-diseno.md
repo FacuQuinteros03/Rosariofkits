@@ -550,7 +550,7 @@ anchas. Mismo estilo oscuro de la web.
 - Saldo de caja (total, efectivo, banco), deuda con proveedores, a cobrar.
 - Unidades: en camino, en casa, comprometidas, disponibles.
 - **Alertas** arriba de todo, en vez de los controles de hoy: clientes con reservas sin
-  seña hace más de N días (el caso Leo Uber), pedidos recibidos sin costo cargado,
+  seña hace más de N días, pedidos recibidos sin costo cargado,
   SKUs con disponible 0 que siguen marcados `Nuevo`.
 - Lista de clientes con saldo, cada uno con su botón de WhatsApp.
 - Accesos directos a las otras pantallas.

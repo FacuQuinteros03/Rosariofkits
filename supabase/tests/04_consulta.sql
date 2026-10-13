@@ -25,8 +25,8 @@ select results_eq(
   'VENTAS: total, pagado y lo que debe');
 
 select results_eq(
-  $$ select ventas, unidades, facturado, cobrado, gastos, caja_al_cierre from v_resumen_mensual $$,
-  $$ values (1::bigint, 2::bigint, 85000::numeric, 85000::numeric, 3000::numeric, 82000::numeric) $$,
+  $$ select ventas, unidades, facturado, cobrado, aportes, gastos, caja_al_cierre from v_resumen_mensual $$,
+  $$ values (1::bigint, 2::bigint, 85000::numeric, 85000::numeric, 0::numeric, 3000::numeric, 82000::numeric) $$,
   'RESUMEN: una fila por mes con ventas, cobros, gastos y caja');
 
 select is((select count(*)::int from v_resumen_mensual), 1, 'Un solo mes');

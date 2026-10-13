@@ -58,12 +58,12 @@ def armar_hojas(c):
                                 disponible, publicado
                          from v_consulta_stock order by producto, sku""")]
 
-    resumen = consultar(c, """select mes, ventas, unidades, facturado, ganancia, cobrado, gastos,
-                                     caja_del_mes, caja_al_cierre
+    resumen = consultar(c, """select mes, ventas, unidades, facturado, ganancia, cobrado, aportes,
+                                     gastos, caja_del_mes, caja_al_cierre
                               from v_resumen_mensual order by mes desc""")
     hojas["RESUMEN"] = [aviso, [],
-        ["Mes", "Ventas", "Unidades", "Facturado", "Ganancia", "Cobrado", "Gastos",
-         "Caja del mes", "Caja al cierre"],
+        ["Mes", "Ventas", "Unidades", "Facturado", "Ganancia", "Cobrado", "Aportes",
+         "Pagos y gastos", "Caja del mes", "Caja al cierre"],
         *[[nombre_mes(f[0])] + f[1:] for f in resumen]]
 
     for f in resumen:
@@ -80,7 +80,8 @@ def armar_hojas(c):
             aviso, [],
             [nombre_mes(f[0]).capitalize()],
             ["Ventas", f[1]], ["Unidades", f[2]], ["Facturado", f[3]], ["Ganancia", f[4]],
-            ["Cobrado", f[5]], ["Gastos", f[6]], ["Caja del mes", f[7]], ["Caja al cierre", f[8]],
+            ["Cobrado", f[5]], ["Aportes", f[6]], ["Pagos y gastos", f[7]],
+            ["Caja del mes", f[8]], ["Caja al cierre", f[9]],
             [],
             ["VENTAS"],
             ["Fecha", "Venta", "Cliente", "Qué llevó", "Unidades", "Total", "Pagado", "Debe",
