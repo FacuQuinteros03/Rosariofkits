@@ -3,6 +3,7 @@ import { ChevronDown, Plus, Search } from "lucide-react";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { nombreMes, plata, plataCorta, porciento } from "@/app/admin/_lib/formato";
 import { Cobrar } from "@/app/admin/_componentes/Acciones";
+import { Paginacion, paginar } from "@/app/admin/_componentes/Paginacion";
 
 /**
  * Todas las ventas, por mes, con su detalle: qué se llevó, cuánto pagó y cómo,
@@ -13,6 +14,7 @@ export const metadata = { title: "Ventas" };
 
 type Fila = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
+const POR_PAGINA = 25;
 const FILTROS = ["Todas", "Sin cerrar", "Reservada", "Señada", "Pagada", "Entregada", "Cancelada"];
 
 const COLOR_ESTADO: Record<string, string> = {
@@ -25,8 +27,8 @@ const COLOR_ESTADO: Record<string, string> = {
 
 const normal = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 
-export default async function Ventas({ searchParams }: { searchParams: Promise<{ q?: string; estado?: string }> }) {
-  const { q = "", estado = "Todas" } = await searchParams;
+export default async function Ventas({ searchParams }: { searchParams: Promise<{ q?: string; estado?: string; p?: string }> }) {
+  const { q = "", estado = "Todas", p } = await searchParams;
   const supabase = await supabaseServidor();
 
   const [ventas, items, pagos] = await Promise.all([
@@ -49,14 +51,18 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
     return palabras.every((w) => texto.includes(w));
   });
 
-  // Agrupadas por mes, con los totales de cada mes.
+  // Los totales de cada mes salen de todas las ventas filtradas; la página muestra 25.
+  const delMes = new Map<string, Fila[]>();
+  for (const v of lista) delMes.set(v.fecha.slice(0, 7), [...(delMes.get(v.fecha.slice(0, 7)) ?? []), v]);
+  const { pagina, paginas, items: enPagina } = paginar(lista, p, POR_PAGINA);
   const meses = new Map<string, Fila[]>();
-  for (const v of lista) meses.set(v.fecha.slice(0, 7), [...(meses.get(v.fecha.slice(0, 7)) ?? []), v]);
+  for (const v of enPagina) meses.set(v.fecha.slice(0, 7), [...(meses.get(v.fecha.slice(0, 7)) ?? []), v]);
   const ganancia = (id: string) => (itemsPorVenta.get(id) ?? []).reduce((s, i) => s + Number(i.ganancia ?? 0), 0);
 
   const href = (cambio: Record<string, string>) => {
     const p = new URLSearchParams({ ...(q ? { q } : {}), ...(estado !== "Todas" ? { estado } : {}), ...cambio });
     if (p.get("estado") === "Todas") p.delete("estado");
+    if (!("p" in cambio) || cambio.p === "1") p.delete("p");
     const s = p.toString();
     return `/admin/ventas${s ? `?${s}` : ""}`;
   };
@@ -93,8 +99,9 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
       {lista.length === 0 && <p className="py-10 text-center text-sm text-muted">No hay ventas con ese filtro.</p>}
 
       {[...meses.entries()].map(([mes, vs]) => {
-        const facturado = vs.filter((v) => v.estado !== "Cancelada").reduce((s, v) => s + Number(v.total), 0);
-        const gan = vs.reduce((s, v) => s + ganancia(v.id), 0);
+        const todoElMes = delMes.get(mes) ?? vs;
+        const facturado = todoElMes.filter((v) => v.estado !== "Cancelada").reduce((s, v) => s + Number(v.total), 0);
+        const gan = todoElMes.reduce((s, v) => s + ganancia(v.id), 0);
         return (
           <section key={mes}>
             <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
@@ -102,7 +109,7 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
                 {nombreMes(mes + "-01")} <span className="text-muted">{mes.slice(0, 4)}</span>
               </h2>
               <p className="text-xs text-muted">
-                {vs.length} ventas · <b className="text-ink">{plataCorta(facturado)}</b> · ganancia <b className="text-wa">{plataCorta(gan)}</b>
+                {todoElMes.length} ventas · <b className="text-ink">{plataCorta(facturado)}</b> · ganancia <b className="text-wa">{plataCorta(gan)}</b>
               </p>
             </div>
             <ul className="flex flex-col gap-2">
@@ -189,6 +196,8 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
           </section>
         );
       })}
+
+      <Paginacion pagina={pagina} paginas={paginas} href={(n) => href({ p: String(n) })} />
     </main>
   );
 }

@@ -80,6 +80,9 @@ CORRECCIONES = {
     # Facu, 13/10: "a día de hoy, con las ventas, en la reserva tenemos 540.000". Aproximado:
     # "no pasa nada si hay diferencia de 20k, el problema serían 100.000".
     "caja_segun_facu": 540000,
+    # Facu, 13/10: Cirilo se lleva 9 shorts casual M ($225.000), no 8. En el pedido a China
+    # van 2 Liverpool turquesa M y la venta tenía uno solo.
+    "items_agregados": [("V-0020", 5010, 1, 25000, "Señada", "Mayorista")],
 }
 
 # ---------------------------------------------------------------------------
@@ -612,6 +615,9 @@ class Migracion:
                     it["estado"], it["pedido_id"] = "Cancelada", None
                     self.nota("automaticas", f"{vid}: se saca de la reserva el SKU {sku} "
                                              f"({self.skus[sku]['nombre_web']}): el proveedor no la tenía (Facu, 13/10).")
+        for vid, sku, cant, precio, estado, motivo in CORRECCIONES["items_agregados"]:
+            self.agregar_item(vid, sku, cant, precio, None, estado, motivo)
+            self.nota("automaticas", f"{vid}: se agrega {cant} × {self.skus[sku]['nombre_web']} a {plata(precio)} (Facu, 13/10).")
         n_fechas = sum(1 for f in filas if isinstance(col(f, 1), (int, float)))
         if n_fechas:
             self.nota("automaticas", f"{n_fechas} filas de VENTAS tenían la fecha guardada como número; se convirtieron.")

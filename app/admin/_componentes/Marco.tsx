@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, LogOut, Plus, ArrowLeftRight, Receipt } from "lucide-react";
+import { LayoutDashboard, LogOut, Plus, ArrowLeftRight, Receipt, Users } from "lucide-react";
 
 /** Barra de arriba del panel, con los accesos de todos los días. */
 export function Barra({ email }: { email: string }) {
@@ -9,22 +9,25 @@ export function Barra({ email }: { email: string }) {
         <span className="grid h-9 w-9 place-items-center rounded-lg bg-gold font-display text-lg font-extrabold text-ground">
           RF
         </span>
-        <span className="leading-none">
+        <span className="hidden leading-none min-[400px]:block">
           <span className="block font-display text-xl font-extrabold uppercase tracking-tight">Panel</span>
           <span className="hidden text-[11px] text-muted sm:block">{email}</span>
         </span>
       </Link>
-      <nav className="flex items-center gap-1.5">
-        <Link href="/admin" className="hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted hover:text-ink sm:flex">
+      <nav className="flex items-center gap-0.5 sm:gap-1.5">
+        <Link href="/admin" className="hidden items-center gap-1.5 rounded-lg px-2 py-2 text-sm sm:px-3 text-muted hover:text-ink sm:flex">
           <LayoutDashboard className="h-4 w-4" /> Inicio
         </Link>
-        <Link href="/admin/ventas" className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-muted hover:text-ink">
+        <Link href="/admin/ventas" className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm sm:px-3 text-muted hover:text-ink">
           <Receipt className="h-4 w-4" /> <span className="hidden sm:inline">Ventas</span>
         </Link>
-        <Link href="/admin/movimiento" className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm hover:border-muted">
+        <Link href="/admin/clientes" className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm sm:px-3 text-muted hover:text-ink">
+          <Users className="h-4 w-4" /> <span className="hidden sm:inline">Clientes</span>
+        </Link>
+        <Link href="/admin/movimiento" className="flex items-center gap-1.5 rounded-lg border border-line px-2 py-2 text-sm sm:px-3 hover:border-muted">
           <ArrowLeftRight className="h-4 w-4" /> <span className="hidden sm:inline">Gasto / aporte</span>
         </Link>
-        <Link href="/admin/venta" className="flex items-center gap-1.5 rounded-lg bg-gold px-3 py-2 text-sm font-semibold text-ground">
+        <Link href="/admin/venta" className="flex items-center gap-1.5 rounded-lg bg-gold px-2.5 py-2 text-sm sm:px-3 font-semibold text-ground">
           <Plus className="h-4 w-4" /> Venta
         </Link>
         <form action="/admin/salir" method="post">

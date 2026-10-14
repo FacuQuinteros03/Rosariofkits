@@ -34,10 +34,11 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
   const supabase = await supabaseServidor();
   const q = (vista: string, campos = "*") => supabase.from(vista).select(campos);
 
-  const [tablero, inversion, caja, meses, lineas, equipos, talles, pedidos, porEntregar, conSaldo, ultimas, clientes] =
+  const [tablero, inversion, mercaderia, caja, meses, lineas, equipos, talles, pedidos, porEntregar, conSaldo, ultimas, clientes] =
     await Promise.all([
       q("v_tablero").single(),
       q("v_inversion").single(),
+      q("v_valor_mercaderia").single(),
       q("v_caja", "metodo, saldo"),
       q("v_resumen_mensual").order("mes"),
       q("v_ventas_por_linea", "linea, unidades, facturado"),
@@ -52,6 +53,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
 
   const t: Fila = tablero.data ?? {};
   const inv: Fila = inversion.data ?? {};
+  const mer: Fila = mercaderia.data ?? {};
   const porMetodo = Object.fromEntries(((caja.data ?? []) as Fila[]).map((c) => [c.metodo ?? "Total", Number(c.saldo)]));
   const mes = (meses.data ?? []) as Fila[];
   const telefonos = new Map(((clientes.data ?? []) as Fila[]).map((c) => [c.id, c.telefono]));
@@ -101,6 +103,31 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
           chispa={<Chispa valores={mes.map((m) => Number(m.caja_al_cierre))} color={COLORES.azul} />} />
         <Kpi titulo="Te deben" valor={plataCorta(t.a_cobrar)} pie={`${(conSaldo.data ?? []).length} ventas sin cerrar`} acento="text-gold" />
       </div>
+
+      {/* La mercadería sin vender: la plata que está en camisetas. */}
+      <section className="relative overflow-hidden rounded-2xl border border-gold/40 bg-gradient-to-br from-gold/15 via-surface to-surface p-5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gold">Valor de la mercadería sin vender</p>
+            <p className="mt-1 font-display text-5xl font-extrabold leading-none tracking-tight sm:text-6xl">{plata(mer.lista_total)}</p>
+            <p className="mt-1.5 text-sm text-muted">
+              a precio de venta · {Number(mer.unidades_casa ?? 0) + Number(mer.unidades_camino ?? 0)} prendas ·
+              costaron {plata(mer.costo_total)} · ganancia si se vende todo{" "}
+              <b className="text-wa">{plata(Number(mer.lista_total) - Number(mer.costo_total))}</b>
+            </p>
+          </div>
+          <div className="grid w-full grid-cols-2 gap-2 sm:w-auto">
+            <div className="rounded-xl bg-ground/60 px-4 py-2.5">
+              <p className="text-xs text-muted">En casa · {mer.unidades_casa ?? 0} u.</p>
+              <p className="font-display text-2xl font-extrabold text-wa">{plataCorta(mer.lista_casa)}</p>
+            </div>
+            <div className="rounded-xl bg-ground/60 px-4 py-2.5">
+              <p className="text-xs text-muted">En camino · {mer.unidades_camino ?? 0} u.</p>
+              <p className="font-display text-2xl font-extrabold text-sky-300">{plataCorta(mer.lista_camino)}</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Tarjeta titulo="Ventas, ganancia y caja por mes" className="lg:col-span-2">
