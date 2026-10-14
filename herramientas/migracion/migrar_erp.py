@@ -55,14 +55,76 @@ CORRECCIONES = {
     # Facu, 2026-10-13: pidió 4 Real Madrid Alternativa XL, llegaron 3; el proveedor
     # reemplazó la que faltaba con una Barcelona 25/26 Suplente L (esa ya está en AJUSTES).
     "recibidas": {("P-002", 3020): 3},
-    # El libro nuevo dice "En transito", pero el libro viejo ya los tiene en stock y hay
-    # ventas entregadas desde el 08/10. Fecha de llegada SUPUESTA: confirmar con Facu.
+    # El libro nuevo dice "En transito", pero ya llegó (Facu, 13/10: "llegó el otro día, no
+    # recuerdo la fecha"). Ya estaba en la web el 06/10 y la primera venta es del 08/10.
     "pedido_recibido": {"P-005": date(2026, 10, 6)},
-    # P-001 y P-002 (agosto) se pagaron antes de que existiera la caja: sin esto el ERP
-    # los cuenta como deuda con el proveedor. Se registran como un aporte de Facu y el
-    # pago al proveedor por el mismo monto, el mismo día: la caja no cambia.
-    "pagados_antes_de_la_caja": ["P-001", "P-002"],
+    # Facu, 13/10: el envío de Diez Store fue $17.000 (el libro decía $20.000 estimado).
+    "costo_envio": {"P-005": 17000},
+    # Facu, 13/10: los pedidos de agosto y el de Diez Store se pagaron con plata propia,
+    # antes de que existiera la caja (o por fuera de ella). Cada uno entra como un aporte
+    # y sale como pago al proveedor por el mismo monto, el mismo día: la caja no cambia y
+    # el pedido deja de figurar como deuda.
+    "pedidos_pagados_con_aporte": {
+        "P-001": "Facu, 200 USD",
+        "P-002": "su pareja, 700 USD (las 40 camisetas de Gonza)",
+        "P-005": "su pareja, 600 USD",
+    },
+    # Facu, 13/10: para la seña del pedido de China se usaron ~$1.200.000 de ganancias y su
+    # pareja puso $420.000 más. La seña (los dos egresos del 22/09) ya está en la caja.
+    "aportes": [(date(2026, 9, 22), 420000, "Su pareja, para la seña del pedido de China")],
+    # Facu, 13/10: "a día de hoy, con las ventas, en la reserva tenemos 540.000". Aproximado.
+    "caja_segun_facu": 540000,
 }
+
+# ---------------------------------------------------------------------------
+# El pedido a China actualizado (10-11/10/2026). El proveedor no tenía 8 camisetas de
+# P-003 y 20 shorts de P-004; se reemplazaron. Los libros no lo reflejan. Fuentes, en
+# C:\Users\facuq\Desktop\RosarioFkits:
+#   Pedido_China_SinFaltantes_2026-10-10.xlsx, hoja CAMBIOS   -> las 8 camisetas que salen
+#   Para el importador - reemplazos 2026-10-11\1 - Camisetas  -> las 8 que entran (final, con la Lazio)
+#   Para el importador - reemplazos 2026-10-11\2 - Shorts     -> los 20 que entran
+#   Pedido_Shorts_Proveedor_2026-09-21.xlsx                   -> el pedido real de shorts
+# Los 20 shorts que salen no tienen lista con SKU: salen de comparar el pedido real con
+# los modelos que el proveedor dijo que no tenía (Argentina negro y blanco, Inter,
+# Barcelona 25/26, Chelsea titular, Liverpool sin temporada y Chelsea 25/26 2da): da
+# exactamente 20 unidades y 5 con número. verificar_china() lo vuelve a contar contra
+# los archivos cada vez que corre.
+# SKU nuevos: 4099 en adelante y 5057 en adelante (Facu, 13/10).
+# ---------------------------------------------------------------------------
+CHINA = {
+    "salen": {
+        "P-003": [4017, 4018, 4019, 4038, 4049, 4050, 4061],
+        "P-004": [5013, 5014, 5015, 5016, 5017, 5018, 5019, 5020, 5021, 5022,
+                  5023, 5024, 5027, 5028, 5029, 5030],
+    },
+    # Los números de los shorts Argentina estaban corridos de modelo en el libro respecto
+    # del pedido real del 21/09.
+    "estampados": {5017: "N 10", 5018: "N 24", 5034: None, 5037: None, 5038: None},
+    # (pedido, sku, modelo, categoria, tipo, talle, estampado, precio, cantidad)
+    "nuevos": [
+        ("P-003", 4099, "Camiseta Real Madrid 06/07' Suplente (negra)", "Camiseta", "Retro", "L", "BECKHAM 23", 55000, 1),
+        ("P-003", 4100, "Camiseta Real Madrid 06/07' Suplente (negra)", "Camiseta", "Retro", "XL", "BECKHAM 23", 55000, 1),
+        ("P-003", 4101, "Camiseta Real Madrid 06/07' Suplente (negra)", "Camiseta", "Retro", "L", "RONALDO 9", 55000, 1),
+        ("P-003", 4102, "Camiseta Real Madrid 06/07' Suplente (negra)", "Camiseta", "Retro", "XL", "RONALDO 9", 55000, 1),
+        ("P-003", 4103, "Camiseta Barcelona 16/17' Titular", "Camiseta", "Retro", "L", "NEYMAR JR 11", 55000, 1),
+        ("P-003", 4104, "Camiseta Lazio 00/01' Titular (blanca)", "Camiseta", "Retro", "XL", "VERON 23", 55000, 1),
+        ("P-004", 5057, "Short Chelsea 26/27 Suplente (negro y amarillo)", "Short", "Short", "M", None, 45000, 1),
+        ("P-004", 5058, "Short Chelsea 26/27 Suplente (negro y amarillo)", "Short", "Short", "L", None, 45000, 4),
+        ("P-004", 5059, "Short Chelsea 26/27 Suplente (negro y amarillo)", "Short", "Short", "XL", None, 45000, 4),
+        ("P-004", 5060, "Short Argentina Titular (blanco)", "Short", "Short", "L", "N 10", 45000, 2),
+        ("P-004", 5061, "Short Argentina Titular (blanco)", "Short", "Short", "XL", "N 24", 45000, 1),
+        ("P-004", 5062, "Short Argentina Suplente (azul)", "Short", "Short", "XL", "N 10", 45000, 1),
+        ("P-004", 5063, "Short Brasil 26/27 Titular", "Short", "Short", "L", None, 45000, 1),
+        ("P-004", 5064, "Short PSG 26/27 Titular", "Short", "Short", "XL", None, 45000, 1),
+    ],
+    # Reemplazos de un SKU que ya estaba en el pedido: se suma a su cantidad. Las dos
+    # Argentina 2006 L con MESSI 19 son "EXTRA" en la hoja CAMBIOS: ya existían (4081, 4079).
+    "suman": {("P-003", 4081): 1, ("P-003", 4079): 1, ("P-004", 5033): 1, ("P-004", 5040): 1, ("P-004", 5041): 1,
+              ("P-004", 5055): 1, ("P-004", 5056): 1},
+    # Facu, 13/10: la Inter amarilla XL que no vino estaba en la reserva de V-0021: se saca.
+    "cancelar": [("V-0021", 4038)],
+}
+CARPETA_PEDIDOS = Path(r"C:\Users\facuq\Desktop\RosarioFkits")
 
 MENSAJE_SIN_MOTIVO = "Migrado: el libro no registraba el motivo"
 
@@ -303,9 +365,9 @@ class Migracion:
                     del self.skus[s]
                     self.modelos[modelo]["skus"].remove(s)
                     self.viejo_stock.pop(s, None)
-                self.nota("confirmar", f"SKU {', '.join(map(str, sorted(lista)))}: **{modelo}** talle {talle}"
-                                       f"{' ' + est if est else ''} está cargada {len(lista)} veces con números distintos. "
-                                       f"Se unen en el **{queda}** con cantidad {len(lista)}. ¿Son iguales de verdad?")
+                self.nota("automaticas", f"SKU {', '.join(map(str, sorted(lista)))}: {modelo} talle {talle}"
+                                         f"{' ' + est if est else ''} estaba cargada {len(lista)} veces; se une en el "
+                                         f"{queda} con cantidad {len(lista)} (el pedido a China lleva {len(lista)} iguales).")
 
     # ---------------------------------------------------------------- pedidos
     def armar_pedidos(self):
@@ -326,13 +388,18 @@ class Migracion:
             recibido_en = fch if estado == "Recibido" else None
             if pid in CORRECCIONES["pedido_recibido"]:
                 recibido_en = CORRECCIONES["pedido_recibido"][pid]
-                self.nota("confirmar", f"**{pid}** figura *{estado}* en el libro nuevo, pero ya se venden sus "
-                                       f"camisetas: se migra como **recibido el {recibido_en:%d/%m/%Y}**. ¿Es esa la fecha?")
+                self.nota("automaticas", f"{pid} figura *{estado}* en el libro nuevo pero ya llegó (Facu, 13/10): "
+                                         f"se migra como recibido el {recibido_en:%d/%m/%Y} (fecha aproximada).")
                 estado = "Recibido"
             elif estado == "Recibido":
                 self.nota("automaticas", f"{pid}: no tiene fecha de llegada; se usa la del pedido ({fch:%d/%m/%Y}).")
+            envio = numero(col(f, 6))
+            if pid in CORRECCIONES["costo_envio"]:
+                self.nota("automaticas", f"{pid}: envío {plata(CORRECCIONES['costo_envio'][pid])} "
+                                         f"(el libro decía {plata(envio)} estimado; Facu, 13/10).")
+                envio = CORRECCIONES["costo_envio"][pid]
             self.pedidos[pid] = {"fecha": fch, "proveedor": prov, "estado": estado, "recibido_en": recibido_en,
-                                 "costo_mercaderia": numero(col(f, 5)), "costo_envio": numero(col(f, 6)),
+                                 "costo_mercaderia": numero(col(f, 5)), "costo_envio": envio,
                                  "otros": numero(col(f, 7)), "notas": str(col(f, 12)).strip() or None}
 
         vistos = set()
@@ -371,6 +438,78 @@ class Migracion:
             self.items.append({"pedido_id": pid, "sku": sku, "cantidad": cant, "recibida": recibida,
                                "costo_unit": costo, "apellido": str(col(f, 5)).strip() or None,
                                "nota": str(col(f, 6)).strip() or None})
+
+    def aplicar_china(self):
+        """El pedido a China actualizado (ver CHINA arriba)."""
+        salen = {s for lista in CHINA["salen"].values() for s in lista}
+        unidades_salen = defaultdict(int)
+        for i in list(self.items):
+            if i["sku"] in salen and i["pedido_id"] in CHINA["salen"]:
+                unidades_salen[i["pedido_id"]] += i["cantidad"]
+                self.items.remove(i)
+                self.skus[i["sku"]]["estado_pub"] = "Archivado"
+        for sku, est in CHINA["estampados"].items():
+            s = self.skus[sku]
+            antes = s["estampado"]
+            s["estampado"], s["dorsal"] = est, bool(est)
+            s["nombre_web"] = s["modelo"] + (f" ({est})" if est else "") + f" - Talle {s['talle']}"
+            self.nota("automaticas", f"SKU {sku} {s['modelo']} {s['talle']}: número `{antes or 'sin número'}` → "
+                                     f"`{est or 'sin número'}` (estaban corridos respecto del pedido real del 21/09).")
+        unidades_entran = defaultdict(int)
+        for pid, sku, modelo, cat, tipo, talle, est, precio, cant in CHINA["nuevos"]:
+            nombre_web = modelo + (f" ({est})" if est else "")
+            linea = clasificar(nombre_web, cat)
+            equipo = equipo_de(nombre_web)
+            if equipo:
+                self.equipos.add(equipo)
+            m = self.modelos.setdefault(modelo, {"categoria": cat, "tipo": tipo, "linea": linea,
+                                                 "equipo": equipo, "nuevo": False, "skus": []})
+            m["skus"].append(sku)
+            self.skus[sku] = {"modelo": modelo, "talle": talle, "estampado": est, "dorsal": bool(est),
+                              "precio": precio, "precio_antes": None, "estado_pub": "Preventa",
+                              "pedido_origen": pid, "nombre_web": f"{nombre_web} - Talle {talle}"}
+            self.items.append({"pedido_id": pid, "sku": sku, "cantidad": cant, "recibida": 0, "costo_unit": None,
+                               "apellido": est, "nota": "Reemplazo del 10-11/10 (sin stock en el proveedor)"})
+            unidades_entran[pid] += cant
+        for (pid, sku), cant in CHINA["suman"].items():
+            it = next(i for i in self.items if i["pedido_id"] == pid and i["sku"] == sku)
+            it["cantidad"] += cant
+            unidades_entran[pid] += cant
+        for pid in sorted(set(unidades_salen) | set(unidades_entran)):
+            self.nota("automaticas", f"{pid}: salen {unidades_salen[pid]} unidades sin stock en el proveedor y entran "
+                                     f"{unidades_entran[pid]} de reemplazo (archivos del 10-11/10). Los SKU que salen "
+                                     f"quedan archivados.")
+            if unidades_salen[pid] != unidades_entran[pid]:
+                self.nota("bloqueantes", f"{pid}: salen {unidades_salen[pid]} y entran {unidades_entran[pid]}: no cierra.")
+        self.verificar_china()
+
+    def verificar_china(self):
+        """Recuenta contra los archivos que se mandaron al importador."""
+        try:
+            import openpyxl
+        except ImportError:
+            self.nota("automaticas", "No se pudo verificar el pedido a China contra los archivos (falta openpyxl).")
+            return
+        carpeta = CARPETA_PEDIDOS / "Para el importador - reemplazos 2026-10-11"
+        for archivo, pid, col_cant in (("1 - Camisetas (8 reemplazos).xlsx", "P-003", 6),
+                                       ("2 - Shorts (20 reemplazos).xlsx", "P-004", 5)):
+            ruta = carpeta / archivo
+            if not ruta.exists():
+                self.nota("automaticas", f"No está {ruta.name}: no se verificó {pid}.")
+                continue
+            ws = openpyxl.load_workbook(ruta, data_only=True).active
+            total = sum(int(f[col_cant]) for f in ws.iter_rows(min_row=4, values_only=True)
+                        if len(f) > col_cant and isinstance(f[col_cant], (int, float)) and f[col_cant] < 100)
+            nuestro = sum(x[8] for x in CHINA["nuevos"] if x[0] == pid) + sum(
+                c for (p, _), c in CHINA["suman"].items() if p == pid)
+            if total != nuestro:
+                self.nota("bloqueantes", f"{pid}: el archivo de reemplazos suma {total} unidades y el script carga {nuestro}.")
+        ruta = CARPETA_PEDIDOS / "Pedido_China_SinFaltantes_2026-10-10.xlsx"
+        if ruta.exists():
+            ws = openpyxl.load_workbook(ruta, data_only=True)["CAMBIOS"]
+            skus = {int(f[0]) for f in ws.iter_rows(min_row=3, values_only=True) if isinstance(f[0], (int, float))}
+            if skus != set(CHINA["salen"]["P-003"]):
+                self.nota("bloqueantes", f"P-003: la hoja CAMBIOS saca {sorted(skus)} y el script {CHINA['salen']['P-003']}.")
 
     def costo_item(self, pid, sku):
         """Costo real con la importación prorrateada, como v_costo_item."""
@@ -426,6 +565,12 @@ class Migracion:
             if isinstance(col(f, 7), str) and col(f, 7):
                 self.nota("automaticas", f"{vid}, SKU {sku}: el costo estaba como texto y rompía la ganancia del libro (#VALUE!).")
             self.agregar_item(vid, sku, int(numero(col(f, 4)) or 1), numero(col(f, 5)), costo, estado, motivo)
+        for vid, sku in CHINA["cancelar"]:
+            for it in self.ventas.get(vid, {}).get("items", []):
+                if it["sku"] == sku and it["estado"] != "Cancelada":
+                    it["estado"], it["pedido_id"] = "Cancelada", None
+                    self.nota("automaticas", f"{vid}: se saca de la reserva el SKU {sku} "
+                                             f"({self.skus[sku]['nombre_web']}): el proveedor no la tenía (Facu, 13/10).")
         n_fechas = sum(1 for f in filas if isinstance(col(f, 1), (int, float)))
         if n_fechas:
             self.nota("automaticas", f"{n_fechas} filas de VENTAS tenían la fecha guardada como número; se convirtieron.")
@@ -488,10 +633,10 @@ class Migracion:
             total = sum(g["precio"] * g["cant"] for g in grupo)
             metodo = grupo[0]["metodo"] or "Transferencia"
             self.pagos.append({"id": None, "fecha": fch, "venta_id": vid, "monto": total, "metodo": metodo,
-                               "tipo": "Total", "notas": "SUPUESTO: cobrada entera al vender (el libro viejo no registra pagos)"})
+                               "tipo": "Total", "notas": "Cobrada entera al vender (Facu, 13/10: todas por transferencia)"})
             detalle = " + ".join(f"{self.skus[g['sku']]['nombre_web']}" for g in grupo)
-            self.nota("confirmar", f"{vid} = {ids} del {fch:%d/%m}, **{nombre}**: {detalle}, {plata(total)}. "
-                                   f"Se supone **entregada y cobrada entera por {metodo}**. ¿Es así?")
+            self.nota("automaticas", f"{vid} = {ids} del {fch:%d/%m} (libro viejo): {detalle}, {plata(total)}, "
+                                     f"entregada y cobrada por {metodo} (Facu, 13/10).")
 
     def agregar_item(self, vid, sku, cant, precio, costo_libro, estado, motivo):
         sku = self.fusionados.get(sku, sku)
@@ -504,7 +649,9 @@ class Migracion:
             self.nota("automaticas", f"{vid}, SKU {sku}: Pedido_Origen {pid} no tiene ese SKU; se deja sin pedido.")
             pid = None
         costo_real = self.costo_item(pid, sku) if pid else None
-        costo = costo_libro if costo_libro is not None else costo_real
+        costo = costo_real if (costo_real is not None and pid not in ("P-001", "P-002")) else costo_libro
+        if costo is None:
+            costo = costo_real
         if costo is None:
             self.nota("bloqueantes", f"{vid}, SKU {sku}: no hay costo.")
             costo = 0
@@ -564,7 +711,8 @@ class Migracion:
             if p["id"] and p["id"] not in con_caja:
                 self.nota("bloqueantes", f"{p['id']}: el pago no tiene su movimiento en CAJA.")
 
-        for pid in CORRECCIONES["pagados_antes_de_la_caja"]:
+        self.caja_extra = []
+        for pid, quien in CORRECCIONES["pedidos_pagados_con_aporte"].items():
             ped = self.pedidos.get(pid)
             if not ped:
                 continue
@@ -574,16 +722,19 @@ class Migracion:
             ya = sum(x["monto"] for x in self.caja if x["pedido_id"] == pid and x["tipo"] == "Egreso")
             if total - ya <= 0:
                 continue
-            nota = f"Pagado antes de que existiera la caja (migración): {pid}"
-            self.caja_extra = getattr(self, "caja_extra", [])
             self.caja_extra += [
                 {"fecha": ped["fecha"], "tipo": "Ingreso", "categoria": "Aporte", "monto": total - ya,
-                 "metodo": "Transferencia", "pago_id": None, "pedido_id": None, "nota": nota},
+                 "metodo": "Transferencia", "pago_id": None, "pedido_id": None,
+                 "nota": f"Aporte de {quien} para pagar {pid}"},
                 {"fecha": ped["fecha"], "tipo": "Egreso", "categoria": "Pago proveedor", "monto": total - ya,
-                 "metodo": "Transferencia", "pago_id": None, "pedido_id": pid, "nota": nota}]
-            self.nota("confirmar", f"**{pid}** ({ped['proveedor']}, {plata(total - ya)}) no tiene pagos en la caja "
-                                   f"porque se pagó antes de armarla. Se registra como aporte tuyo + pago al proveedor "
-                                   f"el {ped['fecha']:%d/%m} (la caja no cambia, la deuda queda en 0). ¿Está pagado?")
+                 "metodo": "Transferencia", "pago_id": None, "pedido_id": pid,
+                 "nota": f"{pid} pagado con el aporte de {quien}"}]
+            self.nota("automaticas", f"{pid} ({ped['proveedor']}, {plata(total - ya)}): pagado con plata propia "
+                                     f"({quien}). Entra como aporte y sale como pago al proveedor el mismo día.")
+        for fch, monto, nota in CORRECCIONES["aportes"]:
+            self.caja_extra.append({"fecha": fch, "tipo": "Ingreso", "categoria": "Aporte", "monto": monto,
+                                    "metodo": "Transferencia", "pago_id": None, "pedido_id": None, "nota": nota})
+            self.nota("automaticas", f"Aporte {plata(monto)} el {fch:%d/%m}: {nota}.")
 
         for f in self.nuevo["AJUSTES"][1:]:
             if not f or not str(col(f, 1)).strip():
@@ -595,6 +746,7 @@ class Migracion:
     def armar(self):
         self.armar_productos()
         self.armar_pedidos()
+        self.aplicar_china()
         self.armar_ventas()
         self.armar_plata()
         return self
@@ -672,7 +824,7 @@ def cargar(c, m):
 
     # Movimientos agregados por la migración (pedidos pagados antes de la caja), con el
     # número que sigue.
-    for x in getattr(m, "caja_extra", []):
+    for x in m.caja_extra:
         c.execute("insert into caja_movimientos (fecha, tipo, categoria, monto, metodo, pedido_id, nota) "
                   "values (%s,%s,%s,%s,%s,%s,%s)",
                   (x["fecha"], x["tipo"], x["categoria"], x["monto"], x["metodo"], x["pedido_id"], x["nota"]))
@@ -717,6 +869,7 @@ def controlar(c, m):
         ("A cobrar", libro.get("a cobrar"), tab["a_cobrar"]),
         ("Deuda con proveedores", libro.get("deuda con el importador"), tab["deuda_proveedores"]),
         ("Ganancia", libro.get("ganancia"), tab["ganancia"]),
+        ("Caja según Facu (13/10, aproximada)", CORRECCIONES["caja_segun_facu"], tab["saldo_caja"]),
     ]
     conteos = {t: c.execute(f"select count(*) from {t}").fetchone()[0]
                for t in ("modelos", "skus", "pedidos", "pedido_items", "clientes", "ventas", "venta_items",
