@@ -44,8 +44,9 @@ export default async function Inicio() {
     );
   }
 
-  const [tablero, caja, saldos, porEntregar, reservas] = await Promise.all([
+  const [tablero, inversion, caja, saldos, porEntregar, reservas] = await Promise.all([
     supabase.from("v_tablero").select("*").single(),
+    supabase.from("v_inversion").select("*").single(),
     supabase.from("v_caja").select("metodo, saldo"),
     supabase.from("v_saldo_cliente").select("id, nombre, telefono, saldo").gt("saldo", 0).order("saldo", { ascending: false }),
     supabase.from("v_por_entregar").select("venta_id, cliente, telefono, producto, cantidad, estado, pedido_id, estado_pedido, llego").order("pedido_id"),
@@ -54,6 +55,8 @@ export default async function Inicio() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const t: Record<string, any> = tablero.data ?? {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inv: Record<string, any> = inversion.data ?? {};
   const porMetodo = Object.fromEntries((caja.data ?? []).map((c) => [c.metodo ?? "Total", c.saldo]));
 
   const alertas = (reservas.data ?? [])
@@ -95,6 +98,19 @@ export default async function Inicio() {
           <Dato titulo="A cobrar" valor={plata(t.a_cobrar)} pie={`${saldos.data?.length ?? 0} clientes`} />
           <Dato titulo="Debés a proveedores" valor={plata(t.deuda_proveedores)} />
           <Dato titulo="Ganancia total" valor={plata(t.ganancia)} pie={`sobre ${plata(t.facturado)} vendidos`} />
+        </div>
+      </Seccion>
+
+      <Seccion titulo="Inversión">
+        <div className="grid grid-cols-2 gap-2">
+          <Dato titulo="Pusieron ustedes" valor={plata(inv.inversion)}
+            pie={Number(inv.retiros) > 0 ? `aportes ${plata(inv.aportes)} − retiros ${plata(inv.retiros)}` : "aportes de plata propia"} />
+          <Dato titulo="Gasto total" valor={plata(inv.gastado)}
+            pie={`Mercadería ${plata(inv.gastado_mercaderia)} · Otros ${plata(inv.gastado_otros)}`} />
+          <div className="col-span-2">
+            <Dato titulo="Costo total con lo que falta pagar" valor={plata(inv.costo_total)}
+              pie={`gastado + ${plata(inv.deuda_proveedores)} que se debe a proveedores`} />
+          </div>
         </div>
       </Seccion>
 
