@@ -200,7 +200,7 @@ export function Ruleta() {
   }
 
   /* En el validador de cupones el botón no pinta: esa pantalla es para Facu. */
-  if (!activa || ruta.startsWith("/cupon")) return null;
+  if (!activa || ruta.startsWith("/cupon") || ruta.startsWith("/admin")) return null;
 
   const yaGiro = Boolean(cupon);
   const mostrandoResultado = estado === "resultado" || (estado === "listo" && yaGiro);
