@@ -566,6 +566,12 @@ anchas. Mismo estilo oscuro de la web.
    **Reservada sin plata**. Si hay plata: monto (sugiere el total) y método.
 5. Confirmar → resumen con el `V-0042` y botón para mandarle el resumen por WhatsApp
    al cliente.
+6. **Venta de algo que todavía no llegó** (Facu, 2026-10-13): cuando el producto es de un
+   pedido en camino, la pantalla lo dice ("llega con el pedido P-003") y la venta queda
+   marcada **para entregar cuando llegue**. No es un estado nuevo: es cualquier venta
+   no entregada cuyo item sale de un pedido sin recibir (`venta_items.pedido_id`). El
+   inicio muestra la lista "Para entregar cuando llegue" agrupada por pedido, y al
+   recibir un pedido aparece la lista de a quién avisarle.
 
 **3. Cargar pago o seña** (`/admin/pago`) — se entra por el cliente: muestra sus
 ventas con saldo, se elige una, monto, método, tipo (seña/saldo) y una casilla

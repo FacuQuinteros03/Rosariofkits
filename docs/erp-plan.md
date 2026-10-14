@@ -240,6 +240,15 @@ se aplican limpias al proyecto real (`npx supabase db push`).
 
 **Terminada cuando:** la comparación da cero diferencias y el preview se ve igual que
 producción, en el celular y en la compu.
+
+> **Estado 2026-10-13.** `lib/sheets.ts`: `leerFilas()` elige la fuente con
+> `CATALOGO_FUENTE` (sin la variable, `sheets`: producción no cambia), lee `catalogo_web()`
+> por GET con la clave publishable y tag `catalogo`, y si la base falla cae al CSV
+> (probado con una clave mala). `bash herramientas/comparar_catalogo.sh` arma el catálogo
+> con el mismo `getCatalogo()` desde las dos fuentes: **52 productos, idénticos**.
+> `npm run build` con Supabase OK; `next start` local revisado (Recién llegadas,
+> Lanzamiento, Real Madrid 25/26 con XL agotado). Falta: ver el deploy de preview de
+> Vercel (necesita el login de Facu).
 **Toca producción:** no. Hay commits nuevos solo en `erp`.
 
 ### Etapa 5 — Login y tablero

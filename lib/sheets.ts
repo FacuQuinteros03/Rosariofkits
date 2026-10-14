@@ -22,6 +22,20 @@ const SIN_TILDES = new RegExp("[" + "\u0300-\u036f" + "]", "g");
 const CSV_URL = process.env.SHEET_CSV_URL ?? "";
 
 /**
+ * De donde sale el catalogo: el CSV de siempre o la base del ERP (Supabase).
+ *
+ * Sin la variable es "sheets": el mismo codigo, en produccion, se comporta
+ * exactamente como antes. En el preview de la rama erp vale "supabase". El paso
+ * a produccion es cambiar esta variable, y volver atras tambien.
+ */
+const FUENTE = process.env.CATALOGO_FUENTE?.trim() === "supabase" ? "supabase" : "sheets";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ?? "";
+
+/** Tag del fetch del catalogo: el panel lo invalida con updateTag al cargar una venta. */
+export const TAG_CATALOGO = "catalogo";
+
+/**
  * Que filas entran al catalogo principal.
  *
  * El libro trae todo junto: lo que esta en mano y las 154 unidades del pedido
@@ -277,17 +291,74 @@ function buscarFotos(skus: string[]): string[] {
  * ISR: `next.revalidate` hace que Next sirva la copia cacheada al instante y
  * refresque en segundo plano. Ninguna visita espera a Google.
  */
-export async function getCatalogo(): Promise<Producto[]> {
+async function leerFilasCSV(): Promise<string[][]> {
   if (!CSV_URL) {
     throw new Error(
       "Falta SHEET_CSV_URL en .env.local — es el link CSV publicado de la hoja Web."
     );
   }
-
   const res = await fetch(CSV_URL, { next: { revalidate: REVALIDATE } });
   if (!res.ok) throw new Error(`El Sheet respondio ${res.status}`);
+  return parseCSV(await res.text());
+}
 
-  const [encabezado = [], ...filas] = parseCSV(await res.text());
+/** Una fila de catalogo_web(), la funcion de la base que puede leer la web publica. */
+interface FilaDB {
+  sku: number;
+  producto: string;
+  categoria: string;
+  precio: number | string;
+  disponible: number;
+  estado_pub: string;
+  nuevo: boolean;
+  precio_antes: number | string | null;
+}
+
+/**
+ * El catalogo desde la base, con la misma forma que el CSV: mismo encabezado,
+ * mismas columnas, todo texto. Asi lo que viene despues (agrupar por modelo,
+ * clasificar, fotos) no se entera de donde salio. Es GET porque la funcion es
+ * de solo lectura, y la clave es la publishable: catalogo_web() es lo unico que
+ * esa clave puede ejecutar, y nunca trae costos.
+ */
+async function leerFilasDB(): Promise<string[][]> {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    throw new Error("Faltan NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+  }
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/catalogo_web`, {
+    headers: { apikey: SUPABASE_KEY, Accept: "application/json" },
+    next: { revalidate: REVALIDATE, tags: [TAG_CATALOGO] },
+  });
+  if (!res.ok) throw new Error(`La base respondio ${res.status}: ${await res.text()}`);
+  const filas = (await res.json()) as FilaDB[];
+  return [
+    ["SKU", "Producto / Descripcion", "Categoria", "Precio Venta ($)", "Disponible",
+     "Estado_Pub", "Nuevo", "Precio Antes"],
+    ...filas.map((f) => [
+      String(f.sku), f.producto, f.categoria, String(f.precio), String(f.disponible),
+      f.estado_pub, f.nuevo ? "si" : "", f.precio_antes == null ? "" : String(f.precio_antes),
+    ]),
+  ];
+}
+
+/**
+ * Las filas del catalogo, de la fuente que diga CATALOGO_FUENTE. Si la base no
+ * contesta, cae al CSV: mientras el libro siga publicado, el sitio no se queda
+ * sin catalogo por una caida de Supabase.
+ */
+export async function leerFilas(): Promise<string[][]> {
+  if (FUENTE === "supabase") {
+    try {
+      return await leerFilasDB();
+    } catch (e) {
+      console.error("[catalogo] la base no respondio, se usa el CSV:", e);
+    }
+  }
+  return leerFilasCSV();
+}
+
+export async function getCatalogo(): Promise<Producto[]> {
+  const [encabezado = [], ...filas] = await leerFilas();
   const col = ubicarColumnas(encabezado);
 
   const porModelo = new Map<
