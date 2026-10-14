@@ -12,7 +12,7 @@ export default async function Entrar({ searchParams }: { searchParams: Promise<{
   const { error } = await searchParams;
   const mensaje = explicar(error);
   return (
-    <main className="flex min-h-[80dvh] flex-col justify-center gap-6">
+    <main className="mx-auto flex min-h-[80dvh] max-w-md flex-col justify-center gap-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Rosario F Kits</p>
         <h1 className="mt-1 font-display text-5xl font-extrabold uppercase leading-none tracking-tight">
