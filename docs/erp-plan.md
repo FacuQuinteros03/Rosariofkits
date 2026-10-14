@@ -203,7 +203,15 @@ se aplican limpias al proyecto real (`npx supabase db push`).
 
 **Terminada cuando:** `--ensayo` cierra sin diferencias sin explicar.
 
-> **Estado 2026-10-13: el script anda; falta que Facu confirme 9 supuestos.**
+> **Cerrada 2026-10-13.** Facu confirmó todo: P-005 recibido (~06/10) con envío $17.000;
+> pedidos de agosto y Diez Store pagados con aportes en dólares, más $420.000 para la seña
+> de China; las ventas del libro viejo cobradas por transferencia; el pedido a China
+> actualizado con los reemplazos de 10-11/10 (121 camisetas con la Betis manga larga y 69
+> shorts); publicidad de Marketplace pagada con plata propia. Caja ERP $527.123 contra
+> ~$540.000 de Facu: diferencia aceptada (él tolera ~20k). Carga en lote (executemany):
+> de 5 minutos a segundos contra Oregon.
+>
+> Historia: el script anda; Facu confirmó 9 supuestos.
 > `herramientas/migracion/migrar_erp.py` (`--revisar`, `--ensayo`, `--final`, `--destino local|real`).
 > Primer ensayo cargado en local y en el proyecto real: 126 modelos, 237 SKU, 5 pedidos,
 > 26 clientes, 31 ventas, 31 pagos, 35 movimientos de caja. **0 bloqueantes**, **0
