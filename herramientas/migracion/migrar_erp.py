@@ -72,7 +72,13 @@ CORRECCIONES = {
     # Facu, 13/10: para la seña del pedido de China se usaron ~$1.200.000 de ganancias y su
     # pareja puso $420.000 más. La seña (los dos egresos del 22/09) ya está en la caja.
     "aportes": [(date(2026, 9, 22), 420000, "Su pareja, para la seña del pedido de China")],
-    # Facu, 13/10: "a día de hoy, con las ventas, en la reserva tenemos 540.000". Aproximado.
+    # Facu, 13/10: gastos pagados con plata propia (a veces pasa). Entran como aporte y
+    # salen como gasto: cuentan en la ganancia y las métricas, la caja no cambia.
+    "gastos_con_plata_propia": [
+        (date(2026, 10, 13), "Publicidad", 12877, "Publicidad en Marketplace (acumulado)"),
+    ],
+    # Facu, 13/10: "a día de hoy, con las ventas, en la reserva tenemos 540.000". Aproximado:
+    # "no pasa nada si hay diferencia de 20k, el problema serían 100.000".
     "caja_segun_facu": 540000,
 }
 
@@ -123,7 +129,19 @@ CHINA = {
               ("P-004", 5055): 1, ("P-004", 5056): 1},
     # Facu, 13/10: la Inter amarilla XL que no vino estaba en la reserva de V-0021: se saca.
     "cancelar": [("V-0021", 4038)],
+    # Agregadas al pedido por WhatsApp, fuera de los archivos (no son reemplazos). El costo
+    # se supone igual al resto del pedido (11 USD por unidad) y se suma a la mercadería.
+    "extras": [
+        ("P-003", 4105, "Camiseta Real Betis Manga Larga", "Camiseta", "Jugador", "XL", None, 55000, 1),
+    ],
 }
+
+# Ventas que no están en ningún libro.
+VENTAS_NUEVAS = [
+    # Facu, 13/10: la Betis manga larga XL ya está pedida para Fabri primo, a $55.000, sin pagar.
+    {"fecha": date(2026, 10, 13), "cliente": "Fabri primo", "estado": "Reservada",
+     "items": [(4105, 55000)], "notas": "Pedida por WhatsApp; agregada al pedido a China"},
+]
 CARPETA_PEDIDOS = Path(r"C:\Users\facuq\Desktop\RosarioFkits")
 
 MENSAJE_SIN_MOTIVO = "Migrado: el libro no registraba el motivo"
@@ -475,6 +493,26 @@ class Migracion:
             it = next(i for i in self.items if i["pedido_id"] == pid and i["sku"] == sku)
             it["cantidad"] += cant
             unidades_entran[pid] += cant
+        for pid, sku, modelo, cat, tipo, talle, est, precio, cant in CHINA["extras"]:
+            nombre_web = modelo + (f" ({est})" if est else "")
+            equipo = equipo_de(nombre_web)
+            if equipo:
+                self.equipos.add(equipo)
+            m = self.modelos.setdefault(modelo, {"categoria": cat, "tipo": tipo, "linea": clasificar(nombre_web, cat),
+                                                 "equipo": equipo, "nuevo": False, "skus": []})
+            m["skus"].append(sku)
+            self.skus[sku] = {"modelo": modelo, "talle": talle, "estampado": est, "dorsal": bool(est),
+                              "precio": precio, "precio_antes": None, "estado_pub": "Preventa",
+                              "pedido_origen": pid, "nombre_web": f"{nombre_web} - Talle {talle}"}
+            ped = self.pedidos[pid]
+            unidades = sum(i["cantidad"] for i in self.items if i["pedido_id"] == pid)
+            costo_unit = round((ped["costo_mercaderia"] or 0) / unidades, 2)
+            ped["costo_mercaderia"] = round((ped["costo_mercaderia"] or 0) + costo_unit * cant, 2)
+            self.items.append({"pedido_id": pid, "sku": sku, "cantidad": cant, "recibida": 0, "costo_unit": None,
+                               "apellido": est, "nota": "Agregada por WhatsApp (Facu, 13/10)"})
+            self.nota("automaticas", f"{pid}: se agrega {nombre_web} talle {talle} (SKU {sku}), pedida por WhatsApp. "
+                                     f"Costo supuesto {plata(costo_unit)} como el resto del pedido; la mercadería pasa a "
+                                     f"{plata(ped['costo_mercaderia'])} y {unidades + cant} unidades.")
         for pid in sorted(set(unidades_salen) | set(unidades_entran)):
             self.nota("automaticas", f"{pid}: salen {unidades_salen[pid]} unidades sin stock en el proveedor y entran "
                                      f"{unidades_entran[pid]} de reemplazo (archivos del 10-11/10). Los SKU que salen "
@@ -482,6 +520,9 @@ class Migracion:
             if unidades_salen[pid] != unidades_entran[pid]:
                 self.nota("bloqueantes", f"{pid}: salen {unidades_salen[pid]} y entran {unidades_entran[pid]}: no cierra.")
         self.verificar_china()
+        if "P-001" in self.pedidos:
+            self.nota("automaticas", "P-001: 12 camisetas FAN y 13 shorts; uno de los shorts fue un regalo del "
+                                     "proveedor (Facu, 13/10). Los costos de agosto ya eran supuestos: no se cambian.")
 
     def verificar_china(self):
         """Recuenta contra los archivos que se mandaron al importador."""
@@ -638,6 +679,23 @@ class Migracion:
             self.nota("automaticas", f"{vid} = {ids} del {fch:%d/%m} (libro viejo): {detalle}, {plata(total)}, "
                                      f"entregada y cobrada por {metodo} (Facu, 13/10).")
 
+    def armar_ventas_nuevas(self):
+        por_nombre = {clave(c["nombre"]): cid for cid, c in self.clientes.items()}
+        for vn in VENTAS_NUEVAS:
+            cid = por_nombre.get(clave(vn["cliente"]))
+            if not cid:
+                cid = f"C-{len(self.clientes) + 1:03d}"
+                self.clientes[cid] = {"nombre": vn["cliente"], "telefono": None, "notas": None, "tipo": "Minorista"}
+                por_nombre[clave(vn["cliente"])] = cid
+                self.nota("clientes", f"{cid} **{vn['cliente']}** (nuevo, Facu 13/10).")
+            vid = f"V-{max(int(v[2:]) for v in self.ventas) + 1:04d}"
+            self.ventas[vid] = {"fecha": vn["fecha"], "cliente": cid, "canal": "WhatsApp", "cupon": None,
+                                "notas": vn["notas"], "items": [], "origen": "facu"}
+            for sku, precio in vn["items"]:
+                self.agregar_item(vid, sku, 1, precio, None, vn["estado"], None)
+            self.nota("automaticas", f"{vid}: {vn['cliente']}, " + " + ".join(self.skus[s]["nombre_web"] for s, _ in vn["items"])
+                      + f", {plata(sum(p for _, p in vn['items']))}, {vn['estado'].lower()} sin pago (Facu, 13/10).")
+
     def agregar_item(self, vid, sku, cant, precio, costo_libro, estado, motivo):
         sku = self.fusionados.get(sku, sku)
         s = self.skus.get(sku)
@@ -731,6 +789,13 @@ class Migracion:
                  "nota": f"{pid} pagado con el aporte de {quien}"}]
             self.nota("automaticas", f"{pid} ({ped['proveedor']}, {plata(total - ya)}): pagado con plata propia "
                                      f"({quien}). Entra como aporte y sale como pago al proveedor el mismo día.")
+        for fch, cat, monto, nota in CORRECCIONES["gastos_con_plata_propia"]:
+            self.caja_extra += [
+                {"fecha": fch, "tipo": "Ingreso", "categoria": "Aporte", "monto": monto, "metodo": "Transferencia",
+                 "pago_id": None, "pedido_id": None, "nota": f"Plata propia para: {nota}"},
+                {"fecha": fch, "tipo": "Egreso", "categoria": cat, "monto": monto, "metodo": "Transferencia",
+                 "pago_id": None, "pedido_id": None, "nota": f"{nota} (pagado con plata propia)"}]
+            self.nota("automaticas", f"{cat} {plata(monto)} el {fch:%d/%m}: {nota}, pagado con plata propia (Facu, 13/10).")
         for fch, monto, nota in CORRECCIONES["aportes"]:
             self.caja_extra.append({"fecha": fch, "tipo": "Ingreso", "categoria": "Aporte", "monto": monto,
                                     "metodo": "Transferencia", "pago_id": None, "pedido_id": None, "nota": nota})
@@ -748,6 +813,7 @@ class Migracion:
         self.armar_pedidos()
         self.aplicar_china()
         self.armar_ventas()
+        self.armar_ventas_nuevas()
         self.armar_plata()
         return self
 
@@ -772,48 +838,45 @@ def cargar(c, m):
         mod[nombre] = c.execute(
             "insert into modelos (nombre, categoria, tipo, linea, equipo_id, nuevo) values (%s,%s,%s,%s,%s,%s) returning id",
             (nombre, d["categoria"], d["tipo"], d["linea"], eq.get(d["equipo"]), d["nuevo"])).fetchone()[0]
-    for sku, s in m.skus.items():
-        c.execute("insert into skus (sku, modelo_id, talle, estampado, dorsal, precio, precio_antes, estado_pub) "
-                  "values (%s,%s,%s,%s,%s,%s,%s,%s)",
-                  (sku, mod[s["modelo"]], s["talle"], s["estampado"], s["dorsal"], s["precio"],
-                   s["precio_antes"], s["estado_pub"]))
+    # executemany en psycopg 3 manda todo en modo pipeline: una ida y vuelta por tabla y no
+    # una por fila (contra Oregon, de 5 minutos a segundos).
+    cur = c.cursor()
+    cur.executemany("insert into skus (sku, modelo_id, talle, estampado, dorsal, precio, precio_antes, estado_pub) "
+                    "values (%s,%s,%s,%s,%s,%s,%s,%s)",
+                    [(sku, mod[s["modelo"]], s["talle"], s["estampado"], s["dorsal"], s["precio"],
+                      s["precio_antes"], s["estado_pub"]) for sku, s in m.skus.items()])
     prov = {p: c.execute("insert into proveedores (nombre) values (%s) returning id", (p,)).fetchone()[0]
             for p in m.proveedores}
-    for pid, p in m.pedidos.items():
-        c.execute("insert into pedidos (id, fecha, proveedor_id, estado, recibido_en, costo_mercaderia, "
-                  "costo_envio, otros, notas) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                  (pid, p["fecha"], prov[p["proveedor"]], p["estado"], p["recibido_en"],
-                   p["costo_mercaderia"], p["costo_envio"], p["otros"], p["notas"]))
-    for i in m.items:
-        c.execute("insert into pedido_items (pedido_id, sku, cantidad, cantidad_recibida, costo_unit, apellido, "
-                  "nota_estampado) values (%s,%s,%s,%s,%s,%s,%s)",
-                  (i["pedido_id"], i["sku"], i["cantidad"], i["recibida"], i["costo_unit"], i["apellido"], i["nota"]))
-    for cid, cl in m.clientes.items():
-        c.execute("insert into clientes (id, nombre, tipo, telefono, notas) values (%s,%s,%s,%s,%s)",
-                  (cid, cl["nombre"], cl["tipo"], cl["telefono"], cl["notas"]))
-    for vid, v in sorted(m.ventas.items()):
-        c.execute("insert into ventas (id, fecha, cliente_id, canal, cupon, notas) values (%s,%s,%s,%s,%s,%s)",
-                  (vid, v["fecha"], v["cliente"], v["canal"], v["cupon"], v["notas"]))
-        for it in v["items"]:
-            c.execute("insert into venta_items (venta_id, sku, cantidad, precio_unit, precio_lista, costo_unit, "
-                      "costo_estimado, pedido_id, estado, promo, motivo_descuento, entregado_en) "
-                      "values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                      (vid, it["sku"], it["cantidad"], it["precio_unit"], it["precio_lista"], it["costo_unit"],
-                       it["costo_estimado"], it["pedido_id"], it["estado"], it["promo"], it["motivo"],
-                       datetime.combine(v["fecha"], datetime.min.time()) if it["estado"] == "Entregada" else None))
+    cur.executemany("insert into pedidos (id, fecha, proveedor_id, estado, recibido_en, costo_mercaderia, "
+                    "costo_envio, otros, notas) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    [(pid, p["fecha"], prov[p["proveedor"]], p["estado"], p["recibido_en"], p["costo_mercaderia"],
+                      p["costo_envio"], p["otros"], p["notas"]) for pid, p in m.pedidos.items()])
+    cur.executemany("insert into pedido_items (pedido_id, sku, cantidad, cantidad_recibida, costo_unit, apellido, "
+                    "nota_estampado) values (%s,%s,%s,%s,%s,%s,%s)",
+                    [(i["pedido_id"], i["sku"], i["cantidad"], i["recibida"], i["costo_unit"], i["apellido"],
+                      i["nota"]) for i in m.items])
+    cur.executemany("insert into clientes (id, nombre, tipo, telefono, notas) values (%s,%s,%s,%s,%s)",
+                    [(cid, cl["nombre"], cl["tipo"], cl["telefono"], cl["notas"]) for cid, cl in m.clientes.items()])
+    ventas = sorted(m.ventas.items())
+    cur.executemany("insert into ventas (id, fecha, cliente_id, canal, cupon, notas) values (%s,%s,%s,%s,%s,%s)",
+                    [(vid, v["fecha"], v["cliente"], v["canal"], v["cupon"], v["notas"]) for vid, v in ventas])
+    cur.executemany("insert into venta_items (venta_id, sku, cantidad, precio_unit, precio_lista, costo_unit, "
+                    "costo_estimado, pedido_id, estado, promo, motivo_descuento, entregado_en) "
+                    "values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    [(vid, it["sku"], it["cantidad"], it["precio_unit"], it["precio_lista"], it["costo_unit"],
+                      it["costo_estimado"], it["pedido_id"], it["estado"], it["promo"], it["motivo"],
+                      datetime.combine(v["fecha"], datetime.min.time()) if it["estado"] == "Entregada" else None)
+                     for vid, v in ventas for it in v["items"]])
     # Pagos y caja del libro nuevo, con sus ids, sin que el trigger duplique la caja.
-    for p in m.pagos:
-        if p["id"]:
-            c.execute("insert into pagos (id, fecha, venta_id, monto, metodo, tipo, notas) values (%s,%s,%s,%s,%s,%s,%s)",
-                      (p["id"], p["fecha"], p["venta_id"], p["monto"], p["metodo"], p["tipo"], p["notas"]))
-    for x in m.caja:
-        c.execute("insert into caja_movimientos (id, fecha, tipo, categoria, monto, metodo, pago_id, pedido_id, nota) "
-                  "values (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                  (x["id"], x["fecha"], x["tipo"], x["categoria"], x["monto"], x["metodo"], x["pago_id"],
-                   x["pedido_id"], x["nota"]))
-    for a in m.ajustes:
-        c.execute("insert into ajustes (fecha, sku, cantidad, motivo) values (%s,%s,%s,%s)",
-                  (a["fecha"], a["sku"], a["cantidad"], a["motivo"]))
+    cur.executemany("insert into pagos (id, fecha, venta_id, monto, metodo, tipo, notas) values (%s,%s,%s,%s,%s,%s,%s)",
+                    [(p["id"], p["fecha"], p["venta_id"], p["monto"], p["metodo"], p["tipo"], p["notas"])
+                     for p in m.pagos if p["id"]])
+    cur.executemany("insert into caja_movimientos (id, fecha, tipo, categoria, monto, metodo, pago_id, pedido_id, nota) "
+                    "values (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    [(x["id"], x["fecha"], x["tipo"], x["categoria"], x["monto"], x["metodo"], x["pago_id"],
+                      x["pedido_id"], x["nota"]) for x in m.caja])
+    cur.executemany("insert into ajustes (fecha, sku, cantidad, motivo) values (%s,%s,%s,%s)",
+                    [(a["fecha"], a["sku"], a["cantidad"], a["motivo"]) for a in m.ajustes])
 
     # Secuencias en el máximo migrado: la próxima venta es la que sigue.
     for seq, tabla, pref in (("venta_seq", "ventas", "V-"), ("pago_seq", "pagos", "PG-"),
