@@ -7,6 +7,8 @@ Estos archivos van en el repo **privado** `rosariofkits-backup` de GitHub (no en
 | `backup.yml` | `.github/workflows/backup.yml` |
 | `respaldar.sh` | `respaldar.sh` (en la raíz) |
 | `exportar_consulta.py` | `exportar_consulta.py` (en la raíz) |
+| `puente.yml` | `.github/workflows/puente.yml` |
+| `puente_ventas.py` | `puente_ventas.py` (en la raíz) |
 
 Todas las noches a las 4 AM (hora de Argentina):
 
@@ -30,6 +32,32 @@ dice `environment: SUPABASE_DB_URL`):
 | `SUPABASE_PUBLISHABLE_KEY` | la clave `sb_publishable_...` |
 | `GOOGLE_SA_JSON` | el contenido entero de `RosarioFkits\mcp-sheets\credenciales.json` |
 | `CONSULTA_ID` | el id del libro `ERP_RosarioFkits_consulta` (lo que va entre `/d/` y `/edit` en su URL) |
+
+## Puente: las ventas del panel a la web (hasta el corte)
+
+Desde el 17/10/2026 las ventas se cargan en `/admin`, pero la web de producción sigue
+descontando el stock del libro viejo `Stock_RosarioFkits`. `puente.yml` corre
+`puente_ventas.py` cada 20 minutos, de 9 a 1 (hora de Argentina), y copia a
+`VENTAS` cada ítem de las ventas cargadas desde el panel (`ventas.creado_por` no nulo).
+
+- Cada fila copiada lleva en `VENTAS!M` (encabezado `ERP`) la clave `V-0033 #57`: venta e
+  ítem del ERP. Así no duplica, y si en el panel se cancela un ítem o cambia el precio,
+  el cobro o el cliente, corrige esa fila (una cancelada queda con cantidad 0). Nunca borra.
+- Si `STOCK!H` (Vendido) del SKU está tipeado, le suma la diferencia, como el Apps Script.
+- El run queda en rojo (y llega mail) si el SKU no existe en el libro viejo o si su
+  `Disponible` está tipeado: en esos casos la web no puede descontar la venta sola.
+- Una fila cargada a mano en el libro se marca como copia con
+  `python puente_ventas.py --vincular V-00041=V-0033#57`. `--seco` muestra sin escribir.
+- **Ya no se cargan ventas con el Apps Script del celular:** el ERP no las vería.
+- `migrar_erp.py` se niega a recargar la base real si hay ventas del panel (las borraría),
+  y saltea las filas del libro que tienen la clave en `M`.
+- El día del corte se borra `puente.yml` del repo.
+
+Correrlo a mano desde la compu (en esta carpeta):
+
+```bash
+SUPABASE_DB_URL="..." GOOGLE_SA_FILE='C:\Users\facuq\Desktop\RosarioFkits\mcp-sheets\credenciales.json' python puente_ventas.py
+```
 
 ## Restaurar
 

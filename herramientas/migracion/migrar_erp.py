@@ -634,6 +634,8 @@ class Migracion:
         for f in self.viejo["VENTAS"][enc + 1:]:
             if not f or not str(col(f, 0)).startswith("V-"):
                 continue
+            if str(col(f, 12)).strip():
+                continue   # copiada desde el panel por el puente (VENTAS!M = "V-0033 #57"): ya está en la base
             viejas.append({"id": str(f[0]).strip(), "fecha": fecha(col(f, 1)),
                            "sku": int(numero(col(f, 2))), "cant": int(numero(col(f, 3)) or 1),
                            "precio": numero(col(f, 5)), "costo": numero(col(f, 4)),
@@ -1019,6 +1021,14 @@ def main():
 
     error_final = None
     with psycopg.connect(url_real() if a.destino == "real" else LOCAL) as c:
+        # Desde el 17/10 el panel carga ventas reales en la base: truncar y recargar desde
+        # los libros las borraría (con sus cobros y gastos). El puente las copia al libro
+        # viejo solo para la web; el corte ya no pasa por acá.
+        if a.destino == "real" and not a.revisar:
+            n = c.execute("select count(*) from ventas where creado_por is not null").fetchone()[0]
+            if n:
+                sys.exit(f"La base real tiene {n} ventas cargadas desde el panel: recargarla las borra. "
+                         "No se migra más sobre la real (ver herramientas/backups/LEEME.md, Puente).")
         cargar(c, m)
         try:
             c.execute("set constraints all immediate")   # que salten ya las reglas de stock
