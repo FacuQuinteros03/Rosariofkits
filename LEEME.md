@@ -262,6 +262,23 @@ Cada una lleva dos bloques de JSON-LD:
   desaparece sola.
 - **BreadcrumbList** Catálogo › Producto.
 
+Y en todo el sitio (`app/layout.tsx`) un **OnlineStore** + **WebSite**: quién
+vende, en qué ciudad, el WhatsApp y el Instagram. Las ofertas de cada ficha lo
+citan por `@id`. Tienda online y no LocalBusiness: no hay local a la calle, y
+Google pide dirección completa para un LocalBusiness.
+
+**La descripción de cada camiseta** sale de `descripcionProducto()` en
+`lib/seo.ts`: una oración suelta con modelo, talles, precio, Rosario, envío y
+pago. La usan la meta description y el JSON-LD. Está escrita para que la pueda
+citar una IA (ChatGPT, Gemini, la visión general de Google) cuando alguien
+pregunta dónde conseguir esa camiseta.
+
+**El nombre del modelo es el SEO.** El título, la URL y la descripción salen
+del nombre del Sheet, así que tiene que llevar las palabras que busca la gente:
+"Camiseta Arsenal 25/26 Terrace Icons adidas Originals (bordó)" y no "Arsenal
+Casual". Renombrar cambia la URL: **cada renombre deja su redirección en
+`next.config.ts`**, o los links compartidos y lo que Google ya indexó dan 404.
+
 Para verificarlo en producción: `search.google.com/test/rich-results`.
 
 ## La ruleta de descuentos
@@ -312,11 +329,66 @@ lado, y ponerle `1` lo vuelve real.
 
 ## Lo que falta y sabemos que falta
 
-- **Carrito y checkout.** Cuando llegue, el stock tiene que salir de una base
-  de datos y no del Sheet: con una unidad por talle, dos compras simultáneas
-  venden la misma camiseta.
-- **`sitemap.ts` y `robots.ts`**, para que Google descubra las 36 páginas sin
-  depender de los links internos.
+La web se actualiza **de a una etapa por vez**, no todo junto: cada etapa se
+publica sola, se mira cómo anda y recién ahí se arranca la siguiente.
+
+### Etapa: carrito por WhatsApp
+
+Escrito y sin publicar (`lib/carrito.ts`, `components/Carrito.tsx`,
+`BotonCarrito`, `AgregarAlCarrito`, `app/api/stock`). No cobra ni reserva:
+junta lo elegido y lo manda en **un solo mensaje de WhatsApp**; la venta la
+sigue confirmando Facu. Aplica la promo 2x$100.000 con las mismas reglas que el
+banner, y al abrir el panel vuelve a mirar el stock del Sheet.
+
+Para publicarlo: probarlo en el celular, revisar el mensaje que arma y
+commitear esos archivos junto con los cambios de `layout.tsx`, `page.tsx`, la
+ficha, `ProductCard` y `SelectorTalle` que lo enchufan.
+
+**El checkout con pago es otra etapa, más adelante:** ahí el stock tiene que
+salir del ERP (Supabase) y no del Sheet, porque con una unidad por talle dos
+compras simultáneas venden la misma camiseta.
+
+### Etapa: preventa pública
+
+`/preventa` anda y se comparte por link, pero sin commitear y con
+`PREVENTA_PUBLICA = false` (`noindex`, fuera del sitemap). Se publica cuando el
+pedido esté por llegar (diciembre de 2026): commitear y pasar el interruptor a
+`true`. Ver "La preventa" más arriba.
+
+### Etapa: SEO y GEO, en orden
+
+1. **Google Search Console** (lo hace Facu, 10 minutos): propiedad con prefijo
+   de URL `https://rosariofkits.vercel.app/`, método **etiqueta HTML**; el
+   código va en `metadata.verification.google` de `app/layout.tsx`. Después
+   enviar `sitemap.xml` y pedir la indexación de las fichas nuevas. Sumar
+   **Bing Webmaster Tools** importando desde Search Console: Bing alimenta a
+   ChatGPT y Copilot.
+2. **Perfil de Empresa de Google** (Facu): negocio con área de servicio en
+   Rosario, sin dirección pública, con WhatsApp, link a la web y fotos. Pedir
+   reseñas a los que ya compraron.
+3. **Texto visible y preguntas frecuentes en cada ficha**: el párrafo de
+   `descripcionProducto()` debajo del botón y un bloque de preguntas (envíos,
+   pago, retiro en Rosario, agotados) con JSON-LD `FAQPage`. Es lo que más
+   pesa para que una IA nos cite.
+4. **Columna opcional `Descripcion` en STOCK y en el QUERY de WEB**, para
+   escribir a mano una o dos líneas por modelo con los términos que busca la
+   gente. `lib/sheets.ts` ya lee columnas opcionales por nombre.
+5. **Envío y cambios en el JSON-LD** (`shippingDetails`,
+   `hasMerchantReturnPolicy`): Google los pide para mostrar el precio en
+   Shopping. Antes Facu tiene que definir costo de envío y política de cambios.
+6. **Páginas `/preguntas-frecuentes` y `/envios`**, en texto, enlazadas desde
+   el pie.
+7. **Dominio propio** (`rosariofkits.com.ar`): al cambiarlo, actualizar
+   `NEXT_PUBLIC_SITE_URL` en Vercel.
+8. **Alt de las fotos** con qué muestra cada una (frente, espalda, escudo) en
+   vez de "foto 2 de 5".
+
+En Instagram, nombrar los modelos con las mismas palabras que la web y poner el
+link en la bio: para "Arsenal Icon bordó" Google hoy muestra un post de
+Instagram de otra cuenta.
+
+### Otros
+
 - **Marcar el cupón como usado desde la web.** Hoy se pone `SI` a mano en la
   hoja CUPONES: la página `/cupon/CODIGO` es pública para cualquiera que tenga
   el código, así que no escribe nada.
