@@ -94,14 +94,15 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
 
       {/* Números de arriba */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi titulo="Vendido" valor={plataCorta(t.facturado)} pie={`${ventasTotales} ventas`}
+        <Kpi titulo="Vendido y cobrado" valor={plataCorta(t.facturado)} pie={`${ventasTotales} ventas`}
           chispa={<Chispa valores={mes.map((m) => Number(m.facturado))} />} />
         <Kpi titulo="Ganancia" valor={plataCorta(t.ganancia)} pie={`margen ${porciento(margen)}`} acento="text-wa"
           chispa={<Chispa valores={mes.map((m) => Number(m.ganancia))} color={COLORES.verde} />} />
         <Kpi titulo="Caja" valor={plataCorta(t.saldo_caja)}
           pie={`Banco ${plataCorta(porMetodo["Transferencia"])} · Efvo ${plataCorta(porMetodo["Efectivo"])}`}
           chispa={<Chispa valores={mes.map((m) => Number(m.caja_al_cierre))} color={COLORES.azul} />} />
-        <Kpi titulo="Te deben" valor={plataCorta(t.a_cobrar)} pie={`${(conSaldo.data ?? []).length} ventas sin cerrar`} acento="text-gold" />
+        <Kpi titulo="A cobrar" valor={plataCorta(t.a_cobrar)}
+          pie={`${t.ventas_a_cobrar ?? 0} ventas · ganancia ${plataCorta(t.ganancia_a_cobrar)} cuando paguen`} acento="text-gold" />
       </div>
 
       {/* La mercadería sin vender: la plata que está en camisetas. */}

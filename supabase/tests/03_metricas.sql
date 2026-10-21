@@ -4,7 +4,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 \ir datos.inc
 
-select plan(16);
+select plan(22);
 
 -- Una venta en mano (6001, del pedido de Diez Store) y una preventa señada (4001).
 select registrar_venta('{"id":"C-901"}', '[{"sku":6001}]', 'Entregada',
@@ -40,7 +40,7 @@ select results_eq(
 
 select is((select fue_preventa from v_hechos_venta where sku = 4001), true, 'La de China cuenta como preventa');
 select is((select descuento from v_hechos_venta where sku = 4001), 5000::numeric, 'El descuento mayorista se mide contra la lista');
-select is((select descuento from v_promos where promo = 'Mayorista'), 5000::numeric, 'Y aparece en promos');
+select is((select count(*)::int from v_promos where promo = 'Mayorista'), 0, 'Señada: todavía no cuenta en promos');
 
 select results_eq(
   $$ select vendidas_antes_de_llegar, senadas, faltantes from v_preventa where pedido_id = 'P-902' $$,
@@ -65,6 +65,26 @@ select ok((select pct_mayorista from v_ticket where canal is null) = 0.5, 'Ticke
 
 select is((select de_cada_10 from v_curva_talles where tipo = 'Jugador' and talle = 'M'), 5,
           'Curva: de cada 10 Jugador, 5 M');
+
+-- La ganancia cuenta cuando la venta está cobrada entera (0020). La señada es "a cobrar".
+select results_eq(
+  $$ select ganancia, ganancia_a_cobrar, a_cobrar, ventas_a_cobrar from v_tablero $$,
+  $$ select (select ganancia from v_hechos_venta where sku = 6001), (select ganancia from v_hechos_venta where sku = 4001),
+            20000::numeric, 1::bigint $$,
+  'Tablero: ganancia solo de lo cobrado; la seña queda a cobrar');
+select results_eq(
+  $$ select facturado, a_cobrar from v_margen_pedido where pedido_id = 'P-902' $$,
+  $$ values (0::numeric, 40000::numeric) $$,
+  'Margen del pedido: la preventa señada está a cobrar, no realizada');
+select is((select sum(facturado) from v_resumen_mensual), 42500::numeric, 'Resumen: solo lo cobrado');
+
+select registrar_pago((select venta_id from v_hechos_venta where sku = 4001), 20000, 'Efectivo', 'Saldo', false, current_date, null);
+select results_eq(
+  $$ select cobrada, fecha_cobro from v_hechos_venta where sku = 4001 $$,
+  $$ values (true, current_date) $$,
+  'Pagada entera: cuenta, en la fecha del último pago, aunque no se entregó');
+select is((select ganancia_a_cobrar from v_tablero), 0::numeric, 'Ya no queda ganancia a cobrar');
+select is((select descuento from v_promos where promo = 'Mayorista'), 5000::numeric, 'Y aparece en promos');
 
 -- Una rebaja: queda registrada con su fecha y su precio anterior.
 select editar_sku(6002, 39000, 42500);

@@ -101,7 +101,10 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
       {[...meses.entries()].map(([mes, vs]) => {
         const todoElMes = delMes.get(mes) ?? vs;
         const facturado = todoElMes.filter((v) => v.estado !== "Cancelada").reduce((s, v) => s + Number(v.total), 0);
-        const gan = todoElMes.reduce((s, v) => s + ganancia(v.id), 0);
+        // La ganancia cuenta cuando la venta está cobrada entera; la de las otras, a cobrar.
+        const gan = todoElMes.filter((v) => Number(v.saldo) <= 0).reduce((s, v) => s + ganancia(v.id), 0);
+        const ganACobrar = todoElMes.filter((v) => Number(v.saldo) > 0 && v.estado !== "Cancelada")
+          .reduce((s, v) => s + ganancia(v.id), 0);
         return (
           <section key={mes}>
             <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
@@ -110,6 +113,7 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
               </h2>
               <p className="text-xs text-muted">
                 {todoElMes.length} ventas · <b className="text-ink">{plataCorta(facturado)}</b> · ganancia <b className="text-wa">{plataCorta(gan)}</b>
+                {ganACobrar > 0 && <> · a cobrar <b className="text-gold">{plataCorta(ganACobrar)}</b></>}
               </p>
             </div>
             <ul className="flex flex-col gap-2">
@@ -175,7 +179,7 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
                             ))}
                           </div>
                           <div className="flex flex-col gap-1">
-                            <p className="flex justify-between"><span className="text-muted">Ganancia</span>
+                            <p className="flex justify-between"><span className="text-muted">{Number(v.saldo) > 0 ? "Ganancia cuando pague" : "Ganancia"}</span>
                               <b className="text-wa">{plata(gv)} <span className="text-xs font-normal text-muted">({porciento(gv / Number(v.total || 1))})</span></b></p>
                             {v.canal && <p className="flex justify-between"><span className="text-muted">Vino por</span><span>{v.canal}</span></p>}
                             {v.notas && <p className="text-xs text-muted">{v.notas}</p>}
