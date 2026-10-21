@@ -67,7 +67,8 @@ function enumerar(xs: string[]): string {
  */
 export function descripcionProducto(p: Producto): string {
   const talles = p.variantes.filter(conStock).map((v) => v.talle);
-  const deEquipo = p.equipo ? ` de ${p.equipo}` : "";
+  /* "Camiseta Arsenal ... de Arsenal" no: solo cuando el nombre no lo dice */
+  const deEquipo = p.equipo && !p.nombre.includes(p.equipo) ? ` de ${p.equipo}` : "";
   const entrega = `Entrega en mano en ${NEGOCIO.ciudad} (${NEGOCIO.provincia}) y envíos a todo el país; pago en efectivo o transferencia, sin recargo.`;
 
   if (p.total === 0) {
