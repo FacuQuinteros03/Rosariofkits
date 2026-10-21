@@ -48,7 +48,9 @@ select v.id, vi.id, v.creado_en, vi.sku, vi.cantidad, vi.precio_unit, vi.estado:
 from ventas v
 join venta_items vi on vi.venta_id = v.id
 join clientes cl on cl.id = v.cliente_id
-where v.creado_por is not null
+join skus s on s.sku = vi.sku
+-- Las reservas de preventa (pedido a China) no están en el libro viejo ni en la web de stock.
+where v.creado_por is not null and s.estado_pub <> 'Preventa'
 order by v.creado_en, vi.id
 """
 
