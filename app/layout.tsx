@@ -3,6 +3,7 @@ import { Archivo, Big_Shoulders } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Ruleta } from "@/components/Ruleta";
+import { jsonLdSitio, jsonLdTienda } from "@/lib/seo";
 import { SITIO } from "@/lib/site";
 
 const archivo = Archivo({
@@ -27,8 +28,14 @@ export const metadata: Metadata = {
     template: "%s · Rosario F Kits",
   },
   description:
-    "Camisetas de fútbol retro y actuales en Rosario. Stock real con talles y precios, entrega en mano y envíos a todo el país.",
-  keywords: ["camisetas de futbol", "Rosario", "camisetas retro", "indumentaria deportiva"],
+    "Camisetas de fútbol en Rosario: clubes, selecciones y retro, con stock real por talle y precio. Entrega en mano en Rosario y envíos a todo el país. Efectivo o transferencia, sin recargo.",
+  keywords: [
+    "camisetas de futbol",
+    "camisetas de futbol Rosario",
+    "camisetas retro",
+    "camisetas de clubes",
+    "camisetas de selecciones",
+  ],
   openGraph: {
     type: "website",
     locale: "es_AR",
@@ -49,6 +56,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`${archivo.variable} ${bigShoulders.variable}`}>
       <body className="min-h-dvh bg-ground font-sans text-ink antialiased">
+        {/* quién vende: lo citan por @id las ofertas de cada ficha (lib/seo.ts) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLdTienda, jsonLdSitio]) }}
+        />
         {children}
         {/* el boton flotante vive en todo el sitio, tambien en la ficha de producto */}
         <Ruleta />

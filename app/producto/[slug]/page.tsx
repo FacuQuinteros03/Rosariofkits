@@ -11,6 +11,7 @@ import { conStock } from "@/lib/types";
 import { INSTAGRAM, NEGOCIO, SITIO } from "@/lib/site";
 import { precio } from "@/lib/whatsapp";
 import { Precio } from "@/components/Precio";
+import { descripcionProducto, ID_TIENDA } from "@/lib/seo";
 
 /** Mismo ISR que el catálogo. Tiene que ser literal. */
 export const revalidate = 60;
@@ -33,10 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!p) return { title: "Producto no encontrado" };
 
   const disponibles = p.variantes.filter(conStock);
-  const talles = disponibles.map((v) => v.talle).join(", ");
-  const descripcion = disponibles.length
-    ? `${p.nombre} en ${precio(p.precio)}. Talles disponibles: ${talles}. Stock real en Rosario, entrega en mano y envíos a todo el país.`
-    : `${p.nombre}: agotado por ahora. Lo conseguimos por encargue — escribinos y te pasamos plazo y precio. Rosario, entrega en mano y envíos a todo el país.`;
+  const descripcion = descripcionProducto(p);
   const url = `${SITIO}/producto/${p.id}`;
 
   return {
@@ -44,11 +42,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: descripcion,
     alternates: { canonical: url },
     openGraph: {
+      locale: "es_AR",
+      siteName: NEGOCIO.nombre,
       type: "website",
       url,
       title: disponibles.length ? `${p.nombre} · ${precio(p.precio)}` : `${p.nombre} · Agotado`,
       description: descripcion,
-      images: [p.foto ?? "/og.png"],
+      images: [{ url: p.foto ?? "/og.png", alt: p.nombre }],
     },
   };
 }
@@ -74,7 +74,7 @@ export default async function ProductoPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: p.nombre,
-    description: `${p.nombre} — indumentaria deportiva en Rosario.`,
+    description: descripcionProducto(p),
     image: p.fotos.length ? p.fotos.map((f) => `${SITIO}${f}`) : [`${SITIO}/og.png`],
     category: p.categoria,
     /* sameAs le dice a Google que esta marca y esa cuenta de Instagram son lo mismo */
@@ -90,8 +90,8 @@ export default async function ProductoPage({ params }: Props) {
         v.disponible > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       url,
-      seller: { "@type": "Organization", name: NEGOCIO.nombre },
-      areaServed: { "@type": "City", name: NEGOCIO.ciudad },
+      seller: { "@type": "OnlineStore", "@id": ID_TIENDA, name: NEGOCIO.nombre },
+      areaServed: { "@type": "Country", name: "Argentina" },
     })),
   };
 
