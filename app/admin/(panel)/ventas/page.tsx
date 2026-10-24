@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronDown, Plus, Search } from "lucide-react";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { nombreMes, plata, plataCorta, porciento } from "@/app/admin/_lib/formato";
-import { Cobrar } from "@/app/admin/_componentes/Acciones";
+import { Cobrar, Revertir } from "@/app/admin/_componentes/Acciones";
 import { Paginacion, paginar } from "@/app/admin/_componentes/Paginacion";
 
 /**
@@ -134,7 +134,9 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
                             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] ${COLOR_ESTADO[v.estado] ?? "bg-white/10"}`}>{v.estado}</span>
                           </p>
                           <p className="truncate text-xs text-muted">
-                            {v.id} · {its.map((i) => `${i.modelo.replace(/^Camiseta /, "")} ${i.talle}`).join(" + ")}
+                            {v.id} · {its.length
+                              ? its.map((i) => `${i.modelo.replace(/^Camiseta /, "")} ${i.talle}`).join(" + ")
+                              : v.notas /* revertida: los items cancelados no vienen, la nota dice cuáles eran */}
                           </p>
                         </div>
                         <div className="shrink-0 text-right">
@@ -186,9 +188,12 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
                           </div>
                         </div>
 
-                        {Number(v.saldo) > 0 && v.estado !== "Cancelada" && (
-                          <div className="mt-3 flex justify-end">
-                            <Cobrar venta={v.id} saldo={Number(v.saldo)} puedeEntregar={v.estado !== "Entregada"} />
+                        {v.estado !== "Cancelada" && (
+                          <div className="mt-3 flex flex-wrap justify-end gap-2">
+                            <Revertir venta={v.id} cobrado={Number(v.cobrado)} />
+                            {Number(v.saldo) > 0 && (
+                              <Cobrar venta={v.id} saldo={Number(v.saldo)} puedeEntregar={v.estado !== "Entregada"} />
+                            )}
                           </div>
                         )}
                       </div>

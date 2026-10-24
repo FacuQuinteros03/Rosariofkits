@@ -86,6 +86,19 @@ export async function entregar(venta: string, item: number): Promise<Resultado> 
   return { ok: true };
 }
 
+/** Deshace la venta entera: las unidades vuelven al stock y lo cobrado se devuelve. */
+export async function revertir(venta: string, motivo: string, metodo: string | null): Promise<Resultado> {
+  const supabase = await supabaseServidor();
+  const { error } = await supabase.rpc("revertir_venta", {
+    p_venta: venta,
+    p_motivo: motivo,
+    p_metodo: metodo,
+  });
+  if (error) return { ok: false, error: mensaje(error) };
+  refrescar();
+  return { ok: true };
+}
+
 export type Movimiento = {
   tipo: "Ingreso" | "Egreso";
   categoria: string;
