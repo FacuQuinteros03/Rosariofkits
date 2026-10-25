@@ -12,6 +12,8 @@ import { INSTAGRAM, NEGOCIO, SITIO } from "@/lib/site";
 import { precio } from "@/lib/whatsapp";
 import { Precio } from "@/components/Precio";
 import { descripcionProducto, ID_TIENDA } from "@/lib/seo";
+import { jsonLdPreguntas, preguntasProducto } from "@/lib/faq";
+import { PreguntasFrecuentes } from "@/components/PreguntasFrecuentes";
 
 /** Mismo ISR que el catálogo. Tiene que ser literal. */
 export const revalidate = 60;
@@ -95,6 +97,8 @@ export default async function ProductoPage({ params }: Props) {
     })),
   };
 
+  const preguntas = preguntasProducto(p);
+
   const migas = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -113,6 +117,10 @@ export default async function ProductoPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(migas) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdPreguntas(preguntas)) }}
       />
 
       <nav aria-label="Migas de pan" className="py-5">
@@ -175,6 +183,8 @@ export default async function ProductoPage({ params }: Props) {
           </p>
         </div>
       </div>
+
+      <PreguntasFrecuentes preguntas={preguntas} />
 
       {relacionados.length > 0 && (
         <section className="mt-14">

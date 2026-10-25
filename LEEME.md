@@ -366,10 +366,11 @@ pedido esté por llegar (diciembre de 2026): commitear y pasar el interruptor a
 2. **Perfil de Empresa de Google** (Facu): negocio con área de servicio en
    Rosario, sin dirección pública, con WhatsApp, link a la web y fotos. Pedir
    reseñas a los que ya compraron.
-3. **Texto visible y preguntas frecuentes en cada ficha**: el párrafo de
-   `descripcionProducto()` debajo del botón y un bloque de preguntas (envíos,
-   pago, retiro en Rosario, agotados) con JSON-LD `FAQPage`. Es lo que más
-   pesa para que una IA nos cite.
+3. **Texto visible en cada ficha**: el párrafo de `descripcionProducto()`
+   debajo del botón. Las preguntas frecuentes ya están (`lib/faq.ts`, plegadas
+   al pie de la ficha y como JSON-LD `FAQPage`): talles, lavado, cómo comprar,
+   envíos, pago, stock y encargue. Falta la de **cambios y devoluciones**, que
+   se escribe cuando Facu defina la política.
 4. **Columna opcional `Descripcion` en STOCK y en el QUERY de WEB**, para
    escribir a mano una o dos líneas por modelo con los términos que busca la
    gente. `lib/sheets.ts` ya lee columnas opcionales por nombre.
