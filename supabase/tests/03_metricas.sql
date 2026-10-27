@@ -40,7 +40,10 @@ select results_eq(
 
 select is((select fue_preventa from v_hechos_venta where sku = 4001), true, 'La de China cuenta como preventa');
 select is((select descuento from v_hechos_venta where sku = 4001), 5000::numeric, 'El descuento mayorista se mide contra la lista');
-select is((select count(*)::int from v_promos where promo = 'Mayorista'), 0, 'Señada: todavía no cuenta en promos');
+select results_eq(
+  $$ select ventas, unidades, descuento from v_promos where promo = 'Mayorista' $$,
+  $$ values (0::bigint, 0::bigint, 2500::numeric) $$,
+  'Señada a la mitad: cuenta la mitad del descuento, sin ventas ni unidades cerradas');
 
 select results_eq(
   $$ select vendidas_antes_de_llegar, senadas, faltantes from v_preventa where pedido_id = 'P-902' $$,
@@ -66,17 +69,21 @@ select ok((select pct_mayorista from v_ticket where canal is null) = 0.5, 'Ticke
 select is((select de_cada_10 from v_curva_talles where tipo = 'Jugador' and talle = 'M'), 5,
           'Curva: de cada 10 Jugador, 5 M');
 
--- La ganancia cuenta cuando la venta está cobrada entera (0020). La señada es "a cobrar".
+-- La ganancia cuenta en proporción a lo cobrado (0022): la seña de 20.000 sobre 40.000
+-- es la mitad de la ganancia; la otra mitad, y el saldo que debe, quedan a cobrar.
 select results_eq(
   $$ select ganancia, ganancia_a_cobrar, a_cobrar, ventas_a_cobrar from v_tablero $$,
-  $$ select (select ganancia from v_hechos_venta where sku = 6001), (select ganancia from v_hechos_venta where sku = 4001),
+  $$ select round((select ganancia from v_hechos_venta where sku = 6001)
+                  + (select ganancia from v_hechos_venta where sku = 4001) / 2, 2),
+            round((select ganancia from v_hechos_venta where sku = 4001), 2)
+              - round((select ganancia from v_hechos_venta where sku = 4001) / 2, 2),
             20000::numeric, 1::bigint $$,
-  'Tablero: ganancia solo de lo cobrado; la seña queda a cobrar');
+  'Tablero: la seña cuenta la mitad de la ganancia; lo que debe sigue a cobrar');
 select results_eq(
-  $$ select facturado, a_cobrar from v_margen_pedido where pedido_id = 'P-902' $$,
-  $$ values (0::numeric, 40000::numeric) $$,
-  'Margen del pedido: la preventa señada está a cobrar, no realizada');
-select is((select sum(facturado) from v_resumen_mensual), 42500::numeric, 'Resumen: solo lo cobrado');
+  $$ select unidades_vendidas, facturado, a_cobrar from v_margen_pedido where pedido_id = 'P-902' $$,
+  $$ values (0::bigint, 20000::numeric, 20000::numeric) $$,
+  'Margen del pedido: la seña es realizada, el saldo a cobrar, y la unidad todavía no se cerró');
+select is((select sum(facturado) from v_resumen_mensual), 62500::numeric, 'Resumen: lo cobrado, seña incluida');
 
 select registrar_pago((select venta_id from v_hechos_venta where sku = 4001), 20000, 'Efectivo', 'Saldo', false, current_date, null);
 select results_eq(

@@ -58,6 +58,7 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
   const meses = new Map<string, Fila[]>();
   for (const v of enPagina) meses.set(v.fecha.slice(0, 7), [...(meses.get(v.fecha.slice(0, 7)) ?? []), v]);
   const ganancia = (id: string) => (itemsPorVenta.get(id) ?? []).reduce((s, i) => s + Number(i.ganancia ?? 0), 0);
+  const parteCobrada = (v: Fila) => (Number(v.total) > 0 ? Math.min(Math.max(Number(v.cobrado) / Number(v.total), 0), 1) : 1);
 
   const href = (cambio: Record<string, string>) => {
     const p = new URLSearchParams({ ...(q ? { q } : {}), ...(estado !== "Todas" ? { estado } : {}), ...cambio });
@@ -101,10 +102,10 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
       {[...meses.entries()].map(([mes, vs]) => {
         const todoElMes = delMes.get(mes) ?? vs;
         const facturado = todoElMes.filter((v) => v.estado !== "Cancelada").reduce((s, v) => s + Number(v.total), 0);
-        // La ganancia cuenta cuando la venta está cobrada entera; la de las otras, a cobrar.
-        const gan = todoElMes.filter((v) => Number(v.saldo) <= 0).reduce((s, v) => s + ganancia(v.id), 0);
-        const ganACobrar = todoElMes.filter((v) => Number(v.saldo) > 0 && v.estado !== "Cancelada")
-          .reduce((s, v) => s + ganancia(v.id), 0);
+        // La ganancia cuenta en proporción a lo cobrado; lo que falta, a cobrar.
+        const vivas = todoElMes.filter((v) => v.estado !== "Cancelada");
+        const gan = vivas.reduce((s, v) => s + ganancia(v.id) * parteCobrada(v), 0);
+        const ganACobrar = vivas.reduce((s, v) => s + ganancia(v.id) * (1 - parteCobrada(v)), 0);
         return (
           <section key={mes}>
             <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
