@@ -6,7 +6,11 @@ import { Search, X } from "lucide-react";
 import { CATEGORIAS, pesoTalle, type Categoria, type Producto } from "@/lib/types";
 import { EncontraTuEquipo, equiposConStock } from "./EncontraTuEquipo";
 import { ProductCard } from "./ProductCard";
+import { HotSaleBanner } from "./HotSaleBanner";
 import { PromoBanner } from "./PromoBanner";
+
+/** Fin del Hot Sale: 1/11/2026 a las 00:00 de Argentina (UTC−3). */
+const HOT_SALE_HASTA = Date.parse("2026-11-01T00:00:00-03:00");
 
 /** Marcas de acento, para comparar "japon" con "Japón". */
 const SIN_TILDES = new RegExp("[" + "\u0300-\u036f" + "]", "g");
@@ -118,10 +122,21 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
     (p) => p.categoria !== "Shorts" && p.foto && p.total > 0 && p.precio >= 52500
   );
 
+  /* Mientras dura el Hot Sale, su banner reemplaza al de la promo: no son
+     acumulables. Se apaga solo al pasar la fecha. */
+  const enHotSale = Date.now() < HOT_SALE_HASTA;
+  const delHotSale = productos.filter(
+    (p) => p.foto && p.total > 0 && p.precio === 45000 && p.precioAntes === 52500 && !p.nuevo
+  );
+
   return (
     <section aria-label="Catálogo">
       <div className="mb-4">
-        <PromoBanner primera={deLaPromo[0]} segunda={deLaPromo[1]} />
+        {enHotSale ? (
+          <HotSaleBanner fotos={delHotSale} hasta="el sábado 31 de octubre" />
+        ) : (
+          <PromoBanner primera={deLaPromo[0]} segunda={deLaPromo[1]} />
+        )}
       </div>
 
       <div className="mb-5">
