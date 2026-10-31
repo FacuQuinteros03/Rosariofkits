@@ -36,6 +36,9 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() || "sb_publishable_1QJGBGMiKIVP2CL589cfxQ_ACQD5fQO";
 
+/** Tag del fetch del catalogo: el panel lo invalida con updateTag al cargar una venta. */
+export const TAG_CATALOGO = "catalogo";
+
 /**
  * Que filas entran al catalogo principal.
  *
@@ -323,7 +326,7 @@ interface FilaDB {
 async function leerFilasDB(): Promise<string[][]> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/catalogo_web`, {
     headers: { apikey: SUPABASE_KEY, Accept: "application/json" },
-    next: { revalidate: REVALIDATE },
+    next: { revalidate: REVALIDATE, tags: [TAG_CATALOGO] },
   });
   if (!res.ok) throw new Error(`La base respondio ${res.status}: ${await res.text()}`);
   const filas = (await res.json()) as FilaDB[];
@@ -339,9 +342,10 @@ async function leerFilasDB(): Promise<string[][]> {
 
 /**
  * Las filas del catalogo, de la fuente que diga CATALOGO_FUENTE. Si la base no
- * contesta, cae al CSV para que el sitio no se quede sin catalogo.
+ * contesta, cae al CSV: mientras el libro siga publicado, el sitio no se queda
+ * sin catalogo por una caida de Supabase.
  */
-async function leerFilas(): Promise<string[][]> {
+export async function leerFilas(): Promise<string[][]> {
   if (FUENTE === "supabase") {
     try {
       return await leerFilasDB();

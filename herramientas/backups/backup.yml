@@ -1,0 +1,61 @@
+# Va en el repo privado rosariofkits-backups, como .github/workflows/backup.yml.
+# Todas las noches a las 4 AM de Argentina (07:00 UTC): foto del stock, backup de la
+# base commiteado al repo, y el libro de consulta. Si algo falla, GitHub manda mail.
+name: Backup nocturno
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch: {}   # para correrlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Los secrets se cargaron dentro del environment "SUPABASE_DB_URL" del repo
+    # (Settings → Environments), no como secrets sueltos: por eso va esta línea.
+    environment: SUPABASE_DB_URL
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # pg_dump tiene que ser de la misma versión que la base (Postgres 17) o más nueva.
+      - name: Cliente de Postgres 17
+        run: |
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+
+      - name: Backup
+        run: bash respaldar.sh
+
+      - name: Guardar en el repo
+        run: |
+          git config user.name "backup-nocturno"
+          git config user.email "backup@rosariofkits.invalid"
+          git add -A respaldos
+          git commit -m "Backup $(TZ=America/Argentina/Buenos_Aires date +%F)" || echo "Sin cambios"
+          git push
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Libro de consulta
+        env:
+          GOOGLE_SA_JSON: ${{ secrets.GOOGLE_SA_JSON }}
+          CONSULTA_ID: ${{ secrets.CONSULTA_ID }}
+        run: |
+          pip install -q "psycopg[binary]" google-auth google-api-python-client
+          python exportar_consulta.py
