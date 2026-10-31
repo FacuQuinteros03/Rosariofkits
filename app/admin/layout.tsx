@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-/** El panel no se indexa ni entra al sitemap (también está en robots.ts). */
+/** El panel no se indexa ni entra al sitemap. No está en robots.ts: ver ahí por qué. */
 export const metadata: Metadata = {
   title: "Panel",
   robots: { index: false, follow: false },
