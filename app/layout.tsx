@@ -6,6 +6,7 @@ import { Carrito } from "@/components/Carrito";
 import { Ruleta } from "@/components/Ruleta";
 import { jsonLdSitio, jsonLdTienda } from "@/lib/seo";
 import { SITIO } from "@/lib/site";
+import { datosTransferencia, pagoTransferenciaActivo } from "@/lib/transferencia";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -66,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* el boton flotante vive en todo el sitio, tambien en la ficha de producto */}
         <Ruleta />
         {/* el pedido de varias camisetas, abajo a la izquierda (la ruleta está a la derecha) */}
-        <Carrito />
+        <Carrito transferencia={pagoTransferenciaActivo() ? datosTransferencia() : null} />
         {/*
           Visitas, de donde vienen y con que entran. Es de Vercel, sin cookies y
           sin seguir a nadie de un sitio a otro: cuenta paginas vistas, no
