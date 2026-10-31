@@ -8,9 +8,8 @@ import { EncontraTuEquipo, equiposConStock } from "./EncontraTuEquipo";
 import { ProductCard } from "./ProductCard";
 import { HotSaleBanner } from "./HotSaleBanner";
 import { PromoBanner } from "./PromoBanner";
+import { enHotSale as hotSaleVigente, PROMO_DESDE } from "@/lib/promo";
 
-/** Fin del Hot Sale: 1/11/2026 a las 00:00 de Argentina (UTC−3). */
-const HOT_SALE_HASTA = Date.parse("2026-11-01T00:00:00-03:00");
 
 /** Marcas de acento, para comparar "japon" con "Japón". */
 const SIN_TILDES = new RegExp("[" + "\u0300-\u036f" + "]", "g");
@@ -119,12 +118,12 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
      para arriba, que son las que entran: mostrar una FAN seria prometer algo
      que la promo no cubre. Ver el comentario de PromoBanner. */
   const deLaPromo = productos.filter(
-    (p) => p.categoria !== "Shorts" && p.foto && p.total > 0 && p.precio >= 52500
+    (p) => p.categoria !== "Shorts" && p.foto && p.total > 0 && p.precio >= PROMO_DESDE
   );
 
   /* Mientras dura el Hot Sale, su banner reemplaza al de la promo: no son
      acumulables. Se apaga solo al pasar la fecha. */
-  const enHotSale = Date.now() < HOT_SALE_HASTA;
+  const enHotSale = hotSaleVigente();
   const delHotSale = productos.filter(
     (p) => p.foto && p.total > 0 && p.precio === 45000 && p.precioAntes === 52500 && !p.nuevo
   );

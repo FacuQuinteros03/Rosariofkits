@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { conStock, type Producto } from "@/lib/types";
 import { linkWhatsApp, linkWhatsAppEncargue } from "@/lib/whatsapp";
+import { AgregarAlCarrito } from "./AgregarAlCarrito";
 
 /**
  * Talles + botón de pedido, en tamaño grande para la página de detalle.
@@ -78,6 +79,7 @@ export function SelectorTalle({ producto }: { producto: Producto }) {
           Pedir por WhatsApp
         </a>
       )}
+      {!agotado && <AgregarAlCarrito producto={producto} talle={talle} />}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Big_Shoulders } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+import { Carrito } from "@/components/Carrito";
 import { Ruleta } from "@/components/Ruleta";
 import { jsonLdSitio, jsonLdTienda } from "@/lib/seo";
 import { SITIO } from "@/lib/site";
@@ -64,6 +65,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         {/* el boton flotante vive en todo el sitio, tambien en la ficha de producto */}
         <Ruleta />
+        {/* el pedido de varias camisetas, abajo a la izquierda (la ruleta está a la derecha) */}
+        <Carrito />
         {/*
           Visitas, de donde vienen y con que entran. Es de Vercel, sin cookies y
           sin seguir a nadie de un sitio a otro: cuenta paginas vistas, no

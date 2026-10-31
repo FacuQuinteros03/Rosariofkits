@@ -334,18 +334,28 @@ publica sola, se mira cómo anda y recién ahí se arranca la siguiente.
 
 ### Etapa: carrito por WhatsApp
 
-Escrito y sin publicar (`lib/carrito.ts`, `components/Carrito.tsx`,
-`BotonCarrito`, `AgregarAlCarrito`, `app/api/stock`). No cobra ni reserva:
-junta lo elegido y lo manda en **un solo mensaje de WhatsApp**; la venta la
-sigue confirmando Facu. Aplica la promo 2x$100.000 con las mismas reglas que el
-banner, y al abrir el panel vuelve a mirar el stock del Sheet.
+En la rama `carrito`, rehecho de cero el 2026-10-31 (la primera versión nunca
+se subió y se perdió). No cobra ni reserva: junta lo elegido y lo manda en
+**un solo mensaje de WhatsApp**, con SKU por línea para cargarlo en /admin; la
+venta la sigue confirmando Facu.
 
-Para publicarlo: probarlo en el celular, revisar el mensaje que arma y
-commitear esos archivos junto con los cambios de `layout.tsx`, `page.tsx`, la
-ficha, `ProductCard` y `SelectorTalle` que lo enchufan.
+- `lib/carrito.ts`: el carrito, guardado en el navegador (localStorage), y el
+  mensaje de WhatsApp.
+- `lib/promo.ts`: las reglas de la promo 2x$100.000 y la fecha del Hot Sale. Las
+  usan el banner y el carrito, así no pueden decir cosas distintas.
+- `components/Carrito.tsx`: botón flotante abajo a la izquierda (la ruleta está
+  a la derecha) y el panel. Solo aparece si hay algo en el pedido.
+- `components/AgregarAlCarrito.tsx`: el botón "Agregar al pedido", debajo de
+  "Pedir por WhatsApp" en la tarjeta y en la ficha. No lo reemplaza: el que
+  quiere una sola sigue escribiendo directo.
+- `app/api/stock`: al abrir el panel se vuelve a mirar el stock y el precio en
+  el catálogo (la base del ERP). Lo agotado sale con un aviso.
 
-**El checkout con pago es otra etapa, más adelante:** ahí el stock tiene que
-salir del ERP (Supabase) y no del Sheet, porque con una unidad por talle dos
+Para publicarlo: probarlo en el celular desde el preview de la rama, revisar el
+mensaje que arma y unir `carrito` a `main`.
+
+**El checkout con pago es otra etapa, más adelante:** el stock ya sale del ERP,
+pero hay que reservar al pagar: con una unidad por talle dos
 compras simultáneas venden la misma camiseta.
 
 ### Etapa: preventa pública

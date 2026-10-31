@@ -8,6 +8,7 @@ import { CarruselFotos } from "./CarruselFotos";
 import { conStock, esLanzamiento, type Producto } from "@/lib/types";
 import { linkWhatsApp, linkWhatsAppEncargue } from "@/lib/whatsapp";
 import { Precio } from "./Precio";
+import { AgregarAlCarrito } from "./AgregarAlCarrito";
 
 export function ProductCard({ producto, prioridad = false }: { producto: Producto; prioridad?: boolean }) {
   const disponibles = producto.variantes.filter(conStock);
@@ -164,18 +165,21 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
             Pedilo por encargue
           </a>
         ) : (
-          <a
-            href={linkWhatsApp(producto.nombre, talle, producto.categoria)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative z-10 flex items-center justify-center gap-2 rounded-xl bg-wa px-3 py-2.5
-                       text-[13px] font-bold text-black/85 transition-colors hover:bg-wa-dark
-                       focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-                       focus-visible:outline-wa"
-          >
-            <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
-            Pedir por WhatsApp
-          </a>
+          <div className="flex flex-col gap-1.5">
+            <a
+              href={linkWhatsApp(producto.nombre, talle, producto.categoria)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative z-10 flex items-center justify-center gap-2 rounded-xl bg-wa px-3 py-2.5
+                         text-[13px] font-bold text-black/85 transition-colors hover:bg-wa-dark
+                         focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                         focus-visible:outline-wa"
+            >
+              <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+              Pedir por WhatsApp
+            </a>
+            <AgregarAlCarrito producto={producto} talle={talle} compacto />
+          </div>
         )}
       </div>
     </motion.article>
