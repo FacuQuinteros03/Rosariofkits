@@ -354,6 +354,37 @@ venta la sigue confirmando Facu.
 Para publicarlo: probarlo en el celular desde el preview de la rama, revisar el
 mensaje que arma y unir `carrito` a `main`.
 
+### Pago por transferencia desde el carrito
+
+Rama `transferencia`. Para el que quiere asegurarse la camiseta aunque Facu no
+pueda contestar en ese momento. **El comprobante es lo que reserva**: sin
+archivo no queda nada apartado, así nadie bloquea stock sin pagar.
+
+1. En el carrito, "Pagar con transferencia" muestra el total (sin envío: se
+   arregla después por WhatsApp), el alias y el CBU con botón de copiar.
+2. La persona pone nombre, WhatsApp y sube la captura o el PDF.
+3. `app/api/pedido` recalcula precios y promo con el catálogo (no confía en lo
+   que manda el navegador) y crea la venta en el ERP como **Reservada, canal
+   Web, sin cobrar**. Esas unidades dejan de figurar en la web al instante. El
+   comprobante queda en el bucket privado `comprobantes`, en `V-0040/`.
+4. En /admin → Ventas aparece "Transferencia a verificar" con "Ver comprobante".
+   Si la plata está en el banco: **Cobrar**. Si no: **Revertir**, y el stock
+   vuelve a la web.
+
+Límites contra abusos: un pedido web sin verificar por teléfono, hasta 10
+unidades, archivos de 8 MB como máximo (imagen o PDF), y un campo trampa para
+bots. Un comprobante se puede falsificar: por eso la venta no queda cobrada
+hasta que alguien mira el banco.
+
+Para activarlo, en Vercel (Production, y Redeploy):
+
+- `SUPABASE_SECRET_KEY`: la clave secreta de Supabase (Settings → API Keys).
+  **Marcarla Sensitive**: pasa por encima de los permisos de la base.
+- `TRANSFERENCIA_ALIAS`, `TRANSFERENCIA_CBU` (opcional), `TRANSFERENCIA_TITULAR`.
+
+Y en Supabase → Storage, crear el bucket `comprobantes` **privado**. Sin todo
+eso el botón no aparece y el carrito sigue como antes.
+
 **El checkout con pago es otra etapa, más adelante:** el stock ya sale del ERP,
 pero hay que reservar al pagar: con una unidad por talle dos
 compras simultáneas venden la misma camiseta.

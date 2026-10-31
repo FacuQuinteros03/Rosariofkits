@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronDown, Plus, Search } from "lucide-react";
+import { ChevronDown, FileText, Plus, Search } from "lucide-react";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { nombreMes, plata, plataCorta, porciento } from "@/app/admin/_lib/formato";
 import { Cobrar, Revertir } from "@/app/admin/_componentes/Acciones";
@@ -59,6 +59,9 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
   for (const v of enPagina) meses.set(v.fecha.slice(0, 7), [...(meses.get(v.fecha.slice(0, 7)) ?? []), v]);
   const ganancia = (id: string) => (itemsPorVenta.get(id) ?? []).reduce((s, i) => s + Number(i.ganancia ?? 0), 0);
   const parteCobrada = (v: Fila) => (Number(v.total) > 0 ? Math.min(Math.max(Number(v.cobrado) / Number(v.total), 0), 1) : 1);
+  /* Pedido del carrito pagado por transferencia: reservado hasta que se vea la plata en el banco. */
+  const porVerificar = (v: Fila) => v.canal === "Web" && v.estado === "Reservada" && Number(v.cobrado) === 0;
+  const pendientesWeb = (ventas.data ?? []).filter((v) => porVerificar(v as Fila)).length;
 
   const href = (cambio: Record<string, string>) => {
     const p = new URLSearchParams({ ...(q ? { q } : {}), ...(estado !== "Todas" ? { estado } : {}), ...cambio });
@@ -79,6 +82,13 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
           <Plus className="h-4 w-4" /> Cargar venta
         </Link>
       </header>
+
+      {pendientesWeb > 0 && (
+        <p className="rounded-xl border border-gold/50 bg-gold/10 px-3.5 py-2.5 text-sm text-gold">
+          {pendientesWeb === 1 ? "Hay 1 pedido web" : `Hay ${pendientesWeb} pedidos web`} con transferencia a verificar.
+          Mirá el comprobante y el banco: si llegó la plata, <b>Cobrar</b>; si no, <b>Revertir</b> y el stock vuelve a la web.
+        </p>
+      )}
 
       <form action="/admin/ventas" className="flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2.5 focus-within:border-gold">
         <Search className="h-4 w-4 text-muted" />
@@ -133,6 +143,9 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
                           <p className="flex items-center gap-2">
                             <span className="truncate font-semibold">{v.cliente}</span>
                             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] ${COLOR_ESTADO[v.estado] ?? "bg-white/10"}`}>{v.estado}</span>
+                            {porVerificar(v) && (
+                              <span className="shrink-0 rounded-full bg-gold/20 px-2 py-0.5 text-[11px] font-semibold text-gold">Transferencia a verificar</span>
+                            )}
                           </p>
                           <p className="truncate text-xs text-muted">
                             {v.id} · {its.length
@@ -191,6 +204,12 @@ export default async function Ventas({ searchParams }: { searchParams: Promise<{
 
                         {v.estado !== "Cancelada" && (
                           <div className="mt-3 flex flex-wrap justify-end gap-2">
+                            {v.canal === "Web" && (
+                              <a href={`/admin/comprobante/${v.id}`} target="_blank" rel="noopener noreferrer"
+                                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-ink hover:bg-white/5">
+                                <FileText className="h-3.5 w-3.5" /> Ver comprobante
+                              </a>
+                            )}
                             <Revertir venta={v.id} cobrado={Number(v.cobrado)} />
                             {Number(v.saldo) > 0 && (
                               <Cobrar venta={v.id} saldo={Number(v.saldo)} puedeEntregar={v.estado !== "Entregada"} />

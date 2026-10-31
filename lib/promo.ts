@@ -63,3 +63,39 @@ export function calcularTotales(
 
   return { lista, total: lista - ahorro, pares, ahorro };
 }
+
+/** Una línea de venta para el ERP: cuántas unidades de un SKU y a qué precio cada una. */
+export interface LineaVenta {
+  sku: string;
+  cantidad: number;
+  precio_unit: number;
+  /** "2x100000" en las unidades que entraron en un par; el ERP exige el motivo si cobra menos que la lista */
+  promo: string | null;
+}
+
+/**
+ * Lo mismo que `calcularTotales`, pero unidad por unidad: cada camiseta de un par
+ * va a la mitad del par ($50.000) con la promo anotada, el resto a precio de
+ * lista. Si de un SKU entró solo una parte en pares, sale en dos líneas.
+ */
+export function repartirPromo(
+  items: { sku: string; categoria: CategoriaReal; precio: number; precioAntes: number | null; cantidad: number }[],
+  ahora = Date.now()
+): LineaVenta[] {
+  const unidades = items
+    .filter((i) => entraEnPromo(i, ahora))
+    .flatMap((i) => Array.from({ length: i.cantidad }, () => ({ sku: i.sku, precio: i.precio })))
+    .sort((a, b) => b.precio - a.precio);
+  const enPar = new Map<string, number>();
+  for (const u of unidades.slice(0, Math.floor(unidades.length / 2) * 2)) {
+    enPar.set(u.sku, (enPar.get(u.sku) ?? 0) + 1);
+  }
+
+  const lineas: LineaVenta[] = [];
+  for (const i of items) {
+    const conPromo = enPar.get(i.sku) ?? 0;
+    if (conPromo > 0) lineas.push({ sku: i.sku, cantidad: conPromo, precio_unit: PROMO_PAR / 2, promo: "2x100000" });
+    if (i.cantidad > conPromo) lineas.push({ sku: i.sku, cantidad: i.cantidad - conPromo, precio_unit: i.precio, promo: null });
+  }
+  return lineas;
+}

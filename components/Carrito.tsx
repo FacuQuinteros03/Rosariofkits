@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { Landmark, MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import {
   actualizarStock,
   cambiarCantidad,
@@ -18,6 +18,8 @@ import {
 } from "@/lib/carrito";
 import { calcularTotales, PROMO_PAR } from "@/lib/promo";
 import { precio } from "@/lib/whatsapp";
+import type { DatosTransferencia } from "@/lib/transferencia";
+import { PagoTransferencia } from "./PagoTransferencia";
 
 /** Lo dispara AgregarAlCarrito: el texto del aviso de "agregaste". */
 export const EVENTO_AGREGADO = "rfk:agregado";
@@ -30,14 +32,19 @@ export const EVENTO_AGREGADO = "rfk:agregado";
  * Al abrir el panel se vuelve a mirar el stock: lo que se agotó mientras tanto
  * sale, con un aviso, antes de que la persona mande un pedido que no se puede
  * cumplir.
+ *
+ * `transferencia` viene del servidor (variables de Vercel): con datos, el panel
+ * ofrece pagar por transferencia y reservar subiendo el comprobante; sin datos,
+ * solo el pedido por WhatsApp.
  */
-export function Carrito() {
+export function Carrito({ transferencia }: { transferencia: DatosTransferencia | null }) {
   const items = useCarrito();
   const ruta = usePathname();
   const [abierto, setAbierto] = useState(false);
   const [mirando, setMirando] = useState(false);
   const [avisos, setAvisos] = useState<string[]>([]);
   const [agregado, setAgregado] = useState<string | null>(null);
+  const [paso, setPaso] = useState<"pedido" | "pago">("pedido");
   const cerrarRef = useRef<HTMLButtonElement>(null);
 
   const unidades = contarUnidades(items);
@@ -60,6 +67,11 @@ export function Carrito() {
     }
   }
 
+  function cerrar() {
+    setAbierto(false);
+    setPaso("pedido");
+  }
+
   /* "Agregaste ..." unos segundos, sin abrir el panel: se puede seguir eligiendo */
   useEffect(() => {
     let reloj: ReturnType<typeof setTimeout>;
@@ -79,7 +91,11 @@ export function Carrito() {
   useEffect(() => {
     if (!abierto) return;
     cerrarRef.current?.focus();
-    const tecla = (e: KeyboardEvent) => e.key === "Escape" && setAbierto(false);
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setAbierto(false);
+      setPaso("pedido");
+    };
     window.addEventListener("keydown", tecla);
     return () => window.removeEventListener("keydown", tecla);
   }, [abierto]);
@@ -131,7 +147,7 @@ export function Carrito() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setAbierto(false)}
+            onClick={cerrar}
           >
             <motion.aside
               role="dialog"
@@ -149,7 +165,7 @@ export function Carrito() {
                 <button
                   ref={cerrarRef}
                   type="button"
-                  onClick={() => setAbierto(false)}
+                  onClick={cerrar}
                   aria-label="Cerrar"
                   className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-white/5 hover:text-ink"
                 >
@@ -157,6 +173,19 @@ export function Carrito() {
                 </button>
               </header>
 
+              {paso === "pago" && transferencia ? (
+                <PagoTransferencia
+                  items={items}
+                  total={total}
+                  datos={transferencia}
+                  onVolver={() => setPaso("pedido")}
+                  onListo={() => {
+                    vaciar();
+                    setAvisos([]);
+                  }}
+                />
+              ) : (
+                <>
               <div className="flex-1 overflow-y-auto px-5 py-4">
                 {avisos.length > 0 && (
                   <ul className="mb-4 space-y-1 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2.5 text-[12.5px] leading-snug text-gold">
@@ -176,7 +205,7 @@ export function Carrito() {
                       <li key={i.sku} className="flex gap-3 py-3">
                         <Link
                           href={`/producto/${i.productoId}`}
-                          onClick={() => setAbierto(false)}
+                          onClick={cerrar}
                           className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-surface"
                         >
                           {i.foto && <Image src={i.foto} alt="" fill sizes="64px" className="object-cover" />}
@@ -247,6 +276,18 @@ export function Carrito() {
                     </div>
                   </dl>
 
+                  {transferencia && (
+                    <button
+                      type="button"
+                      disabled={mirando}
+                      onClick={() => setPaso("pago")}
+                      className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-gold px-5 py-3.5
+                                 text-[15px] font-bold text-black/85 transition-opacity disabled:opacity-60"
+                    >
+                      <Landmark className="h-5 w-5 shrink-0" strokeWidth={2.4} aria-hidden />
+                      Pagar con transferencia
+                    </button>
+                  )}
                   <a
                     href={linkPedido(items)}
                     target="_blank"
@@ -263,7 +304,9 @@ export function Carrito() {
                     {mirando ? "Revisando el stock..." : "Enviar pedido por WhatsApp"}
                   </a>
                   <p className="text-center text-[11.5px] leading-snug text-muted">
-                    No se cobra nada acá: te confirmamos stock, pago y entrega por WhatsApp.
+                    {transferencia
+                      ? "Transferí y subí el comprobante para reservar, o mandanos el pedido y lo charlamos."
+                      : "No se cobra nada acá: te confirmamos stock, pago y entrega por WhatsApp."}
                   </p>
                   <button
                     type="button"
@@ -276,6 +319,8 @@ export function Carrito() {
                     Vaciar pedido
                   </button>
                 </footer>
+              )}
+                </>
               )}
             </motion.aside>
           </motion.div>
