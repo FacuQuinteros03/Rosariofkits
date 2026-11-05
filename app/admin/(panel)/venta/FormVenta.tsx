@@ -6,6 +6,7 @@ import { Check, Minus, Plus, Search, Trash2, UserPlus, X } from "lucide-react";
 import { cargarVenta, type VentaNueva } from "@/app/admin/acciones";
 import { plata } from "@/app/admin/_lib/formato";
 import { Chips, Tarjeta } from "@/app/admin/_componentes/Controles";
+import { aplicarCyber } from "@/lib/cyber";
 
 export type Producto = {
   sku: number;
@@ -34,6 +35,23 @@ const ESTADOS = [
 ] as const;
 const METODOS = ["Transferencia", "Efectivo", "Mercado Pago"];
 const CANALES = ["WhatsApp", "Instagram", "En persona", "Web", "Grupo de stock"];
+
+/**
+ * El precio con el que entra una línea: el de lista, o el del Cyber Monday si
+ * está vigente y el SKU entra (ver lib/cyber.ts). Ya viene con el motivo, así
+ * la venta queda registrada como rebajada por el Cyber y no hay que tipearlo.
+ */
+function precioPropuesto(p: Producto): { precio_unit: number; motivo: string } {
+  const cyber = aplicarCyber({
+    categoria: /short/i.test(p.categoria) ? "Shorts" : "Clubes",
+    precio: Number(p.precio),
+    precioAntes: null,
+    skus: [String(p.sku)],
+  });
+  return cyber
+    ? { precio_unit: cyber.precio, motivo: "Cyber Monday" }
+    : { precio_unit: Number(p.precio), motivo: "" };
+}
 
 /** Sin tildes ni mayúsculas, para buscar "japon" y encontrar "Japón". */
 const normal = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
@@ -86,7 +104,7 @@ export function FormVenta({ productos, clientes, hoy }: { productos: Producto[];
     setLineas((ls) =>
       ls.some((l) => l.sku === p.sku)
         ? ls.map((l) => (l.sku === p.sku ? { ...l, cantidad: Math.min(l.cantidad + 1, p.disponible) } : l))
-        : [...ls, { ...p, cantidad: 1, precio_unit: Number(p.precio), motivo: "" }],
+        : [...ls, { ...p, cantidad: 1, ...precioPropuesto(p) }],
     );
     setBusq("");
   }

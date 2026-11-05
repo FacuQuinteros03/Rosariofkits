@@ -1,6 +1,7 @@
 import "server-only";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { aplicarCyber } from "./cyber";
 import { pesoTalle, type CategoriaReal, type Producto, type Variante } from "./types";
 
 /** Marcas de acento, para comparar "japon" con "Japón". */
@@ -412,6 +413,15 @@ export async function getCatalogo(): Promise<Producto[]> {
       const variantes = m.variantes.sort((a, b) => pesoTalle(a.talle) - pesoTalle(b.talle));
       const fotos = buscarFotos(variantes.map((v) => v.sku));
       const equipo = equipoDe(m.nombre);
+      /* solo si de verdad baja: un "antes" igual o menor no es rebaja */
+      const antes = m.precioAntes > m.precio && m.precio > 0 ? m.precioAntes : null;
+      /* el Cyber Monday se aplica acá y no en la base: se apaga solo. Ver lib/cyber.ts */
+      const cyber = aplicarCyber({
+        categoria: m.categoria,
+        precio: m.precio,
+        precioAntes: antes,
+        skus: variantes.map((v) => v.sku),
+      });
       return {
         id: slug(`${m.nombre}-${m.categoria}`),
         nombre: m.nombre,
@@ -419,9 +429,9 @@ export async function getCatalogo(): Promise<Producto[]> {
         equipo,
         escudo: buscarEscudo(equipo),
         nuevo: m.nuevo,
-        precio: m.precio,
-        /* solo si de verdad baja: un "antes" igual o menor no es rebaja */
-        precioAntes: m.precioAntes > m.precio && m.precio > 0 ? m.precioAntes : null,
+        precio: cyber?.precio ?? m.precio,
+        precioAntes: cyber?.precioAntes ?? antes,
+        cyber: cyber?.cyber ?? null,
         total: variantes.reduce((s, v) => s + v.disponible, 0),
         variantes,
         foto: fotos[0] ?? null,

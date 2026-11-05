@@ -14,6 +14,9 @@ import { Precio } from "@/components/Precio";
 import { descripcionProducto, ID_TIENDA } from "@/lib/seo";
 import { jsonLdPreguntas, preguntasProducto } from "@/lib/faq";
 import { PreguntasFrecuentes } from "@/components/PreguntasFrecuentes";
+import { EtiquetaCyber } from "@/components/EtiquetaCyber";
+import { CuentaRegresiva } from "@/components/CuentaRegresiva";
+import { CYBER_CIERRE, CYBER_HASTA } from "@/lib/cyber";
 
 /** Mismo ISR que el catálogo. Tiene que ser literal. */
 export const revalidate = 60;
@@ -88,6 +91,8 @@ export default async function ProductoPage({ params }: Props) {
       name: `Talle ${v.talle}`,
       price: p.precio,
       priceCurrency: "ARS",
+      /* el precio del Cyber vence: Google no lo tiene que mostrar después */
+      ...(p.cyber ? { priceValidUntil: "2026-11-08" } : {}),
       availability:
         v.disponible > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
@@ -168,6 +173,21 @@ export default async function ProductoPage({ params }: Props) {
             <p>
               <Precio producto={p} tamano="text-5xl" />
             </p>
+          )}
+
+          {p.cyber && p.total > 0 && (
+            <div
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-400/40
+                         bg-gradient-to-br from-[#0b1d2e] to-[#1d0b26] p-3.5"
+            >
+              <div>
+                <EtiquetaCyber tipo={p.cyber} />
+                <p className="mt-1.5 text-[13px] font-semibold leading-snug text-white/80">
+                  Precio Cyber Monday hasta {CYBER_CIERRE}.
+                </p>
+              </div>
+              <CuentaRegresiva hasta={CYBER_HASTA} chico />
+            </div>
           )}
 
           <SelectorTalle producto={p} />

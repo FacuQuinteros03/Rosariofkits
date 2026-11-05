@@ -1,4 +1,5 @@
 import type { CategoriaReal } from "./types";
+import { enCyber } from "./cyber";
 
 /**
  * Las reglas de las promos, en un solo lugar. Las usan el banner del catálogo
@@ -19,14 +20,14 @@ export const PROMO_DESDE = 52500;
 
 /**
  * Si una unidad entra en la promo 2x$100.000: camiseta (no short), versión
- * jugador, sin rebaja ("No suma con las rebajadas"). Durante el Hot Sale no
- * entra nada: no son acumulables.
+ * jugador, sin rebaja ("No suma con las rebajadas"). Durante el Hot Sale y el
+ * Cyber Monday no entra nada: no son acumulables.
  */
 export function entraEnPromo(
   item: { categoria: CategoriaReal; precio: number; precioAntes: number | null },
   ahora = Date.now()
 ): boolean {
-  if (enHotSale(ahora)) return false;
+  if (enHotSale(ahora) || enCyber(ahora)) return false;
   return item.categoria !== "Shorts" && item.precio >= PROMO_DESDE && item.precioAntes === null;
 }
 

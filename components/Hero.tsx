@@ -1,5 +1,7 @@
 import Image from "next/image";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Zap } from "lucide-react";
+import { CYBER_CIERRE_CORTO, CYBER_PRECIO, enCyber } from "@/lib/cyber";
+import { precio } from "@/lib/whatsapp";
 import { TituloHero } from "./TituloHero";
 
 /**
@@ -41,6 +43,18 @@ export function Hero() {
       <div className="absolute inset-0 flex items-end">
         <div className="mx-auto w-full max-w-[1280px] px-5 pb-12 sm:px-8 sm:pb-16 lg:pb-20">
           <div className="max-w-2xl">
+            {enCyber() ? (
+              <a
+                href="#cyber"
+                className="aparece cyber-late mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r
+                           from-cyan-400 to-fuchsia-500 px-3.5 py-1.5 text-[11px] font-extrabold uppercase
+                           tracking-[0.16em] text-black"
+                style={{ animationDelay: "60ms" }}
+              >
+                <Zap className="h-3.5 w-3.5 fill-current" aria-hidden />
+                Cyber Monday · todas a {precio(CYBER_PRECIO)} · hasta el {CYBER_CIERRE_CORTO}
+              </a>
+            ) : (
             <p
               className="aparece mb-4 inline-flex items-center gap-2.5 rounded-full border
                          border-white/15 bg-white/5 px-3.5 py-1.5 text-[11px] font-bold
@@ -50,6 +64,7 @@ export function Hero() {
               <span className="font-display text-base leading-none">10</span>
               Gracias, Leo
             </p>
+            )}
 
             <TituloHero />
 

@@ -1,3 +1,5 @@
+import type { TipoCyber } from "./cyber";
+
 export const CATEGORIAS = ["Todas", "Clubes", "Selecciones", "Retro", "Shorts"] as const;
 export type Categoria = (typeof CATEGORIAS)[number];
 export type CategoriaReal = Exclude<Categoria, "Todas">;
@@ -25,6 +27,8 @@ export interface Producto {
   precio: number;
   /** el precio al que estuvo publicada, si se rebajó; se muestra tachado */
   precioAntes: number | null;
+  /** si entra en el Cyber Monday y a qué precio; null fuera de fecha. Ver lib/cyber.ts */
+  cyber: TipoCyber | null;
   /** suma de unidades de todos los talles; 0 = agotado */
   total: number;
   /**
@@ -44,8 +48,9 @@ export interface Producto {
  * no como rebaja. Una "Rebajada" en algo que acaba de entrar se lee como que
  * no se vende; "Lanzamiento" cuenta lo mismo como una oportunidad.
  */
-export const esLanzamiento = (p: Pick<Producto, "nuevo" | "precioAntes">) =>
-  p.nuevo && p.precioAntes !== null;
+export const esLanzamiento = (
+  p: Pick<Producto, "nuevo" | "precioAntes"> & { cyber?: TipoCyber | null }
+) => !p.cyber && p.nuevo && p.precioAntes !== null;
 
 /** Los talles que se pueden comprar hoy. */
 export const conStock = (v: Variante) => v.disponible > 0;

@@ -9,6 +9,7 @@ import { conStock, esLanzamiento, type Producto } from "@/lib/types";
 import { linkWhatsApp, linkWhatsAppEncargue } from "@/lib/whatsapp";
 import { Precio } from "./Precio";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
+import { EtiquetaCyber } from "./EtiquetaCyber";
 
 export function ProductCard({ producto, prioridad = false }: { producto: Producto; prioridad?: boolean }) {
   const disponibles = producto.variantes.filter(conStock);
@@ -49,6 +50,8 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
           >
             Agotado
           </span>
+        ) : producto.cyber ? (
+          <EtiquetaCyber tipo={producto.cyber} className="absolute left-2.5 top-2.5 z-10" />
         ) : esLanzamiento(producto) ? (
           <span
             className="absolute left-2.5 top-2.5 z-10 rounded-full bg-gold px-2.5 py-1

@@ -8,6 +8,8 @@ import { EncontraTuEquipo, equiposConStock } from "./EncontraTuEquipo";
 import { ProductCard } from "./ProductCard";
 import { HotSaleBanner } from "./HotSaleBanner";
 import { PromoBanner } from "./PromoBanner";
+import { CyberBanner } from "./CyberBanner";
+import { enCyber } from "@/lib/cyber";
 import { enHotSale as hotSaleVigente, PROMO_DESDE } from "@/lib/promo";
 
 
@@ -128,10 +130,18 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
     (p) => p.foto && p.total > 0 && p.precio === 45000 && p.precioAntes === 52500 && !p.nuevo
   );
 
+  /* El Cyber Monday reemplaza a los dos: tampoco es acumulable. Ver lib/cyber.ts */
+  const cyberVigente = enCyber();
+  const delCyber = productos
+    .filter((p) => p.cyber && p.foto && p.total > 0)
+    .sort((a, b) => Number(b.cyber === "clavo") - Number(a.cyber === "clavo"));
+
   return (
     <section aria-label="Catálogo">
       <div className="mb-4">
-        {enHotSale ? (
+        {cyberVigente ? (
+          <CyberBanner fotos={delCyber} hayClavos={delCyber.some((p) => p.cyber === "clavo")} />
+        ) : enHotSale ? (
           <HotSaleBanner fotos={delHotSale} hasta="el sábado 31 de octubre" />
         ) : (
           <PromoBanner primera={deLaPromo[0]} segunda={deLaPromo[1]} />

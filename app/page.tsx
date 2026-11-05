@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { MessageCircle } from "lucide-react";
 import { Catalogo } from "@/components/Catalogo";
+import { CyberCinta } from "@/components/CyberCinta";
+import { CyberMonday } from "@/components/CyberMonday";
 import { IconoInstagram } from "@/components/IconoInstagram";
 import { Hero } from "@/components/Hero";
 import { PieDePagina } from "@/components/PieDePagina";
@@ -26,8 +28,9 @@ export default async function Page() {
 
   return (
     <>
-      {/* barra de marca, flotando sobre la portada */}
+      {/* barra de marca, flotando sobre la portada; arriba, la cinta del Cyber */}
       <div className="absolute inset-x-0 top-0 z-30">
+        <CyberCinta />
         <div className="mx-auto flex max-w-[1280px] items-center gap-3 px-5 py-5 sm:px-8">
           <Image
             src="/logo.png"
@@ -73,6 +76,8 @@ export default async function Page() {
         <div className="mt-8">
           <TrustBar />
         </div>
+
+        <CyberMonday productos={productos} />
 
         <RecienLlegadas productos={productos} />
 
