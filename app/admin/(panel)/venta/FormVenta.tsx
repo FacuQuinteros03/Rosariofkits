@@ -47,6 +47,7 @@ function precioPropuesto(p: Producto): { precio_unit: number; motivo: string } {
     precio: Number(p.precio),
     precioAntes: null,
     skus: [String(p.sku)],
+    nombre: p.producto,
   });
   return cyber
     ? { precio_unit: cyber.precio, motivo: "Cyber Monday" }

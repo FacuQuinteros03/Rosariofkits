@@ -35,13 +35,41 @@ export const CYBER_PRECIO = 45000;
 export const CYBER_PRECIO_CLAVO = 40000;
 
 /**
- * Las clavo, por SKU. En la web alcanza con un SKU de cualquier talle para que
- * el modelo entero pase a $40.000, pero el formulario de venta de /admin mira
- * talle por talle: cargar los SKU de **todos** los talles del modelo.
+ * Las clavo (van a $40.000), según Facu el 4/11:
+ *
+ *   1. todo el pedido de 10 Córdoba (Diez Store), la serie 6000, menos el
+ *      Manchester United y las de Oasis, que quedan a $45.000;
+ *   2. toda camiseta con dorsal: el estampado viaja en el nombre entre
+ *      paréntesis, "Real Madrid 25/26 (Mbappé 10)", y siempre lleva número;
+ *   3. por las dudas, los tres que nombró: Lamine Yamal, Garnacho y Mbappé;
+ *   4. cualquier SKU que se sume a mano en CLAVOS.
+ *
+ * Por reglas y no por lista porque así entran todos los talles sin cargarlos
+ * uno por uno, y el formulario de /admin (que mira talle por talle) decide igual.
  */
 export const CLAVOS: ReadonlySet<string> = new Set<string>([
-  // "2130",  // ejemplo: así se carga una
+  // "2130",  // ejemplo: así se suma una a mano
 ]);
+
+/** El pedido de 10 Córdoba (Diez Store): SKU de la serie 6000. */
+const esDelPedidoDiez = (sku: string) => {
+  const n = Number(sku);
+  return n >= 6000 && n < 7000;
+};
+
+/** Del pedido de Diez, estas no son clavo: van a $45.000 como el resto. */
+const NO_CLAVO_DE_DIEZ = /manchester united|man\.? united|oasis/i;
+
+/** Un paréntesis con un número adentro es un estampado: "(Mbappé 10)", "(N 24)". */
+const CON_DORSAL = /\([^)]*\d[^)]*\)/;
+
+const NOMBRADAS = /lamine|yamal|garnacho|mbapp/i;
+
+export function esClavo(nombre: string, skus: string[]): boolean {
+  if (skus.some((s) => CLAVOS.has(s))) return true;
+  if (CON_DORSAL.test(nombre) || NOMBRADAS.test(nombre)) return true;
+  return skus.some(esDelPedidoDiez) && !NO_CLAVO_DE_DIEZ.test(nombre);
+}
 
 /** El último pedido (a Gonza): SKU de la serie 7000. No entra en el Cyber. */
 export const esDelUltimoPedido = (sku: string) => {
@@ -68,6 +96,7 @@ export function aplicarCyber(
     precio: number;
     precioAntes: number | null;
     skus: string[];
+    nombre: string;
   },
   ahora = Date.now(),
 ): { precio: number; precioAntes: number; cyber: TipoCyber } | null {
@@ -75,9 +104,7 @@ export function aplicarCyber(
   if (m.categoria === "Shorts") return null;
   if (m.skus.some(esDelUltimoPedido)) return null;
 
-  const cyber: TipoCyber = m.skus.some((s) => CLAVOS.has(s))
-    ? "clavo"
-    : "camiseta";
+  const cyber: TipoCyber = esClavo(m.nombre, m.skus) ? "clavo" : "camiseta";
   const nuevo = cyber === "clavo" ? CYBER_PRECIO_CLAVO : CYBER_PRECIO;
   if (!(m.precio > nuevo)) return null;
 

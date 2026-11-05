@@ -421,6 +421,7 @@ export async function getCatalogo(): Promise<Producto[]> {
         precio: m.precio,
         precioAntes: antes,
         skus: variantes.map((v) => v.sku),
+        nombre: m.nombre,
       });
       return {
         id: slug(`${m.nombre}-${m.categoria}`),
