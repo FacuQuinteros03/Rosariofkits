@@ -71,6 +71,13 @@ export function esClavo(nombre: string, skus: string[]): boolean {
   return skus.some(esDelPedidoDiez) && !NO_CLAVO_DE_DIEZ.test(nombre);
 }
 
+/**
+ * Modelos que quedan afuera del Cyber, por SKU de cualquier talle: siguen a su
+ * precio de siempre. La Boca titular (6012) se queda en $42.500 porque varios
+ * consultaron por ella (Facu, 4/11).
+ */
+export const SIN_CYBER: ReadonlySet<string> = new Set<string>(["6012"]);
+
 /** El último pedido (a Gonza): SKU de la serie 7000. No entra en el Cyber. */
 export const esDelUltimoPedido = (sku: string) => {
   const n = Number(sku);
@@ -103,6 +110,7 @@ export function aplicarCyber(
   if (!enCyber(ahora)) return null;
   if (m.categoria === "Shorts") return null;
   if (m.skus.some(esDelUltimoPedido)) return null;
+  if (m.skus.some((s) => SIN_CYBER.has(s))) return null;
 
   const cyber: TipoCyber = esClavo(m.nombre, m.skus) ? "clavo" : "camiseta";
   const nuevo = cyber === "clavo" ? CYBER_PRECIO_CLAVO : CYBER_PRECIO;
