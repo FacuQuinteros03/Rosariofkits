@@ -10,7 +10,7 @@ import { HotSaleBanner } from "./HotSaleBanner";
 import { PromoBanner } from "./PromoBanner";
 import { CyberBanner } from "./CyberBanner";
 import { enCyber } from "@/lib/cyber";
-import { enHotSale as hotSaleVigente, PROMO_DESDE } from "@/lib/promo";
+import { enHotSale as hotSaleVigente, PROMO_DESDE, PROMO_VIGENTE } from "@/lib/promo";
 
 
 /** Marcas de acento, para comparar "japon" con "Japón". */
@@ -138,14 +138,14 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
 
   return (
     <section aria-label="Catálogo">
-      <div className="mb-4">
+      <div className="mb-4 empty:hidden">
         {cyberVigente ? (
           <CyberBanner fotos={delCyber} hayClavos={delCyber.some((p) => p.cyber === "clavo")} />
         ) : enHotSale ? (
           <HotSaleBanner fotos={delHotSale} hasta="el sábado 31 de octubre" />
-        ) : (
+        ) : PROMO_VIGENTE ? (
           <PromoBanner primera={deLaPromo[0]} segunda={deLaPromo[1]} />
-        )}
+        ) : null}
       </div>
 
       <div className="mb-5">

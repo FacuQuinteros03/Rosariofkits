@@ -12,6 +12,12 @@ export const HOT_SALE_HASTA = Date.parse("2026-11-01T00:00:00-03:00");
 
 export const enHotSale = (ahora = Date.now()) => ahora < HOT_SALE_HASTA;
 
+/**
+ * Interruptor de la promo 2x$100.000. Apagada desde el 10/11/2026 (Facu: "no va
+ * más"). En false no sale el banner y el carrito no arma pares.
+ */
+export const PROMO_VIGENTE = false;
+
 /** 2 camisetas a elección por este total. */
 export const PROMO_PAR = 100000;
 
@@ -27,7 +33,7 @@ export function entraEnPromo(
   item: { categoria: CategoriaReal; precio: number; precioAntes: number | null },
   ahora = Date.now()
 ): boolean {
-  if (enHotSale(ahora) || enCyber(ahora)) return false;
+  if (!PROMO_VIGENTE || enHotSale(ahora) || enCyber(ahora)) return false;
   return item.categoria !== "Shorts" && item.precio >= PROMO_DESDE && item.precioAntes === null;
 }
 
