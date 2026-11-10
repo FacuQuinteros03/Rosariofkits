@@ -1,7 +1,9 @@
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import { ArrowDown, Zap } from "lucide-react";
 import { CYBER_CIERRE_CORTO, CYBER_PRECIO, enCyber } from "@/lib/cyber";
 import { precio } from "@/lib/whatsapp";
+import { VERSION_HERO } from "@/lib/hero";
+import { HeroVideo } from "./HeroVideo";
 import { TituloHero } from "./TituloHero";
 
 /**
@@ -17,23 +19,43 @@ import { TituloHero } from "./TituloHero";
  *  - hay un CTA: una portada linda sin salida no lleva a nadie al catálogo.
  */
 export function Hero() {
+  // Dirección de arte: una imagen para pantallas anchas y otra para el celular.
+  const comun = { alt: "", sizes: "100vw", quality: 90 };
+  const {
+    props: { srcSet: fijaAncha },
+  } = getImageProps({ ...comun, width: 1920, height: 1080, src: `/hero-golazo-land-${VERSION_HERO}.jpg` });
+  const {
+    props: { srcSet: fijaAlta, ...fija },
+  } = getImageProps({
+    ...comun,
+    width: 1080,
+    height: 1620,
+    src: `/hero-golazo-port-${VERSION_HERO}.jpg`,
+    loading: "eager",
+    fetchPriority: "high",
+  });
+
   return (
     <section className="relative isolate w-full overflow-hidden">
       {/*
-        El nombre del archivo lleva versión a propósito: next/image cachea por
-        URL, así que pisar hero.jpg con otra foto sigue sirviendo la vieja
-        (en local y en el CDN). Foto nueva = nombre nuevo.
+        Primero la imagen fija (un cuadro del mismo clip) y encima el video,
+        que aparece cuando ya está reproduciendo. Hay dos encuadres: en el
+        celular el jugador va arriba porque el texto ocupa la mitad de abajo.
+
+        Los nombres llevan versión a propósito: next/image y el CDN cachean por
+        URL, así que pisar un archivo con otro sigue sirviendo el viejo.
       */}
       <div className="relative h-[78svh] min-h-[440px] w-full sm:h-[70svh] lg:h-[76svh]">
-        <Image
-          src="/hero-messi-2400.jpg"
-          alt="Lionel Messi con la camiseta de la Selección Argentina"
-          fill
-          priority
-          sizes="100vw"
-          quality={90}
-          className="object-cover object-[52%_14%] sm:object-[center_18%]"
-        />
+        <picture>
+          <source media="(min-width: 640px)" srcSet={fijaAncha} sizes="100vw" />
+          <img
+            {...fija}
+            srcSet={fijaAlta}
+            alt="Jugador con la camiseta celeste y blanca, la 10, rematando al arco bajo la lluvia"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </picture>
+        <HeroVideo />
 
         {/* velo: oscuro abajo y a la izquierda, que es donde va el texto */}
         <div className="absolute inset-0 bg-gradient-to-t from-ground via-ground/55 to-ground/10" />

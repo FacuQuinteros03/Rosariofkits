@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portada 3D — Rosario F Kits</title>
+<!--
+  La escena de la que sale el video de la portada (public/hero-golazo-*.mp4).
+
+  No se sirve en el sitio: es la fuente. Se abre con el servidor de al lado
+  (servidor.py) y se graba cuadro por cuadro con ?grabar=land o ?grabar=port.
+  Ver LEEME.md en esta carpeta.
+
+    ?encuadre=land   corre el sujeto a la derecha (el texto del hero va a la izquierda)
+    ?encuadre=port   lo sube (en el celular el texto va abajo)
+    ?grabar=land|port  graba ese encuadre y manda los cuadros al servidor
+-->
+<style>
+  html, body { height: 100%; margin: 0; background: #0a0c10; overflow: hidden; }
+  canvas { display: block; width: 100vw; height: 100vh; object-fit: contain; }
+  #estado { position: fixed; left: 12px; bottom: 10px; font: 600 13px/1 monospace; color: #8b9aa8; }
+</style>
+</head>
+<body>
+<div id="escena"></div>
+<div id="estado"></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/AfterimageShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/AfterimagePass.js"></script>
+<script>
+(function () {
+  const T = THREE;
+  const params = new URLSearchParams(location.search);
+  const GRABAR = params.get("grabar");
+  const ENCUADRE = GRABAR || params.get("encuadre") || "";
+  const TAM = { land: [1920, 1080], port: [1080, 1620] }[GRABAR] || null;
+  const FPS = 30;
+
+  // paleta de la marca (app/globals.css) + el celeste de la camiseta
+  const GROUND = 0x0a0c10, NAVY = 0x10233b, NAVY2 = 0x1b3355, ORO = 0xe2b74a, CELESTE = 0x6ec6f2, FRIO = 0x8fb8ff;
+
+  const cont = document.getElementById("escena"), elEstado = document.getElementById("estado");
+  const renderer = new T.WebGLRenderer({ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: !!GRABAR });
+  renderer.setPixelRatio(GRABAR ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
+  renderer.outputEncoding = T.sRGBEncoding;
+  cont.appendChild(renderer.domElement);
+
+  const scene = new T.Scene();
+  scene.background = new T.Color(GROUND);
+  scene.fog = new T.FogExp2(0x0b111c, 0.03);
+  const camera = new T.PerspectiveCamera(42, 16 / 9, 0.05, 200);
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+  function lienzo(w, h, pintar) {
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    pintar(c.getContext("2d"), w, h);
+    const tx = new T.CanvasTexture(c); tx.encoding = T.sRGBEncoding; tx.anisotropy = 8; return tx;
+  }
+  const FUENTE = "'Arial Narrow', 'Barlow Condensed', Impact, Arial, sans-serif";
+
+  /* ---------- cancha mojada ---------- */
+  const texCancha = lienzo(1024, 1024, (g, w, h) => {
+    for (let i = 0; i < 16; i++) { g.fillStyle = i % 2 ? "#0d3327" : "#0a2a21"; g.fillRect(i * w / 16, 0, w / 16, h); }
+    g.strokeStyle = "rgba(235,245,255,.85)"; g.lineWidth = 5;
+    g.strokeRect(40, 40, w - 80, h - 80);
+    g.beginPath(); g.arc(w * 0.5, h * 0.5, 118, 0, 7); g.stroke();
+    g.strokeRect(w - 40 - 210, h / 2 - 260, 210, 520);
+    g.strokeRect(w - 40 - 70, h / 2 - 120, 70, 240);
+  });
+  const cancha = new T.Mesh(new T.PlaneGeometry(52, 52), new T.MeshStandardMaterial({ map: texCancha, roughness: 0.62, metalness: 0.08 }));
+  cancha.rotation.x = -Math.PI / 2; cancha.position.x = -11.2; cancha.receiveShadow = true; scene.add(cancha);
+  const fuera = new T.Mesh(new T.PlaneGeometry(300, 300), new T.MeshStandardMaterial({ color: 0x06080c, roughness: 0.4, metalness: 0.4 }));
+  fuera.rotation.x = -Math.PI / 2; fuera.position.y = -0.02; scene.add(fuera);
+
+  /* ---------- reflectores: blanco frío de un lado, dorado del otro ---------- */
+  scene.add(new T.HemisphereLight(0x5f86c8, 0x0a0c10, 0.42));
+  const torres = [
+    { p: [-13, 15, 13], c: FRIO, sombra: true },
+    { p: [-13, 15, -13], c: FRIO, sombra: true },
+    { p: [17, 15, -14], c: ORO },
+    { p: [17, 15, 14], c: ORO },
+  ];
+  const texFocos = lienzo(128, 64, (g, w, h) => {
+    g.fillStyle = "#000"; g.fillRect(0, 0, w, h); g.fillStyle = "#fff";
+    for (let y = 0; y < 3; y++) for (let x = 0; x < 6; x++) { g.beginPath(); g.arc(11 + x * 21, 11 + y * 21, 7, 0, 7); g.fill(); }
+  });
+  torres.forEach((t) => {
+    const luz = new T.SpotLight(t.c, t.sombra ? 1.05 : 1.25, 70, 0.5, 0.6, 1.2);
+    luz.position.set(...t.p); luz.target.position.set(0.5, 0, 0);
+    if (t.sombra) { luz.castShadow = true; luz.shadow.mapSize.set(2048, 2048); luz.shadow.bias = -0.0015; luz.shadow.camera.near = 8; luz.shadow.camera.far = 40; }
+    scene.add(luz, luz.target);
+    const panel = new T.Mesh(new T.PlaneGeometry(3.6, 1.8), new T.MeshBasicMaterial({ map: texFocos, color: t.c, fog: false }));
+    panel.position.set(...t.p); panel.lookAt(0, 1, 0); scene.add(panel);
+    const poste = new T.Mesh(new T.CylinderGeometry(0.12, 0.2, t.p[1], 8), new T.MeshStandardMaterial({ color: 0x0a0c12 }));
+    poste.position.set(t.p[0] * 1.01, t.p[1] / 2, t.p[2] * 1.01); scene.add(poste);
+    const largo = Math.hypot(...t.p);
+    const haz = new T.Mesh(
+      new T.ConeGeometry(6.5, largo, 28, 1, true),
+      new T.MeshBasicMaterial({ color: t.c, transparent: true, opacity: 0.028, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, fog: false })
+    );
+    haz.position.set(t.p[0] / 2, t.p[1] / 2, t.p[2] / 2);
+    haz.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), new T.Vector3(...t.p).normalize());
+    scene.add(haz);
+  });
+  const destello = new T.PointLight(ORO, 0, 9, 2); scene.add(destello);
+  const flashGol = new T.PointLight(0xffffff, 0, 30, 2); flashGol.position.set(11.5, 2, 2.7); scene.add(flashGol);
+
+  /* ---------- tribunas, público y carteles con la marca ---------- */
+  let publico;
+  (function tribunas() {
+    const mat = new T.MeshStandardMaterial({ color: 0x070a10, roughness: 0.9 });
+    const lados = [[0, 30, 0], [0, -30, Math.PI], [36, 0, -Math.PI / 2], [-40, 0, Math.PI / 2]];
+    const pos = [], col = [];
+    const tonos = [new T.Color(CELESTE), new T.Color(ORO), new T.Color(0xe9edf2)];
+    lados.forEach(([x, z, giro]) => {
+      const g = new T.Group(); g.position.set(x, 0, z); g.rotation.y = giro;
+      const grada = new T.Mesh(new T.BoxGeometry(90, 1, 24), mat);
+      grada.rotation.x = 0.5; grada.position.set(0, 7, 4); g.add(grada);
+      scene.add(g); g.updateMatrixWorld(true);
+      for (let i = 0; i < 1100; i++) {
+        const v = new T.Vector3((Math.random() - 0.5) * 86, 0.6, (Math.random() - 0.5) * 22);
+        v.applyMatrix4(grada.matrixWorld); pos.push(v.x, v.y, v.z);
+        const c = tonos[Math.random() < 0.45 ? 0 : Math.random() < 0.5 ? 1 : 2], k = 0.3 + Math.random() * 0.6;
+        col.push(c.r * k, c.g * k, c.b * k);
+      }
+    });
+    const geo = new T.BufferGeometry();
+    geo.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
+    geo.setAttribute("color", new T.Float32BufferAttribute(col, 3));
+    publico = new T.Points(geo, new T.PointsMaterial({ size: 0.26, vertexColors: true, transparent: true, opacity: 0.9, fog: false, blending: T.AdditiveBlending, depthWrite: false }));
+    scene.add(publico);
+
+    // carteles de LED al borde de la cancha
+    const texCartel = lienzo(2048, 128, (g, w, h) => {
+      g.fillStyle = "#0c1a2d"; g.fillRect(0, 0, w, h);
+      g.font = "italic 900 78px " + FUENTE; g.textBaseline = "middle"; g.textAlign = "left";
+      const trozos = [["ROSARIO ", "#c9d3e0"], ["F ", "#e2b74a"], ["KITS", "#c9d3e0"], ["   ★   ", "#e2b74a"]];
+      const ancho = trozos.reduce((t, [txt]) => t + g.measureText(txt).width, 0), veces = 4, paso = w / veces;
+      for (let i = 0; i < veces; i++) {
+        let x = i * paso + (paso - ancho) / 2;
+        trozos.forEach(([txt, color]) => { g.fillStyle = color; g.fillText(txt, x, h / 2 + 4); x += g.measureText(txt).width; });
+      }
+    });
+    const mCartel = new T.MeshBasicMaterial({ map: texCartel, color: 0xb8b8b8, fog: true });
+    const fondo = new T.Mesh(new T.PlaneGeometry(40, 1.05), mCartel); fondo.position.set(15.2, 0.55, 0); fondo.rotation.y = -Math.PI / 2; scene.add(fondo);
+    [16.5, -16.5].forEach((z) => {
+      const lat = new T.Mesh(new T.PlaneGeometry(52, 1.05), mCartel); lat.position.set(-11, 0.55, z); lat.rotation.y = z > 0 ? Math.PI : 0; scene.add(lat);
+    });
+  })();
+
+  /* ---------- arco y red ---------- */
+  const ARCO_X = 11, RED_X = 12.4, ALTO = 2.44, MEDIO = 3.66;
+  const matRed = new T.LineBasicMaterial({ color: 0xdbe8ff, transparent: true, opacity: 0.4 });
+  (function arco() {
+    const m = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3, emissive: 0x39424f });
+    const palo = (largo) => new T.Mesh(new T.CylinderGeometry(0.06, 0.06, largo, 12), m);
+    const a = palo(ALTO); a.position.set(ARCO_X, ALTO / 2, MEDIO);
+    const b = palo(ALTO); b.position.set(ARCO_X, ALTO / 2, -MEDIO);
+    const t = palo(MEDIO * 2 + 0.12); t.rotation.x = Math.PI / 2; t.position.set(ARCO_X, ALTO, 0);
+    scene.add(a, b, t);
+    const fijos = [];
+    const seg = (p, q) => fijos.push(...p, ...q);
+    for (let i = 0; i <= 8; i++) { const y = (ALTO * i) / 8; [MEDIO, -MEDIO].forEach((z) => seg([ARCO_X, y, z], [RED_X, y, z])); }
+    for (let i = 0; i <= 5; i++) {
+      const x = lerp(ARCO_X, RED_X, i / 5);
+      [MEDIO, -MEDIO].forEach((z) => seg([x, 0, z], [x, ALTO, z]));
+      seg([x, ALTO, -MEDIO], [x, ALTO, MEDIO]);
+    }
+    for (let i = 0; i <= 28; i++) { const z = lerp(-MEDIO, MEDIO, i / 28); seg([ARCO_X, ALTO, z], [RED_X, ALTO, z]); }
+    const g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(fijos, 3));
+    scene.add(new T.LineSegments(g, matRed));
+  })();
+  const NY = 10, NZ = 30;
+  const redGeo = new T.BufferGeometry();
+  const redPos = new Float32Array((NY * (NZ + 1) + NZ * (NY + 1)) * 6);
+  redGeo.setAttribute("position", new T.BufferAttribute(redPos, 3));
+  const red = new T.LineSegments(redGeo, new T.LineBasicMaterial({ color: 0xdbe8ff, transparent: true, opacity: 0.5 }));
+  red.frustumCulled = false; scene.add(red);
+  const GOLPE = { y: 1.95, z: 2.7 };
+  function panza(u) { return u <= 0 ? 0 : (1 - Math.exp(-u * 14)) * (0.45 + 0.55 * Math.exp(-u * 2.5) * Math.cos(u * 9)); }
+  function puntoRed(iy, iz, u) {
+    const y = (ALTO * iy) / NY, z = lerp(-MEDIO, MEDIO, iz / NZ);
+    const d2 = (y - GOLPE.y) ** 2 + (z - GOLPE.z) ** 2;
+    return [RED_X + 0.75 * panza(u) * Math.exp(-d2 / 1.3), y, z];
+  }
+  function actualizarRed(u) {
+    let k = 0;
+    const pon = (p) => { redPos[k++] = p[0]; redPos[k++] = p[1]; redPos[k++] = p[2]; };
+    for (let iy = 0; iy <= NY; iy++) for (let iz = 0; iz < NZ; iz++) { pon(puntoRed(iy, iz, u)); pon(puntoRed(iy, iz + 1, u)); }
+    for (let iz = 0; iz <= NZ; iz++) for (let iy = 0; iy < NY; iy++) { pon(puntoRed(iy, iz, u)); pon(puntoRed(iy + 1, iz, u)); }
+    redGeo.attributes.position.needsUpdate = true;
+  }
+
+  /* ---------- jugador ---------- */
+  const N_RAYAS = 12;
+  const texCamiseta = lienzo(1024, 512, (g, w, h) => {
+    for (let i = 0; i < N_RAYAS; i++) { g.fillStyle = i % 2 ? "#ffffff" : "#6ec6f2"; g.fillRect((i * w) / N_RAYAS, 0, w / N_RAYAS + 1, h); }
+    // sombreado suave de tela: más oscuro hacia la cintura
+    const s = g.createLinearGradient(0, 0, 0, h); s.addColorStop(0, "rgba(16,35,59,0)"); s.addColorStop(1, "rgba(16,35,59,.22)");
+    g.fillStyle = s; g.fillRect(0, 0, w, h);
+    g.fillStyle = "#10233b"; g.font = "900 200px " + FUENTE; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText("10", w * 0.75, h * 0.4);                                         // dorsal: u = 0.75 es la espalda
+  });
+  const texManga = lienzo(256, 64, (g, w, h) => {
+    for (let i = 0; i < 6; i++) { g.fillStyle = i % 2 ? "#ffffff" : "#6ec6f2"; g.fillRect((i * w) / 6, 0, w / 6 + 1, h); }
+    g.fillStyle = "#10233b"; g.fillRect(0, h - 9, w, 9);                         // puño
+  });
+  const tela = { roughness: 0.68, metalness: 0 };
+  const mCamiseta = new T.MeshStandardMaterial({ map: texCamiseta, ...tela });
+  const mManga = new T.MeshStandardMaterial({ map: texManga, ...tela });
+  const mPiel = new T.MeshStandardMaterial({ color: 0xc48a63, roughness: 0.5 });
+  const mShort = new T.MeshStandardMaterial({ color: 0x0c1220, ...tela });
+  const mMedia = new T.MeshStandardMaterial({ color: 0xf2f5fb, roughness: 0.75 });
+  const mCeleste = new T.MeshStandardMaterial({ color: CELESTE, ...tela });
+  const mNavy = new T.MeshStandardMaterial({ color: NAVY, ...tela });
+  const mBotin = new T.MeshStandardMaterial({ color: ORO, roughness: 0.28, metalness: 0.65, emissive: 0x4a3608 });
+  const mSuela = new T.MeshStandardMaterial({ color: 0x0c0e14, roughness: 0.6 });
+  const mPelo = new T.MeshStandardMaterial({ color: 0x1a120c, roughness: 0.85 });
+  const mOro = new T.MeshStandardMaterial({ color: ORO, roughness: 0.4, metalness: 0.5, emissive: 0x3a2a05 });
+
+  const cil = (r1, r2, l, m, s = 18) => { const x = new T.Mesh(new T.CylinderGeometry(r1, r2, l, s), m); x.position.y = -l / 2; return x; };
+  const bola = (r, m) => new T.Mesh(new T.SphereGeometry(r, 20, 14), m);
+  const torno = (perfil, m, s = 32) => new T.Mesh(new T.LatheGeometry(perfil.map(([r, y]) => new T.Vector2(r, y)), s), m);
+
+  const jugador = new T.Group(); scene.add(jugador);
+  const cadera = new T.Group(); cadera.position.y = 0.92; jugador.add(cadera);
+  const tronco = new T.Group(); cadera.add(tronco);
+
+  // camiseta: un torno con caída suelta en la cintura. Los dos anillos de abajo flamean.
+  const PERFIL = [[0.205, -0.07], [0.196, 0.0], [0.182, 0.08], [0.186, 0.17], [0.2, 0.27], [0.214, 0.37], [0.212, 0.46], [0.19, 0.54], [0.135, 0.6], [0.085, 0.635]];
+  const camiseta = torno(PERFIL, mCamiseta, 40);
+  camiseta.scale.set(0.72, 1, 1.22); tronco.add(camiseta);
+  const camBase = camiseta.geometry.attributes.position.array.slice();
+  function flamear(S, viento) {
+    const pos = camiseta.geometry.attributes.position, n = PERFIL.length, amps = [0.03, 0.017, 0.006];
+    for (let i = 0; i <= 40; i++) {
+      const phi = (i / 40) * Math.PI * 2;
+      for (let j = 0; j < 3; j++) {
+        const k = (i * n + j) * 3, r = PERFIL[j][0];
+        const d = (Math.sin(phi * 5 + S * 21) + 0.6 * Math.sin(phi * 3 - S * 14)) * amps[j] * viento + Math.max(0, -Math.sin(phi)) * amps[j] * 1.6 * viento;
+        const f = 1 + d / r;
+        pos.array[k] = camBase[k] * f; pos.array[k + 2] = camBase[k + 2] * f;
+      }
+    }
+    pos.needsUpdate = true;
+  }
+  const cuelloTela = new T.Mesh(new T.TorusGeometry(0.086, 0.017, 10, 28), mNavy);
+  cuelloTela.rotation.x = Math.PI / 2; cuelloTela.scale.set(0.8, 1.1, 1); cuelloTela.position.y = 0.632; tronco.add(cuelloTela);
+  const cuello = cil(0.052, 0.06, 0.12, mPiel); cuello.position.y = 0.74; tronco.add(cuello);
+
+  const cabeza = new T.Group(); cabeza.position.y = 0.74; tronco.add(cabeza);
+  const craneo = bola(0.112, mPiel); craneo.scale.set(0.96, 1.12, 0.88); craneo.position.y = 0.105; cabeza.add(craneo);
+  const mandibula = bola(0.085, mPiel); mandibula.scale.set(0.95, 0.9, 0.85); mandibula.position.set(0.02, 0.04, 0); cabeza.add(mandibula);
+  const nariz = bola(0.018, mPiel); nariz.scale.set(1.2, 1.3, 0.8); nariz.position.set(0.108, 0.09, 0); cabeza.add(nariz);
+  [1, -1].forEach((l) => { const o = bola(0.024, mPiel); o.scale.set(0.6, 1, 0.45); o.position.set(-0.005, 0.1, l * 0.098); cabeza.add(o); });
+  const pelo = new T.Mesh(new T.SphereGeometry(0.118, 22, 14, 0, Math.PI * 2, 0, Math.PI * 0.56), mPelo);
+  pelo.scale.set(1, 1.1, 0.92); pelo.position.set(-0.014, 0.118, 0); pelo.rotation.z = 0.3; cabeza.add(pelo);
+  const jopo = bola(0.05, mPelo); jopo.scale.set(1.3, 0.55, 1.5); jopo.position.set(0.06, 0.212, 0); cabeza.add(jopo);
+
+  const pantalon = torno([[0.19, -0.2], [0.196, -0.1], [0.19, 0.0], [0.178, 0.06]], mShort, 28);
+  pantalon.scale.set(0.74, 1, 1.18); cadera.add(pantalon);
+
+  // escudo: tres estrellas doradas, del lado del corazón (−z)
+  const estrellas = new T.Group(); estrellas.position.set(0.151, 0.43, -0.1); estrellas.rotation.y = Math.PI / 2; tronco.add(estrellas);
+  (function () {
+    const f = new T.Shape();
+    for (let i = 0; i < 10; i++) { const r = i % 2 ? 0.0115 : 0.028, a = (i * Math.PI) / 5 + Math.PI / 2; f[i ? "lineTo" : "moveTo"](Math.cos(a) * r, Math.sin(a) * r); }
+    const geo = new T.ShapeGeometry(f), mat = new T.MeshBasicMaterial({ color: 0xffe08a, side: T.DoubleSide });
+    [[-0.056, 0], [0, 0.022], [0.056, 0]].forEach(([x, y]) => { const s = new T.Mesh(geo, mat); s.position.set(x, y, 0.004); estrellas.add(s); });
+  })();
+  const texBrillo = lienzo(128, 128, (g, w) => {
+    const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2);
+    r.addColorStop(0, "rgba(255,225,140,.5)"); r.addColorStop(0.3, "rgba(240,190,80,.22)"); r.addColorStop(1, "rgba(226,183,74,0)");
+    g.fillStyle = r; g.fillRect(0, 0, w, w);
+  });
+  const brillo = new T.Sprite(new T.SpriteMaterial({ map: texBrillo, blending: T.AdditiveBlending, depthWrite: false, transparent: true }));
+  brillo.position.set(0.19, 0.435, -0.1); tronco.add(brillo);
+  const luzEscudo = new T.PointLight(ORO, 0.22, 1.2, 2); luzEscudo.position.set(0.32, 0.45, -0.1); tronco.add(luzEscudo);
+
+  function brazo(lado) {
+    const hombro = new T.Group(); hombro.position.set(0, 0.565, lado * 0.262); tronco.add(hombro);
+    const bocha = bola(0.074, mCamiseta); bocha.material = mCeleste; hombro.add(bocha);
+    hombro.add(cil(0.076, 0.07, 0.2, mManga, 20));
+    const biceps = cil(0.056, 0.047, 0.29, mPiel); hombro.add(biceps);
+    if (lado < 0) { const cinta = cil(0.073, 0.073, 0.04, mOro, 20); cinta.position.y = -0.12; hombro.add(cinta); }   // brazalete de capitán
+    const codo = new T.Group(); codo.position.y = -0.29; hombro.add(codo);
+    codo.add(bola(0.047, mPiel)); codo.add(cil(0.046, 0.034, 0.25, mPiel));
+    const mano = bola(0.045, mPiel); mano.scale.set(0.8, 1.35, 0.5); mano.position.y = -0.295; codo.add(mano);
+    return { hombro, codo };
+  }
+  function pierna(lado) {
+    const anca = new T.Group(); anca.position.set(0, -0.02, lado * 0.1); cadera.add(anca);
+    anca.add(cil(0.094, 0.068, 0.45, mPiel));
+    const botamanga = torno([[0.118, -0.25], [0.112, -0.12], [0.1, 0.0]], mShort, 22); anca.add(botamanga);
+    const rodilla = new T.Group(); rodilla.position.y = -0.45; anca.add(rodilla);
+    rodilla.add(bola(0.066, mPiel));
+    rodilla.add(torno([[0.04, -0.41], [0.046, -0.33], [0.062, -0.2], [0.068, -0.12], [0.06, -0.03], [0.056, 0.0]], mMedia, 20));  // media con gemelo
+    const vivo = cil(0.07, 0.069, 0.05, mCeleste, 20); vivo.position.y = -0.055; rodilla.add(vivo);
+    const pie = new T.Group(); pie.position.y = -0.41; rodilla.add(pie);
+    const cuerpo = bola(0.06, mBotin); cuerpo.scale.set(2.25, 0.82, 0.86); cuerpo.position.set(0.075, -0.03, 0); pie.add(cuerpo);
+    const talon = bola(0.05, mBotin); talon.scale.set(1, 1.05, 0.9); talon.position.set(-0.02, -0.02, 0); pie.add(talon);
+    const suela = new T.Mesh(new T.BoxGeometry(0.25, 0.016, 0.082), mSuela); suela.position.set(0.07, -0.075, 0); pie.add(suela);
+    return { anca, rodilla, pie };
+  }
+  const brazoD = brazo(1), brazoI = brazo(-1), piernaD = pierna(1), piernaI = pierna(-1);
+  jugador.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  jugador.position.z = -0.1;                                                     // el pie derecho queda en z = 0, la línea de la pelota
+
+  // claves: [S, x, y, inclinación, caderaD, rodillaD, caderaI, rodillaI, brazoD, alzaD, brazoI, alzaI, codo, giro]
+  const CLAVES = [
+    [1.45, -0.75, 0, 0.12, 0.0, 0.3, 0.3, 0.2, -0.3, 0.2, 0.3, 0.2, 1.0, 0],
+    [1.72, -0.45, -0.02, -0.14, -1.05, 1.75, 0.4, 0.1, -0.9, 0.6, 0.5, 1.3, 0.5, -0.4],
+    [1.93, -0.30, -0.03, 0.0, 0.38, 0.22, 0.22, 0.15, -0.4, 0.7, -0.2, 1.4, 0.3, 0.05],
+    [2.15, -0.05, 0.1, 0.24, 1.35, 0.1, -0.1, 0.3, 0.5, 0.5, -0.7, 1.2, 0.4, 0.5],
+    [2.6, 0.35, 0, 0.05, 0.2, 0.2, -0.1, 0.1, 0, 0.3, 0, 0.3, 0.3, 0.1],
+    [3.1, 0.5, 0, -0.1, 0.05, 0.05, 0, 0.05, 0, 2.7, 0, 2.7, 0.2, 0],
+  ];
+  function poseClave(S) {
+    if (S <= CLAVES[0][0]) return CLAVES[0].slice(1);
+    for (let i = 0; i < CLAVES.length - 1; i++) {
+      const a = CLAVES[i], b = CLAVES[i + 1];
+      if (S <= b[0]) { const t = smooth(a[0], b[0], S); return a.slice(1).map((v, j) => lerp(v, b[j + 1], t)); }
+    }
+    return CLAVES[CLAVES.length - 1].slice(1);
+  }
+  function poseCarrera(S) {
+    const f = S * Math.PI * 2 * 2.7, s = Math.sin(f);
+    return [lerp(-5, -0.75, S / 1.45), Math.abs(Math.cos(f)) * 0.05, 0.16,
+      0.85 * s, 0.25 + 0.95 * Math.max(0, Math.sin(f - 1.9)), -0.85 * s, 0.25 + 0.95 * Math.max(0, Math.sin(f - 1.9 + Math.PI)),
+      -0.8 * s, 0.12, 0.8 * s, 0.12, 1.3, 0.16 * s];
+  }
+  function posar(S) {
+    const c = poseClave(S), w = 1 - smooth(1.22, 1.45, S);
+    const p = w > 0 ? poseCarrera(Math.min(S, 1.45)).map((v, i) => lerp(c[i], v, w)) : c;
+    jugador.position.x = p[0]; cadera.position.y = 0.92 + p[1];
+    tronco.rotation.set(0, p[12], -p[2]);
+    piernaD.anca.rotation.z = p[3]; piernaD.rodilla.rotation.z = -p[4];
+    piernaI.anca.rotation.z = p[5]; piernaI.rodilla.rotation.z = -p[6];
+    brazoD.hombro.rotation.set(-p[8], 0, p[7]); brazoI.hombro.rotation.set(p[10], 0, p[9]);
+    brazoD.codo.rotation.z = p[11]; brazoI.codo.rotation.z = p[11];
+    // empeine estirado en el remate; la cabeza mira la pelota hasta pegarle y después al arco
+    piernaD.pie.rotation.z = -0.6 * smooth(1.55, 1.85, S) * (1 - smooth(2.3, 2.6, S));
+    cabeza.rotation.set(0, -p[12] * 0.7, lerp(-0.42, 0.12, smooth(1.95, 2.3, S)) * (1 - 0.5 * w));
+    const viento = 0.35 + 0.65 * (S < 2.6 ? 1 : 1 - smooth(2.6, 3.2, S));
+    flamear(S, viento);
+  }
+
+  /* ---------- pelota, estela e impacto ---------- */
+  const S_IMPACTO = 1.93, VUELO = 0.6, V = { x: 12.3 / VUELO, y: (GOLPE.y - 0.11 + 4.9 * VUELO * VUELO) / VUELO, z: GOLPE.z / VUELO };
+  const texPelota = lienzo(512, 256, (g, w, h) => {
+    g.fillStyle = "#f6f8ff"; g.fillRect(0, 0, w, h);
+    const penta = (cx, cy, r, color) => { g.fillStyle = color; g.beginPath(); for (let i = 0; i < 5; i++) { const a = (i * 2 * Math.PI) / 5 - Math.PI / 2; g[i ? "lineTo" : "moveTo"](cx + Math.cos(a) * r, cy + Math.sin(a) * r); } g.fill(); };
+    for (let f = 0; f < 3; f++) for (let i = 0; i < 6; i++) penta(((i + (f % 2) * 0.5) * w) / 6 + 20, 44 + f * 84, 21, (i + f) % 3 === 0 ? "#e2b74a" : "#10233b");
+  });
+  const pelota = new T.Mesh(new T.SphereGeometry(0.11, 28, 20), new T.MeshStandardMaterial({ map: texPelota, roughness: 0.35, emissive: 0x1c1f28 }));
+  pelota.castShadow = true; scene.add(pelota);
+  const posPelota = new T.Vector3();
+  function moverPelota(S) {
+    const t = S - S_IMPACTO;
+    if (t <= 0) { posPelota.set(0, 0.11, 0); pelota.scale.set(1, 1, 1); pelota.rotation.set(0, 0, 0); return; }
+    if (t < VUELO) {
+      posPelota.set(V.x * t, 0.11 + V.y * t - 4.9 * t * t, V.z * t);
+      const ap = 0.34 * Math.exp(-((t / 0.012) ** 2));
+      pelota.scale.set(1 - ap, 1 + ap * 0.5, 1 + ap * 0.5);
+    } else {
+      const u = t - VUELO;
+      posPelota.set(RED_X - 0.12 + 0.75 * panza(u), Math.max(0.11, GOLPE.y - 3.4 * u * u), GOLPE.z + 0.25 * (1 - Math.exp(-3 * u)));
+      pelota.scale.set(1, 1, 1);
+    }
+    pelota.rotation.z = -t * 38; pelota.rotation.y = t * 9;
+  }
+  const N_ESTELA = 40, estelaPos = new Float32Array(N_ESTELA * 3), estelaCol = new Float32Array(N_ESTELA * 3);
+  const estelaGeo = new T.BufferGeometry();
+  estelaGeo.setAttribute("position", new T.BufferAttribute(estelaPos, 3));
+  estelaGeo.setAttribute("color", new T.BufferAttribute(estelaCol, 3));
+  const estela = new T.Line(estelaGeo, new T.LineBasicMaterial({ vertexColors: true, blending: T.AdditiveBlending, transparent: true, depthWrite: false }));
+  estela.frustumCulled = false; scene.add(estela);
+  const cO = new T.Color(ORO), cC = new T.Color(CELESTE), cTmp = new T.Color();
+  function trazarEstela(S) {
+    const t = Math.min(S - S_IMPACTO, VUELO), cola = 0.2;
+    for (let i = 0; i < N_ESTELA; i++) {
+      const k = i / (N_ESTELA - 1), ti = Math.max(0, t - cola * k);
+      estelaPos[i * 3] = V.x * ti; estelaPos[i * 3 + 1] = 0.11 + V.y * ti - 4.9 * ti * ti; estelaPos[i * 3 + 2] = V.z * ti;
+      const f = t > 0 ? (1 - k) * (1 - smooth(VUELO, VUELO + 0.25, S - S_IMPACTO)) : 0; cTmp.copy(cO).lerp(cC, k);
+      estelaCol[i * 3] = cTmp.r * f; estelaCol[i * 3 + 1] = cTmp.g * f; estelaCol[i * 3 + 2] = cTmp.b * f;
+    }
+    estelaGeo.attributes.position.needsUpdate = true; estelaGeo.attributes.color.needsUpdate = true;
+  }
+  const onda = new T.Mesh(new T.RingGeometry(0.93, 1, 72), new T.MeshBasicMaterial({ color: ORO, transparent: true, blending: T.AdditiveBlending, side: T.DoubleSide, depthWrite: false }));
+  onda.rotation.x = -Math.PI / 2; onda.position.y = 0.03; scene.add(onda);
+  const onda2 = new T.Mesh(onda.geometry, new T.MeshBasicMaterial({ color: CELESTE, transparent: true, blending: T.AdditiveBlending, side: T.DoubleSide, depthWrite: false }));
+  onda2.rotation.y = Math.PI / 2; onda2.position.set(0, 0.11, 0); scene.add(onda2);
+  const texGota = lienzo(32, 32, (g, w) => {
+    const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2);
+    r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = r; g.fillRect(0, 0, w, w);
+  });
+  // semilla fija: la grabación tiene que dar siempre el mismo clip
+  let semilla = 20261110; const azar = () => ((semilla = (semilla * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const N_AGUA = 420, aguaV = new Float32Array(N_AGUA * 3), aguaPos = new Float32Array(N_AGUA * 3);
+  for (let i = 0; i < N_AGUA; i++) {
+    const a = azar() * Math.PI * 2, v = 1 + azar() * 4.5;
+    aguaV[i * 3] = Math.cos(a) * v * 0.6 + 2.4 * azar(); aguaV[i * 3 + 1] = 1.2 + azar() * 4.2; aguaV[i * 3 + 2] = Math.sin(a) * v * 0.6;
+  }
+  const aguaGeo = new T.BufferGeometry(); aguaGeo.setAttribute("position", new T.BufferAttribute(aguaPos, 3));
+  const agua = new T.Points(aguaGeo, new T.PointsMaterial({ color: 0xd8ecff, size: 0.03, map: texGota, transparent: true, blending: T.AdditiveBlending, depthWrite: false }));
+  agua.frustumCulled = false; scene.add(agua);
+  function impacto(S) {
+    const t = S - S_IMPACTO, vivo = t > 0;
+    onda.visible = onda2.visible = agua.visible = vivo;
+    if (!vivo) { destello.intensity = 0; return; }
+    onda.scale.setScalar(0.15 + t * 16); onda.material.opacity = Math.max(0, 0.9 - t * 3.2);
+    onda2.scale.setScalar(0.1 + t * 9); onda2.material.opacity = Math.max(0, 0.8 - t * 5);
+    for (let i = 0; i < N_AGUA; i++) {
+      aguaPos[i * 3] = aguaV[i * 3] * t; aguaPos[i * 3 + 1] = Math.max(0.01, 0.05 + aguaV[i * 3 + 1] * t - 4.9 * t * t); aguaPos[i * 3 + 2] = aguaV[i * 3 + 2] * t;
+    }
+    aguaGeo.attributes.position.needsUpdate = true; agua.material.opacity = Math.max(0, 0.9 - t * 2.6);
+    destello.position.set(0.1, 0.7, 0.4); destello.intensity = 1.5 * Math.exp(-t * 9);
+  }
+
+  /* ---------- lluvia ---------- */
+  const N_LLUVIA = 3200, CAJA = { x: 46, y: 15, z: 46 };
+  const gota = new Float32Array(N_LLUVIA * 4), lluviaPos = new Float32Array(N_LLUVIA * 6);
+  for (let i = 0; i < N_LLUVIA; i++) { gota[i * 4] = (azar() - 0.5) * CAJA.x + 3; gota[i * 4 + 1] = azar() * CAJA.y; gota[i * 4 + 2] = (azar() - 0.5) * CAJA.z; gota[i * 4 + 3] = 9 + azar() * 5; }
+  const lluviaGeo = new T.BufferGeometry(); lluviaGeo.setAttribute("position", new T.BufferAttribute(lluviaPos, 3));
+  const lluvia = new T.LineSegments(lluviaGeo, new T.LineBasicMaterial({ color: 0xbcd6ff, transparent: true, opacity: 0.36, blending: T.AdditiveBlending, depthWrite: false }));
+  lluvia.frustumCulled = false; scene.add(lluvia);
+  function llover(S, ts) {
+    const largo = 0.035 + 0.5 * ts;                                              // a velocidad normal son rayas; en cámara lenta, gotas
+    for (let i = 0; i < N_LLUVIA; i++) {
+      const y = ((((gota[i * 4 + 1] - gota[i * 4 + 3] * S) % CAJA.y) + CAJA.y) % CAJA.y), x = gota[i * 4] - (CAJA.y - y) * 0.12, z = gota[i * 4 + 2];
+      lluviaPos[i * 6] = x; lluviaPos[i * 6 + 1] = y; lluviaPos[i * 6 + 2] = z;
+      lluviaPos[i * 6 + 3] = x - 0.12 * largo; lluviaPos[i * 6 + 4] = y + largo; lluviaPos[i * 6 + 5] = z;
+    }
+    lluviaGeo.attributes.position.needsUpdate = true;
+  }
+
+  /* ---------- posproceso ---------- */
+  let composer = null, estelaCam = null;
+  try {
+    composer = new T.EffectComposer(renderer);
+    composer.addPass(new T.RenderPass(scene, camera));
+    estelaCam = new T.AfterimagePass(0.0); composer.addPass(estelaCam);
+    composer.addPass(new T.UnrealBloomPass(new T.Vector2(640, 360), 0.45, 0.6, 0.88));
+  } catch (e) { composer = null; }
+
+  let ANCHO = 0, ALTO_PX = 0;
+  function medir() {
+    const w = TAM ? TAM[0] : window.innerWidth, h = TAM ? TAM[1] : window.innerHeight;
+    ANCHO = w; ALTO_PX = h;
+    renderer.setSize(w, h, false); if (composer) composer.setSize(w, h);
+    camera.aspect = w / h;
+    const vertical = camera.aspect < 1;
+    // el encuadre corre al sujeto fuera del centro: renderiza una ventana de un cuadro más grande
+    if (ENCUADRE === "land") { camera.fov = 53; camera.setViewOffset(w * 1.3, h * 1.3, 0, h * 0.19, w, h); }
+    else if (ENCUADRE === "port") { camera.fov = 62; camera.setViewOffset(w * 1.25, h * 1.25, w * 0.125, h * 0.25, w, h); }
+    else { camera.clearViewOffset(); camera.fov = vertical ? 68 : 42; }
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", medir); medir();
+
+  /* ---------- tiempo y cámara ---------- */
+  const DURACION = 9.4, ORBITA = [1.75, 5.4], CENTRO = new T.Vector3(-0.1, 0.78, 0);
+  function escala(R) {
+    if (R < 1.75) return 1;
+    if (R < 2.0) return lerp(1, 0.04, smooth(1.75, 2.0, R));
+    if (R < 5.2) return 0.04;
+    if (R < 5.6) return lerp(0.04, 0.4, smooth(5.2, 5.6, R));
+    if (R < 7.3) return 0.4;
+    if (R < 7.7) return lerp(0.4, 1, smooth(7.3, 7.7, R));
+    return 1;
+  }
+  const mira = new T.Vector3(), mA = new T.Vector3(), mB = new T.Vector3(6, 1.15, 0.8);
+  function orbita(k) {
+    const a = lerp(2.36, 2.36 - Math.PI, k), r = lerp(3.7, 3.0, Math.sin(k * Math.PI)) * (camera.aspect < 1 ? 1.12 : 1);
+    return new T.Vector3(CENTRO.x + Math.cos(a) * r, lerp(0.3, 0.42, k), CENTRO.z + Math.sin(a) * r);
+  }
+  function encuadrar(R, S) {
+    if (R < ORBITA[1]) {
+      const k = smooth(ORBITA[0], ORBITA[1], R), e = 1 - smooth(0, ORBITA[0], R);
+      const p = orbita(k); p.x += -2.6 * e; p.y += 0.25 * e; p.z += 2.2 * e;
+      camera.position.copy(p);
+      mira.set(lerp(CENTRO.x, jugador.position.x, e), CENTRO.y + 0.15, 0);
+    } else {
+      const k = smooth(ORBITA[1], 9.4, R), u = S - S_IMPACTO - VUELO;
+      camera.position.set(lerp(-4.4, -3.3, k), lerp(0.6, 0.9, k), lerp(-2.1, -1.6, k));
+      if (u > 0 && u < 0.4) { const s = 0.07 * Math.exp(-u * 8); camera.position.x += Math.sin(u * 90) * s; camera.position.y += Math.cos(u * 70) * s; }
+      mA.set(posPelota.x * 0.5, 1.1, posPelota.z * 0.3);
+      mira.lerpVectors(mA, mB, smooth(7.6, 9.4, R));
+    }
+    camera.lookAt(mira);
+  }
+
+  function cuadro(R, S, ts) {
+    posar(S); moverPelota(S); pelota.position.copy(posPelota);
+    trazarEstela(S); impacto(S); llover(S, ts); actualizarRed(S - S_IMPACTO - VUELO);
+    const u = S - S_IMPACTO - VUELO;
+    flashGol.intensity = u > 0 ? 8 * Math.exp(-u * 5) : 0;
+    publico.material.size = 0.26 + (u > 0 ? 0.5 * Math.exp(-u * 1.6) : 0);
+    brillo.scale.setScalar(0.26 + 0.04 * Math.sin(R * 5));
+    encuadrar(R, S);
+    if (estelaCam) estelaCam.uniforms.damp.value = ts < 0.2 ? 0 : 0.22 * smooth(0.2, 1, ts);
+    if (composer) composer.render(); else renderer.render(scene, camera);
+  }
+
+  /* ---------- reproducir o grabar ---------- */
+  if (!GRABAR) {
+    let R = params.has("r") ? parseFloat(params.get("r")) : 0, S = 0, quieto = params.has("r"), anterior = performance.now();
+    for (let t = 0; t < R; t += 1 / 120) S += escala(t) / 120;
+    window.__rfk = { ir(r) { R = r; S = 0; for (let t = 0; t < r; t += 1 / 120) S += escala(t) / 120; quieto = true; } };
+    (function bucle(ahora) {
+      const dt = Math.min(0.05, ((ahora || anterior) - anterior) / 1000); anterior = ahora || anterior;
+      if (!quieto) { R += dt; S += dt * escala(R); if (R >= DURACION) { R = 0; S = 0; } }
+      cuadro(R, S, escala(R));
+      requestAnimationFrame(bucle);
+    })();
+    return;
+  }
+
+  (async function grabar() {
+    const total = Math.round(DURACION * FPS), SUB = 4;
+    let S = 0;
+    window.__grabacion = { hecho: 0, total, error: null };
+    try {
+      for (let n = 0; n < total; n++) {
+        const R = n / FPS;
+        cuadro(R, S, escala(R));
+        const blob = await new Promise((ok) => renderer.domElement.toBlob(ok, "image/jpeg", 0.95));
+        const r = await fetch("/cuadro/" + GRABAR + "/" + String(n).padStart(4, "0"), { method: "POST", body: blob });
+        if (!r.ok) throw new Error("el servidor contestó " + r.status);
+        for (let i = 0; i < SUB; i++) S += escala(R + (i + 0.5) / (FPS * SUB)) / (FPS * SUB);
+        window.__grabacion.hecho = n + 1; elEstado.textContent = "grabando " + (n + 1) + " / " + total;
+      }
+      await fetch("/fin/" + GRABAR, { method: "POST", body: String(total) });
+      elEstado.textContent = "listo: " + total + " cuadros";
+    } catch (e) { window.__grabacion.error = String(e); elEstado.textContent = "error: " + e; }
+  })();
+})();
+</script>
+</body>
+</html>
