@@ -3,7 +3,7 @@ import { precio } from "@/lib/whatsapp";
 
 /**
  * El precio de un producto con stock. Si se rebajó, va el anterior tachado
- * arriba y el porcentaje al lado: el número grande es siempre el que se paga.
+ * arriba y el ahorro en pesos al lado: el número grande es siempre el que se paga.
  *
  * El precio de lanzamiento no muestra ni el tachado ni el porcentaje: los dos
  * dicen "bajó de precio", que es justo lo que no se quiere contar. Va solo el
@@ -21,11 +21,9 @@ export function Precio({
   tamano?: string;
 }) {
   const { precio: actual, precioAntes } = producto;
-  const descuento = precioAntes ? Math.round((1 - actual / precioAntes) * 100) : 0;
-  /* un porcentaje chico no le dice nada a nadie: "−8%" pasa de largo,
-     "−$4.000" se entiende de una. Desde el 10% el porcentaje pega más. */
-  const etiqueta =
-    precioAntes && descuento < 10 ? `−${precio(precioAntes - actual)}` : `−${descuento}%`;
+  /* El ahorro va en pesos y sale siempre de la resta de los dos precios:
+     "$7.500" no admite discusión, un porcentaje redondeado sí. */
+  const ahorro = precioAntes ? precioAntes - actual : 0;
 
   return (
     <span className="flex flex-col gap-1">
@@ -34,18 +32,17 @@ export function Precio({
           Precio de lanzamiento
         </span>
       ) : (
-        precioAntes && (
-          <span className="flex items-center gap-2">
-            <s className="text-[13px] font-semibold tabular-nums text-muted decoration-red-400/80 decoration-2">
-              {precio(precioAntes)}
-            </s>
-            <span className="rounded-md bg-red-500/15 px-1.5 py-0.5 text-[11px] font-extrabold tabular-nums text-red-300 ring-1 ring-inset ring-red-400/30">
-              {etiqueta}
+        precioAntes &&
+        ahorro > 0 && (
+          <span className="flex flex-wrap items-center gap-x-2 text-[12.5px]">
+            <s className="font-semibold tabular-nums text-muted">{precio(precioAntes)}</s>
+            <span className="whitespace-nowrap font-bold tabular-nums text-bengala">
+              Ahorrás {precio(ahorro)}
             </span>
           </span>
         )
       )}
-      <span className={`font-display ${tamano} font-bold leading-none tabular-nums text-ink`}>
+      <span className={`font-display ${tamano} font-extrabold leading-none tabular-nums text-navy`}>
         {precio(actual)}
       </span>
     </span>

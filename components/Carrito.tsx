@@ -101,7 +101,7 @@ export function Carrito() {
               <p
                 role="status"
                 className="max-w-[16rem] rounded-xl border border-line bg-surface px-3 py-2 text-[12.5px]
-                           leading-snug text-ink shadow-lg shadow-black/40"
+                           leading-snug text-ink shadow-lg shadow-navy/20"
               >
                 Agregaste {agregado}
               </p>
@@ -110,13 +110,13 @@ export function Carrito() {
               type="button"
               onClick={() => void abrir()}
               className="flex items-center gap-2 rounded-full bg-wa px-4 py-3 text-[14px] font-bold
-                         text-black/85 shadow-lg shadow-black/40 transition-colors hover:bg-wa-dark
+                         text-white shadow-lg shadow-navy/30 transition-colors hover:bg-wa-dark
                          focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
                          focus-visible:outline-wa"
             >
               <ShoppingBag className="h-5 w-5" strokeWidth={2.4} aria-hidden />
               Ver pedido
-              <span className="grid h-6 min-w-6 place-items-center rounded-full bg-black/80 px-1.5 text-xs text-white tabular-nums">
+              <span className="grid h-6 min-w-6 place-items-center rounded-full bg-white px-1.5 text-xs text-navy tabular-nums">
                 {unidades}
               </span>
             </button>
@@ -151,7 +151,7 @@ export function Carrito() {
                   type="button"
                   onClick={() => setAbierto(false)}
                   aria-label="Cerrar"
-                  className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-white/5 hover:text-ink"
+                  className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-navy/5 hover:text-ink"
                 >
                   <X className="h-5 w-5" aria-hidden />
                 </button>
@@ -214,7 +214,7 @@ export function Carrito() {
                               type="button"
                               onClick={() => quitar(i.sku)}
                               aria-label={`Sacar ${i.nombre}`}
-                              className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-white/5 hover:text-red-300"
+                              className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-navy/5 hover:text-bengala"
                             >
                               <Trash2 className="h-4 w-4" aria-hidden />
                             </button>
@@ -254,7 +254,7 @@ export function Carrito() {
                     aria-disabled={mirando}
                     onClick={(e) => mirando && e.preventDefault()}
                     className="flex items-center justify-center gap-2.5 rounded-xl bg-wa px-5 py-3.5
-                               text-[15px] font-bold text-black/85 transition-colors hover:bg-wa-dark
+                               text-[15px] font-bold text-white transition-colors hover:bg-wa-dark
                                aria-disabled:opacity-60
                                focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
                                focus-visible:outline-wa"

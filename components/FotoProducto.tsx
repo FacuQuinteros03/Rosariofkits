@@ -61,7 +61,7 @@ export function FotoProducto({ producto }: { producto: Producto }) {
 
   if (!fotos.length) {
     return (
-      <div className="grid aspect-square place-items-center rounded-2xl border border-line bg-navy text-navy-2">
+      <div className="grid aspect-square place-items-center rounded-2xl border border-line bg-panel-2 text-muted">
         <Shirt className="h-20 w-20" strokeWidth={1} aria-hidden />
       </div>
     );
@@ -208,7 +208,7 @@ export function FotoProducto({ producto }: { producto: Producto }) {
               aria-current={i === actual}
               className={[
                 "relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border transition-colors sm:h-20 sm:w-20",
-                i === actual ? "border-white/60" : "border-line hover:border-muted",
+                i === actual ? "border-navy" : "border-line hover:border-muted",
               ].join(" ")}
             >
               <Image src={f} alt="" fill sizes="80px" className="object-cover" />

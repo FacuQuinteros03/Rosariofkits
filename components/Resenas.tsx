@@ -36,7 +36,7 @@ export function Resenas() {
             className="flex w-[78%] shrink-0 snap-start flex-col rounded-2xl border border-line
                        bg-surface p-5 sm:w-auto"
           >
-            <div className="flex gap-0.5 text-gold" role="img" aria-label="5 de 5 estrellas">
+            <div className="flex gap-0.5 text-amber-500" role="img" aria-label="5 de 5 estrellas">
               {[0, 1, 2, 3, 4].map((i) => (
                 <Star key={i} className="h-4 w-4 fill-current" strokeWidth={0} aria-hidden />
               ))}

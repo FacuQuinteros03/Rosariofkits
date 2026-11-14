@@ -78,9 +78,9 @@ export function EncontraTuEquipo({
               onClick={() => onElegir(elegido ? null : e.nombre)}
               aria-pressed={elegido}
               className={[
-                "group relative aspect-[3/4] w-[104px] shrink-0 snap-start overflow-hidden rounded-xl",
+                "group relative aspect-[3/4] w-[104px] shrink-0 snap-start overflow-hidden rounded-lg",
                 "border text-left transition-colors sm:w-[124px]",
-                elegido ? "border-white ring-2 ring-white/70" : "border-line hover:border-navy-2",
+                elegido ? "border-wa ring-2 ring-wa/60" : "border-line hover:border-navy-2",
               ].join(" ")}
             >
               {e.escudo ? (
@@ -89,7 +89,7 @@ export function EncontraTuEquipo({
                   con aire alrededor para que ninguno se vea apretado. El SVG
                   va sin optimizar: next/image no los procesa.
                 */
-                <span className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,var(--color-navy-2),var(--color-surface)_70%)]">
+                <span className="absolute inset-0 bg-[radial-gradient(circle_at_50%_36%,#fff_30%,var(--color-celeste-suave))]">
                   <Image
                     src={e.escudo}
                     alt=""
@@ -97,7 +97,7 @@ export function EncontraTuEquipo({
                     sizes="124px"
                     unoptimized={e.escudo.endsWith(".svg")}
                     className={[
-                      "object-contain px-5 pb-12 pt-5 drop-shadow-[0_6px_14px_rgba(0,0,0,0.5)]",
+                      "object-contain px-5 pb-12 pt-5 drop-shadow-[0_4px_8px_rgba(15,35,64,0.22)]",
                       "transition duration-500 group-hover:scale-[1.08]",
                       activo && !elegido ? "opacity-40 saturate-50" : "",
                     ].join(" ")}
@@ -120,10 +120,18 @@ export function EncontraTuEquipo({
                 </>
               )}
               <span className="absolute inset-x-2 bottom-2">
-                <span className="block font-display text-[17px] font-extrabold uppercase leading-[0.95] text-white">
+                <span
+                  className={`block font-display text-[17px] font-extrabold uppercase leading-[0.95] ${
+                    e.escudo ? "text-navy" : "text-white"
+                  }`}
+                >
                   {e.nombre}
                 </span>
-                <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-white/65">
+                <span
+                  className={`mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.1em] ${
+                    e.escudo ? "text-muted" : "text-white/75"
+                  }`}
+                >
                   {e.modelos} {e.modelos === 1 ? "modelo" : "modelos"}
                 </span>
               </span>

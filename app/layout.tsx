@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Big_Shoulders } from "next/font/google";
+import { Archivo, Barlow_Condensed } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Carrito } from "@/components/Carrito";
@@ -13,13 +13,13 @@ const archivo = Archivo({
   display: "swap",
 });
 
-const bigShoulders = Big_Shoulders({
+const barlow = Barlow_Condensed({
   subsets: ["latin"],
-  weight: ["700", "800"],
+  weight: ["700", "800", "900"],
+  style: ["normal", "italic"],
   variable: "--fuente-display",
   display: "swap",
   fallback: ["Arial Narrow", "sans-serif"],
-  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {
@@ -49,13 +49,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0c10",
-  colorScheme: "dark",
+  themeColor: "#0f2340",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${archivo.variable} ${bigShoulders.variable}`}>
+    <html lang="es" className={`${archivo.variable} ${barlow.variable}`}>
       <body className="min-h-dvh bg-ground font-sans text-ink antialiased">
         {/* quién vende: lo citan por @id las ofertas de cada ficha (lib/seo.ts) */}
         <script

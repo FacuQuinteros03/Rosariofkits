@@ -38,7 +38,7 @@ function tieneTalle(p: Producto, talle: string) {
 }
 
 const GRILLA =
-  "grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5";
+  "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4";
 
 export function Catalogo({ productos }: { productos: Producto[] }) {
   const [texto, setTexto] = useState("");
@@ -229,7 +229,7 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
                   className={[
                     "shrink-0 rounded-lg border px-2.5 py-1 text-[12px] font-bold tabular-nums transition-colors",
                     activo
-                      ? "border-white/60 bg-white/10 text-white"
+                      ? "border-navy bg-navy text-white"
                       : "border-line text-muted hover:border-muted hover:text-ink",
                   ].join(" ")}
                 >
@@ -264,8 +264,8 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
             type="button"
             onClick={() => setEquipo(null)}
             aria-label={`Quitar el filtro ${equipo}`}
-            className="inline-flex items-center gap-1 rounded-full border border-white/40 bg-white/10
-                       py-0.5 pl-2.5 pr-1.5 normal-case tracking-normal text-white hover:bg-white/20"
+            className="inline-flex items-center gap-1 rounded-full border border-navy/25 bg-navy/5
+                       py-0.5 pl-2.5 pr-1.5 normal-case tracking-normal text-ink hover:bg-navy/10"
           >
             {equipo}
             <X className="h-3 w-3" aria-hidden />

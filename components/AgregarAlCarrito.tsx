@@ -47,14 +47,13 @@ export function AgregarAlCarrito({
         onClick={sumar}
         disabled={lleno}
         aria-label={`${etiqueta}: ${producto.nombre}, talle ${talle}`}
-        className="relative z-10 flex items-center justify-center gap-1.5 rounded-xl border border-wa/45 px-3 py-2
-                   text-[12.5px] font-bold text-wa transition-colors hover:border-wa hover:bg-wa/10
-                   disabled:border-line disabled:text-muted disabled:hover:bg-transparent
-                   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-                   focus-visible:outline-wa"
+        className="corte relative z-10 flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap
+                   bg-celeste-suave px-3 font-titulo text-[15px] font-extrabold uppercase leading-none
+                   tracking-[0.04em] text-marino transition-colors hover:bg-[#d3e6f9]
+                   disabled:bg-panel-2 disabled:text-muted lg:min-h-12 lg:text-[17px]"
       >
-        <Icono className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} aria-hidden />
-        {lleno ? "En tu pedido" : "Agregar al pedido"}
+        <Icono className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+        {lleno ? "En tu pedido" : "Al pedido"}
       </button>
     );
   }

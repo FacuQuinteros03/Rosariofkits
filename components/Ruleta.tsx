@@ -272,7 +272,7 @@ export function Ruleta() {
 
   const panel = (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto
+      className="tema-oscuro fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto
                  bg-black/85 p-4 backdrop-blur-sm"
       onClick={cerrar}
       role="dialog"
@@ -448,7 +448,7 @@ export function Ruleta() {
       <button
         type="button"
         onClick={abrir}
-        className="fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-full border border-gold/40
+        className="tema-oscuro fixed bottom-4 right-4 z-30 flex items-center gap-2 rounded-full border border-gold/40
                    bg-gradient-to-br from-gold to-[#c79a2f] px-4 py-3 text-[14px] font-bold text-navy
                    shadow-[0_8px_24px_rgba(0,0,0,0.45)] transition-transform hover:scale-105
                    focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2

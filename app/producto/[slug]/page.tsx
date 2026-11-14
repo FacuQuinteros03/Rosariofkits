@@ -154,7 +154,7 @@ export default async function ProductoPage({ params }: Props) {
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
               {p.categoria}
               {p.total === 0 && (
-                <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] tracking-[0.11em] text-white/80">
+                <span className="rounded-full bg-navy/10 px-2 py-0.5 text-[10px] tracking-[0.11em] text-navy">
                   Agotado
                 </span>
               )}

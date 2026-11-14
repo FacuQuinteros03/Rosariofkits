@@ -1,96 +1,86 @@
-import Image from "next/image";
-import { ArrowDown, Zap } from "lucide-react";
-import { CYBER_CIERRE_CORTO, CYBER_PRECIO, enCyber } from "@/lib/cyber";
-import { precio } from "@/lib/whatsapp";
-import { TituloHero } from "./TituloHero";
+import { ArrowDown, MessageCircle } from "lucide-react";
+import { HeroFotos } from "./HeroFotos";
+import { IconoInstagram } from "./IconoInstagram";
+import { Boton } from "./ui/Boton";
+import { Logo } from "./ui/Logo";
+import { INSTAGRAM } from "@/lib/site";
+import { linkWhatsAppGeneral } from "@/lib/whatsapp";
 
 /**
- * Portada a sangre completa.
+ * Portada: fotos propias que rotan y, al lado, el mensaje y las dos salidas
+ * (ver el stock o escribir).
  *
- * Es Server Component y la entrada es CSS, no Framer Motion: el texto del hero
- * es el mensaje principal del sitio y no puede depender de que hidrate el JS.
- * Framer queda para lo interactivo, donde si falla es solo cosmético.
+ * En celular las fotos van arriba y el texto abajo, sobre blanco: así el texto
+ * se lee siempre, sin depender de qué foto haya detrás. En escritorio, texto
+ * a la izquierda y foto a la derecha con el corte diagonal del logo.
  *
- * Sobre la referencia que miramos:
- *  - el texto va sobre un velo degradado, así se lee siempre y no depende de
- *    qué parte de la foto quede detrás;
- *  - hay un CTA: una portada linda sin salida no lleva a nadie al catálogo.
+ * El texto es de servidor: se ve aunque el JavaScript tarde o falle. Lo único
+ * que hidrata es el carrusel (HeroFotos).
  */
 export function Hero() {
-  return (
-    <section className="relative isolate w-full overflow-hidden">
-      {/*
-        El nombre del archivo lleva versión a propósito: next/image cachea por
-        URL, así que pisar hero.jpg con otra foto sigue sirviendo la vieja
-        (en local y en el CDN). Foto nueva = nombre nuevo.
-      */}
-      <div className="relative h-[78svh] min-h-[440px] w-full sm:h-[70svh] lg:h-[76svh]">
-        <Image
-          src="/hero-messi-2400.jpg"
-          alt="Lionel Messi con la camiseta de la Selección Argentina"
-          fill
-          priority
-          sizes="100vw"
-          quality={90}
-          className="object-cover object-[52%_14%] sm:object-[center_18%]"
-        />
+  const marca = (
+    <>
+      <span className="font-titulo text-xl font-extrabold uppercase tracking-wide">Rosario F Kits</span>
+      <a
+        href={INSTAGRAM}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Seguinos en Instagram"
+        className="ml-auto grid h-10 w-10 lg:ml-3 place-items-center rounded-full bg-current/10 transition-colors hover:bg-current/20"
+      >
+        <IconoInstagram className="h-[18px] w-[18px]" />
+      </a>
+    </>
+  );
 
-        {/* velo: oscuro abajo y a la izquierda, que es donde va el texto */}
-        <div className="absolute inset-0 bg-gradient-to-t from-ground via-ground/55 to-ground/10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ground/85 via-ground/25 to-transparent" />
+  return (
+    <section
+      aria-label="Portada"
+      className="relative bg-ground lg:grid lg:min-h-[min(calc(100svh-36px),860px)] lg:grid-cols-[1.02fr_0.98fr]"
+    >
+      <div className="relative h-[40svh] min-h-[250px] lg:order-2 lg:h-auto lg:[clip-path:polygon(14%_0,100%_0,100%_100%,0_100%)]">
+        <HeroFotos />
+        {/* marca sobre la foto, solo en celular */}
+        <div className="absolute inset-x-0 top-0 flex items-center gap-3 bg-gradient-to-b from-black/55 to-transparent px-4 pb-8 pt-3 text-white lg:hidden">
+          <Logo className="h-9 w-9 bg-white" />
+          {marca}
+        </div>
       </div>
 
-      <div className="absolute inset-0 flex items-end">
-        <div className="mx-auto w-full max-w-[1280px] px-5 pb-12 sm:px-8 sm:pb-16 lg:pb-20">
-          <div className="max-w-2xl">
-            {enCyber() ? (
-              <a
-                href="#cyber"
-                className="aparece cyber-late mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r
-                           from-cyan-400 to-fuchsia-500 px-3.5 py-1.5 text-[11px] font-extrabold uppercase
-                           tracking-[0.16em] text-black"
-                style={{ animationDelay: "60ms" }}
-              >
-                <Zap className="h-3.5 w-3.5 fill-current" aria-hidden />
-                Cyber Monday · todas a {precio(CYBER_PRECIO)} · hasta el {CYBER_CIERRE_CORTO}
-              </a>
-            ) : (
-            <p
-              className="aparece mb-4 inline-flex items-center gap-2.5 rounded-full border
-                         border-white/15 bg-white/5 px-3.5 py-1.5 text-[11px] font-bold
-                         uppercase tracking-[0.18em] text-gold backdrop-blur-sm"
-              style={{ animationDelay: "60ms" }}
+      <div className="resplandor-lg relative flex flex-col px-4 pb-7 pt-5 text-marino lg:order-1 lg:px-12 lg:py-8 xl:px-20">
+        <div className="hidden items-center gap-3 lg:flex">
+          <Logo className="h-10 w-10 bg-marino" />
+          {marca}
+        </div>
+
+        <div className="lg:my-auto">
+          <h1 className="aparece font-titulo text-[clamp(2.9rem,13.5vw,6rem)] font-black uppercase leading-[0.86] tracking-[-0.01em] xl:text-[6.6rem]">
+            Bienvenido a
+            <br />
+            <span className="text-azul">Rosario F Kits</span>
+          </h1>
+          <p className="mt-2.5 font-titulo text-[21px] font-bold uppercase leading-tight tracking-[0.06em] text-marino-2 lg:mt-4 lg:text-[28px]">
+            Indumentaria de fútbol importada
+          </p>
+          <p className="mt-2.5 max-w-md text-[15.5px] leading-relaxed text-tinta/80 lg:mt-3 lg:text-[17px]">
+            Stock real, talle por talle. Entrega en mano en Rosario y envíos a todo el país.
+          </p>
+          <div className="mt-4 flex gap-2.5 sm:gap-3 lg:mt-7">
+            <Boton tamano="lg" href="#catalogo" className="flex-1 !px-4 sm:flex-none sm:!px-8">
+              Ver el stock
+              <ArrowDown className="h-5 w-5" strokeWidth={2.8} aria-hidden />
+            </Boton>
+            <Boton
+              tamano="lg"
+              variante="whatsapp"
+              href={linkWhatsAppGeneral()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 !px-4 sm:flex-none sm:!px-8"
             >
-              <span className="font-display text-base leading-none">10</span>
-              Gracias, Leo
-            </p>
-            )}
-
-            <TituloHero />
-
-            <p
-              className="aparece mt-5 max-w-lg text-base leading-relaxed text-white/85 sm:text-lg"
-              style={{ animationDelay: "250ms" }}
-            >
-              En este espacio vas a tener la mejor camiseta para vos.
-            </p>
-
-            <div className="aparece mt-8" style={{ animationDelay: "350ms" }}>
-              <a
-                href="#catalogo"
-                className="group inline-flex items-center gap-2.5 rounded-full bg-white px-6 py-3.5
-                           text-[15px] font-bold text-ground transition-transform
-                           hover:scale-[1.03] focus-visible:outline focus-visible:outline-2
-                           focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                Ver el stock disponible
-                <ArrowDown
-                  className="h-4 w-4 transition-transform group-hover:translate-y-0.5"
-                  strokeWidth={2.6}
-                  aria-hidden
-                />
-              </a>
-            </div>
+              <MessageCircle className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+              Escribinos
+            </Boton>
           </div>
         </div>
       </div>

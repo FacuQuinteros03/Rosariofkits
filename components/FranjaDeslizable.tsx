@@ -48,7 +48,7 @@ export function FranjaDeslizable({
 
   const flecha =
     "absolute top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full " +
-    "border border-white/20 bg-ground/85 text-ink shadow-lg shadow-black/40 backdrop-blur-sm " +
+    "border border-line bg-surface/95 text-ink shadow-md shadow-navy/15 backdrop-blur-sm " +
     "transition-colors hover:bg-surface sm:grid";
 
   return (

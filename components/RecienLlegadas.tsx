@@ -43,10 +43,10 @@ export function RecienLlegadas({ productos }: { productos: Producto[] }) {
             <Link
               key={p.id}
               href={`/producto/${p.id}`}
-              className="group w-[62%] shrink-0 snap-start overflow-hidden rounded-2xl border border-line
+              className="group w-[62%] shrink-0 snap-start overflow-hidden rounded-lg border border-line
                          bg-surface transition-colors hover:border-navy-2 sm:w-[260px]"
             >
-              <span className="relative block aspect-[4/5] overflow-hidden bg-black/30">
+              <span className="relative block aspect-[4/5] overflow-hidden bg-panel-2">
                 <Image
                   src={p.foto!}
                   alt={p.nombre}
@@ -71,8 +71,9 @@ export function RecienLlegadas({ productos }: { productos: Producto[] }) {
                   />
                 )}
                 <span
-                  className="absolute left-2.5 top-2.5 z-[1] rounded-full bg-gold px-2.5 py-1 text-[10px]
-                             font-extrabold uppercase tracking-[0.12em] text-black/85"
+                  className="absolute left-0 top-3 z-[1] flex h-[22px] items-center bg-azul pl-2.5 pr-3.5 font-titulo
+                             text-[13px] font-extrabold uppercase leading-none tracking-[0.06em] text-white
+                             [clip-path:polygon(0_0,100%_0,calc(100%-0.7em)_100%,0_100%)]"
                 >
                   Nuevo
                 </span>

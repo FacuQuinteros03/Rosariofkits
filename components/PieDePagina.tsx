@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Logo } from "./ui/Logo";
 import Link from "next/link";
 import { IconoInstagram } from "./IconoInstagram";
 import { INSTAGRAM, NEGOCIO, USUARIO_IG } from "@/lib/site";
@@ -22,7 +22,7 @@ export function PieDePagina() {
         href="/"
         className="inline-flex items-center gap-2.5 transition-opacity hover:opacity-80"
       >
-        <Image src="/logo.png" alt="" width={32} height={32} className="h-8 w-8" />
+        <Logo className="h-8 w-8 bg-navy" />
         <span className="font-display text-lg font-bold uppercase tracking-wide text-ink">
           Rosario F Kits
         </span>

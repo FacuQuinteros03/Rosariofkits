@@ -7,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function LayoutAdmin({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto min-h-dvh max-w-6xl px-4 pb-16 pt-5 sm:px-6">{children}</div>;
+  return (
+    <div className="tema-oscuro min-h-dvh bg-ground text-ink">
+      <div className="mx-auto max-w-6xl px-4 pb-16 pt-5 sm:px-6">{children}</div>
+    </div>
+  );
 }

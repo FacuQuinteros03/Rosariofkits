@@ -73,8 +73,8 @@ export function CarruselFotos({
 
   if (!fotos.length) {
     return (
-      <div className="relative aspect-square overflow-hidden bg-navy">
-        <div className="grid h-full place-items-center text-navy-2">
+      <div className="relative aspect-[4/5] overflow-hidden bg-panel-2">
+        <div className="grid h-full place-items-center text-muted">
           <Shirt className="h-12 w-12" strokeWidth={1.25} aria-hidden />
         </div>
         {children}
@@ -84,7 +84,7 @@ export function CarruselFotos({
 
   return (
     <div
-      className="group/foto relative z-[2] aspect-square overflow-hidden bg-navy"
+      className="group/foto relative z-[2] aspect-[4/5] overflow-hidden bg-panel-2"
       {...deslizar}
     >
       {fotos.map((f, i) =>

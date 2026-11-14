@@ -1,5 +1,7 @@
 "use client";
 
+import { GuiaTalles } from "./GuiaTalles";
+import { versionDe } from "@/lib/talles";
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { conStock, type Producto } from "@/lib/types";
@@ -23,9 +25,14 @@ export function SelectorTalle({ producto }: { producto: Producto }) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
-          {agotado ? "¿Qué talle buscás?" : "Talles disponibles"}
-        </p>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+            {agotado ? "¿Qué talle buscás?" : "Talles disponibles"}
+          </p>
+          {producto.categoria !== "Shorts" && (
+            <GuiaTalles versionInicial={versionDe(producto.nombre) ?? "fan"} />
+          )}
+        </div>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Talles">
           {opciones.map((v) => {
             const activo = v.talle === talle;
@@ -38,7 +45,7 @@ export function SelectorTalle({ producto }: { producto: Producto }) {
                 className={[
                   "min-w-[52px] rounded-xl border px-4 py-2.5 text-sm font-bold tabular-nums transition-colors",
                   activo
-                    ? "border-white/60 bg-white/10 text-white"
+                    ? "border-navy bg-navy text-white"
                     : "border-line text-muted hover:border-muted hover:text-ink",
                 ].join(" ")}
               >
@@ -71,7 +78,7 @@ export function SelectorTalle({ producto }: { producto: Producto }) {
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2.5 rounded-xl bg-wa px-5 py-3.5
-                     text-[15px] font-bold text-black/85 transition-colors hover:bg-wa-dark
+                     text-[15px] font-bold text-white transition-colors hover:bg-wa-dark
                      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
                      focus-visible:outline-wa"
         >

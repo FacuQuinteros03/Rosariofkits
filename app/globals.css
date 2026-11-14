@@ -7,26 +7,28 @@
   (theme.extend.colors) y volvé a las tres directivas @tailwind de siempre.
 */
 @theme {
-  --color-ground: #0a0c10;
-  --color-surface: #12171f;
-  --color-line: #232c38;
-  --color-ink: #e9edf2;
-  --color-muted: #8b9aa8;
+  /* Tema claro: blanco con azules. El oscuro de antes vive en .tema-oscuro. */
+  --color-ground: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-line: #d9e1ec;
+  --color-ink: #0b1a2e;
+  --color-muted: #55637a;
 
-  --color-navy: #10233b;
-  --color-navy-2: #1b3355;
+  --color-navy: #0f2340;
+  --color-navy-2: #1b3a66;
 
-  --color-wa: #25d366;
-  --color-wa-dark: #1fb457;
-  --color-gold: #e2b74a;
+  /* "wa" es el color del botón de pedir. Ya no es verde: es el azul vivo. */
+  --color-wa: #1a5fd0;
+  --color-wa-dark: #1550b3;
+  /* "gold" es el color de acento de textos e íconos: en claro, el mismo azul. */
+  --color-gold: #1a5fd0;
 
   --font-sans: var(--fuente-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--fuente-display), "Arial Narrow", sans-serif;
 }
 
-/* el tema es oscuro a propósito: la ropa se ve mejor sobre fondo profundo */
 html {
-  color-scheme: dark;
+  color-scheme: light;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -170,9 +172,7 @@ html {
 
 /*
   ============================================================
-  Rediseño — tokens nuevos: blanco con azules.
-  Conviven con los de arriba: nada del sitio actual los usa
-  hasta que se apruebe /diseno.
+  Rediseño: nombres propios del sistema nuevo (components/ui).
   ============================================================
 */
 @theme {
@@ -191,7 +191,34 @@ html {
   --color-celeste-suave: #e3f0fc;
   --color-bengala: #cf2a17;
 
-  --font-titulo: var(--fuente-titulo), var(--fuente-display), "Arial Narrow", sans-serif;
+  --font-titulo: var(--fuente-display), "Arial Narrow", sans-serif;
+}
+
+/*
+  El tema oscuro de antes, para lo que sigue siendo de noche: el panel de
+  administración y la ruleta (que es dorada sobre oscuro a propósito).
+*/
+.tema-oscuro {
+  --color-ground: #0a0c10;
+  --color-surface: #12171f;
+  --color-line: #232c38;
+  --color-ink: #e9edf2;
+  --color-muted: #8b9aa8;
+  --color-navy: #10233b;
+  --color-navy-2: #1b3355;
+  --color-wa: #25d366;
+  --color-wa-dark: #1fb457;
+  --color-gold: #e2b74a;
+  color-scheme: dark;
+}
+
+/* los títulos del sistema nuevo van en cursiva, como la RF del logo */
+.font-display,
+.font-titulo {
+  font-style: italic;
+}
+.tema-oscuro .font-display {
+  font-style: normal;
 }
 
 /* la diagonal del logo: el mismo ángulo en botones, insignias y cortes */
@@ -225,7 +252,7 @@ html {
 }
 
 /* foco visible, uno solo para todo el sistema nuevo */
-.rfk :focus-visible {
+:focus-visible {
   outline: 2px solid var(--color-azul);
   outline-offset: 3px;
   border-radius: 4px;
