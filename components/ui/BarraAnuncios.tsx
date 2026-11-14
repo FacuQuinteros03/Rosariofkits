@@ -13,7 +13,7 @@ const ANUNCIOS = [
  */
 export function BarraAnuncios() {
   return (
-    <div className="relative h-9 overflow-hidden bg-marino text-tiza">
+    <div className="relative h-9 overflow-hidden bg-marino text-white">
       <ul className="sr-only">
         {ANUNCIOS.map((a) => (
           <li key={a.texto}>{a.texto}</li>

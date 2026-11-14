@@ -3,7 +3,6 @@ import { ArrowDown, MessageCircle, Plus, Ruler } from "lucide-react";
 import { BarraAnuncios } from "@/components/ui/BarraAnuncios";
 import { Boton } from "@/components/ui/Boton";
 import { Insignia, type TipoInsignia } from "@/components/ui/Insignia";
-import { SelectorAcento } from "./SelectorAcento";
 
 /*
   Vidriera del sistema de diseño nuevo. No está enlazada desde ningún lado y
@@ -12,18 +11,16 @@ import { SelectorAcento } from "./SelectorAcento";
 */
 
 const PALETA = [
-  { nombre: "Noche", token: "noche", hex: "#070a11", uso: "Fondo del sitio" },
-  { nombre: "Tribuna", token: "tribuna", hex: "#0d1420", uso: "Tarjetas y paneles" },
-  { nombre: "Tribuna alta", token: "tribuna-2", hex: "#152033", uso: "Hover, campos" },
-  { nombre: "Raya", token: "raya", hex: "#24324a", uso: "Bordes y divisores" },
-  { nombre: "Marino", token: "marino", hex: "#0f2340", uso: "El azul del logo" },
-  { nombre: "Marino luz", token: "marino-2", hex: "#1a3a68", uso: "Brillos, insignia Fan" },
-  { nombre: "Celeste", token: "celeste", hex: "#7ccbf7", uso: "Marca, foco, Nuevo" },
-  { nombre: "Tiza", token: "tiza", hex: "#f2f5f9", uso: "Texto principal" },
-  { nombre: "Niebla", token: "niebla", hex: "#93a3b8", uso: "Texto secundario" },
-  { nombre: "Acento", token: "acento", hex: "var", uso: "Botones que no son WhatsApp" },
-  { nombre: "WhatsApp", token: "wa", hex: "#25d366", uso: "Solo para pedir por WhatsApp" },
-  { nombre: "Bengala", token: "bengala", hex: "#ff5a47", uso: "Rebajas y urgencia" },
+  { nombre: "Fondo", token: "fondo", hex: "#f5f7fa", uso: "Fondo del sitio" },
+  { nombre: "Panel", token: "panel", hex: "#ffffff", uso: "Tarjetas y paneles" },
+  { nombre: "Raya", token: "raya", hex: "#d9e1ec", uso: "Bordes y divisores" },
+  { nombre: "Celeste suave", token: "celeste-suave", hex: "#e3f0fc", uso: "Fondos de apoyo, hover" },
+  { nombre: "Celeste", token: "celeste", hex: "#7cc4f5", uso: "Detalles y brillos" },
+  { nombre: "Azul", token: "azul", hex: "#1a5fd0", uso: "Pedir por WhatsApp, enlaces" },
+  { nombre: "Marino", token: "marino", hex: "#0f2340", uso: "El del logo: títulos y botones" },
+  { nombre: "Tinta", token: "tinta", hex: "#0b1a2e", uso: "Texto principal" },
+  { nombre: "Niebla", token: "niebla", hex: "#55637a", uso: "Texto secundario" },
+  { nombre: "Bengala", token: "bengala", hex: "#cf2a17", uso: "Solo rebajas y urgencia" },
 ] as const;
 
 const INSIGNIAS: { tipo: TipoInsignia; texto: string }[] = [
@@ -37,11 +34,21 @@ const INSIGNIAS: { tipo: TipoInsignia; texto: string }[] = [
   { tipo: "fan", texto: "Fan" },
 ];
 
+/** El logo es un PNG blanco: se usa de máscara para pintarlo del color que haga falta. */
+function Logo({ className = "" }: { className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-block bg-marino [mask:url(/logo.png)_center/contain_no-repeat] ${className}`}
+    />
+  );
+}
+
 function Titulo({ n, children }: { n: string; children: React.ReactNode }) {
   return (
     <div className="mb-6 flex items-end gap-3 border-b border-raya pb-3">
-      <span className="font-titulo text-2xl font-extrabold italic leading-none text-celeste">{n}</span>
-      <h2 className="font-titulo text-3xl font-extrabold uppercase italic leading-none sm:text-4xl">
+      <span className="font-titulo text-2xl font-extrabold italic leading-none text-azul">{n}</span>
+      <h2 className="font-titulo text-3xl font-extrabold uppercase italic leading-none text-marino sm:text-4xl">
         {children}
       </h2>
     </div>
@@ -64,8 +71,12 @@ function Tarjeta({
   talles: string[];
 }) {
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-lg border border-raya bg-tribuna">
-      <div className="relative aspect-[4/5] overflow-hidden">
+    <article
+      className="group relative flex flex-col overflow-hidden rounded-lg border border-raya bg-panel
+                 shadow-[0_1px_2px_rgb(15_35_64/0.06)] transition-shadow duration-300
+                 hover:shadow-[0_14px_34px_-12px_rgb(15_35_64/0.28)]"
+    >
+      <div className="relative aspect-[4/5] overflow-hidden bg-panel-2">
         <Image
           src={foto}
           alt={`${nombre}, vista de frente`}
@@ -75,7 +86,11 @@ function Tarjeta({
         />
         <div className="absolute left-0 top-3 flex flex-col items-start gap-1.5">
           {insignias.map((i) => (
-            <Insignia key={i.texto} tipo={i.tipo} className="!pl-3 [clip-path:polygon(0_0,100%_0,calc(100%-0.7em)_100%,0_100%)]">
+            <Insignia
+              key={i.texto}
+              tipo={i.tipo}
+              className="[clip-path:polygon(0_0,100%_0,calc(100%-0.7em)_100%,0_100%)]"
+            >
               {i.texto}
             </Insignia>
           ))}
@@ -85,12 +100,16 @@ function Tarjeta({
         <h3 className="text-[14px] font-semibold leading-snug lg:text-[17px]">{nombre}</h3>
         <div>
           {antes && (
-            <p className="mb-1 flex flex-wrap items-center gap-x-2 text-[12.5px]">
+            <p className="mb-1 flex flex-wrap items-center gap-x-2 text-[12.5px] lg:text-[14px]">
               <s className="tabular-nums text-niebla">{antes.precio}</s>
-              <span className="whitespace-nowrap font-bold tabular-nums text-bengala">Ahorrás {antes.ahorro}</span>
+              <span className="whitespace-nowrap font-bold tabular-nums text-bengala">
+                Ahorrás {antes.ahorro}
+              </span>
             </p>
           )}
-          <p className="font-titulo text-[34px] font-extrabold italic leading-none tabular-nums lg:text-[44px]">{precio}</p>
+          <p className="font-titulo text-[34px] font-extrabold italic leading-none tabular-nums text-marino lg:text-[44px]">
+            {precio}
+          </p>
         </div>
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Talles disponibles">
           {talles.map((t, i) => (
@@ -99,7 +118,9 @@ function Tarjeta({
               type="button"
               aria-pressed={i === 0}
               className={`min-h-9 min-w-10 rounded-md border px-2 text-[13px] font-bold ${
-                i === 0 ? "border-celeste bg-celeste/15 text-tiza" : "border-raya text-niebla"
+                i === 0
+                  ? "border-marino bg-marino text-white"
+                  : "border-raya bg-panel text-niebla hover:border-marino/50"
               }`}
             >
               {t}
@@ -125,27 +146,27 @@ function Tarjeta({
 
 export default function Page() {
   return (
-    <SelectorAcento>
+    <>
       {/* ---------- muestra de portada ---------- */}
       <BarraAnuncios />
-      <header className="zona reflectores relative overflow-hidden">
+      <header className="resplandor relative overflow-hidden border-b border-raya">
         <div className="cal absolute inset-0" aria-hidden />
         <div className="relative mx-auto max-w-[1100px] px-4 pb-14 pt-6 sm:pb-20">
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="" width={40} height={40} className="logo-blanco h-9 w-9" />
-            <span className="font-titulo text-xl font-extrabold uppercase italic tracking-wide">
+            <Logo className="h-9 w-9" />
+            <span className="font-titulo text-xl font-extrabold uppercase italic tracking-wide text-marino">
               Rosario F Kits
             </span>
           </div>
-          <p className="mt-14 font-titulo text-lg font-bold uppercase italic tracking-[0.14em] text-celeste sm:mt-20">
+          <p className="mt-14 font-titulo text-lg font-bold uppercase italic tracking-[0.14em] text-azul sm:mt-20">
             Camisetas de fútbol · Rosario
           </p>
-          <h1 className="mt-2 font-titulo text-[clamp(3.6rem,15vw,8.5rem)] font-black uppercase italic leading-[0.84] tracking-[-0.01em]">
+          <h1 className="mt-2 font-titulo text-[clamp(3.6rem,15vw,8.5rem)] font-black uppercase italic leading-[0.84] tracking-[-0.01em] text-marino">
             La que querés,
             <br />
-            <span className="text-celeste">en mano.</span>
+            <span className="text-azul">en mano.</span>
           </h1>
-          <p className="mt-5 max-w-md text-[17px] leading-relaxed text-tiza/85">
+          <p className="mt-5 max-w-md text-[17px] leading-relaxed text-tinta/80">
             Stock real, talle por talle. Elegís, nos escribís y la tenés: entrega en Rosario o envío a
             todo el país.
           </p>
@@ -161,21 +182,21 @@ export default function Page() {
         </div>
       </header>
 
-      <main className="zona zona-catalogo">
-      <div className="mx-auto flex max-w-[1100px] flex-col gap-16 px-4 py-14">
+      <main className="mx-auto flex max-w-[1100px] flex-col gap-16 px-4 py-14">
         {/* ---------- paleta ---------- */}
         <section>
           <Titulo n="01">Paleta</Titulo>
           <p className="mb-6 max-w-2xl text-[15px] leading-relaxed text-niebla">
-            Con el selector de arriba podés ver el catálogo de noche o en blanco. Los cuadros de abajo
-            muestran los colores del fondo que tengas elegido. El verde queda reservado para WhatsApp.
+            Blanco con azules: el marino del logo para títulos y botones, un azul más vivo para pedir
+            y el celeste para los detalles. El rojo aparece solo en rebajas y últimas unidades.
           </p>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             {PALETA.map((c) => (
-              <li key={c.token} className="overflow-hidden rounded-lg border border-raya bg-tribuna">
-                <div className="h-16" style={{ background: `var(--color-${c.token})` }} />
+              <li key={c.token} className="overflow-hidden rounded-lg border border-raya bg-panel">
+                <div className="h-16 border-b border-raya" style={{ background: `var(--color-${c.token})` }} />
                 <div className="p-3">
                   <p className="text-[14px] font-bold">{c.nombre}</p>
+                  <p className="font-mono text-[12px] text-niebla">{c.hex}</p>
                   <p className="mt-1 text-[12.5px] leading-snug text-niebla">{c.uso}</p>
                 </div>
               </li>
@@ -188,20 +209,20 @@ export default function Page() {
           <Titulo n="02">Tipografías</Titulo>
           <div className="grid gap-4 sm:grid-cols-3">
             {[
-              { v: "--fuente-barlow", n: "Barlow Condensed", nota: "La que propongo", it: true },
-              { v: "--fuente-sofia", n: "Sofia Sans Extra Condensed", nota: "Alternativa: más apretada", it: true },
-              { v: "--fuente-shoulders", n: "Big Shoulders", nota: "La actual, sin cursiva real", it: false },
+              { v: "--fuente-barlow", n: "A · Barlow Condensed", nota: "La que está puesta", it: true },
+              { v: "--fuente-sofia", n: "B · Sofia Sans Extra Condensed", nota: "Más apretada", it: true },
+              { v: "--fuente-shoulders", n: "C · Big Shoulders", nota: "La del sitio actual", it: false },
             ].map((f) => (
-              <div key={f.v} className="rounded-lg border border-raya bg-tribuna p-4">
-                <p className="text-[12.5px] font-semibold text-celeste">{f.nota}</p>
+              <div key={f.v} className="rounded-lg border border-raya bg-panel p-4">
+                <p className="text-[12.5px] font-semibold text-azul">{f.nota}</p>
                 <p
-                  className={`mt-2 text-[56px] font-black uppercase leading-[0.86] ${f.it ? "italic" : ""}`}
+                  className={`mt-2 text-[56px] font-black uppercase leading-[0.86] text-marino ${f.it ? "italic" : ""}`}
                   style={{ fontFamily: `var(${f.v})` }}
                 >
                   Recién llegadas
                 </p>
                 <p
-                  className={`mt-3 text-[34px] font-extrabold leading-none tabular-nums ${f.it ? "italic" : ""}`}
+                  className={`mt-3 text-[34px] font-extrabold leading-none tabular-nums text-marino ${f.it ? "italic" : ""}`}
                   style={{ fontFamily: `var(${f.v})` }}
                 >
                   $45.000
@@ -210,12 +231,11 @@ export default function Page() {
               </div>
             ))}
           </div>
-          <div className="mt-4 rounded-lg border border-raya bg-tribuna p-4">
-            <p className="text-[12.5px] font-semibold text-celeste">Texto: Archivo (la que ya usás)</p>
+          <div className="mt-4 rounded-lg border border-raya bg-panel p-4">
+            <p className="text-[12.5px] font-semibold text-azul">Texto: Archivo (la que ya usás)</p>
             <p className="mt-2 max-w-2xl text-[16px] leading-relaxed">
-              Para leer se queda Archivo: es clara en pantallas chicas y ya está cargada. La versión
-              Player es la que usan los jugadores: tela más liviana, calce al cuerpo y escudo
-              termosellado. La Fan es la de la tribuna: más holgada y con el escudo bordado.
+              Para leer se queda Archivo: es clara en pantallas chicas y ya está cargada. Así se ve un
+              párrafo de descripción de producto, con el largo de línea que va a tener en la ficha.
             </p>
             <p className="mt-2 text-[13.5px] text-niebla">
               Secundario en Niebla · 13,5 px · para aclaraciones, talles agotados y letra chica.
@@ -237,7 +257,7 @@ export default function Page() {
               Guía de talles
             </Boton>
           </div>
-          <div className="mt-6 flex flex-wrap gap-2.5">
+          <div className="mt-6 flex flex-wrap gap-2.5 rounded-lg bg-marino-2/90 p-4">
             {INSIGNIAS.map((i) => (
               <Insignia key={i.texto} tipo={i.tipo}>
                 {i.texto}
@@ -251,7 +271,9 @@ export default function Page() {
                 type="button"
                 aria-pressed={i === 0}
                 className={`min-h-10 rounded-full border px-4 text-[14px] font-semibold ${
-                  i === 0 ? "border-tiza bg-tiza text-noche" : "border-raya text-niebla"
+                  i === 0
+                    ? "border-marino bg-marino text-white"
+                    : "border-raya bg-panel text-niebla hover:border-marino/50"
                 }`}
               >
                 {c}
@@ -291,31 +313,7 @@ export default function Page() {
             Nombres, precios y etiquetas de muestra. Las fotos son las tuyas, tal cual están hoy.
           </p>
         </section>
-
-        {/* ---------- medidas ---------- */}
-        <section>
-          <Titulo n="05">Espacios y formas</Titulo>
-          <ul className="grid gap-3 text-[14.5px] leading-relaxed text-tiza/90 sm:grid-cols-2">
-            <li className="rounded-lg border border-raya bg-tribuna p-4">
-              <b>La diagonal del logo.</b> Botones e insignias llevan el mismo corte inclinado que la
-              RF. Es lo que hace que no parezca una plantilla.
-            </li>
-            <li className="rounded-lg border border-raya bg-tribuna p-4">
-              <b>Escala de 4 px.</b> Separaciones de 4, 8, 12, 16, 24, 40 y 64. Entre secciones, 64 en
-              celular y 96 en escritorio.
-            </li>
-            <li className="rounded-lg border border-raya bg-tribuna p-4">
-              <b>Esquinas chicas.</b> 8 px en tarjetas y paneles, en vez de las redondeadas grandes de
-              hoy: más deportivo, menos app.
-            </li>
-            <li className="rounded-lg border border-raya bg-tribuna p-4">
-              <b>Todo se toca con el pulgar.</b> Ningún botón ni talle mide menos de 36 px de alto, y
-              los de compra 44 o más.
-            </li>
-          </ul>
-        </section>
-      </div>
       </main>
-    </SelectorAcento>
+    </>
   );
 }

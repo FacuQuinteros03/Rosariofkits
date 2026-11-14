@@ -5,14 +5,15 @@ type Tamano = "sm" | "md" | "lg";
 
 const BASE =
   "corte inline-flex items-center justify-center gap-2 font-titulo font-extrabold uppercase italic " +
-  "tracking-[0.04em] leading-none transition-[filter,transform,background-color] duration-150 " +
-  "active:scale-[0.97] hover:brightness-110";
+  "tracking-[0.04em] leading-none transition-[transform,background-color] duration-150 " +
+  "active:scale-[0.97]";
 
 const VARIANTES: Record<Variante, string> = {
-  /* el verde queda solo para WhatsApp: es el color que la gente ya asocia a "escribir" */
-  whatsapp: "bg-wa text-black",
-  acento: "bg-acento text-acento-tinta",
-  linea: "bg-tiza/[0.07] text-tiza ring-1 ring-inset ring-tiza/30 hover:bg-tiza/[0.12]",
+  /* el botón de pedir: el azul más vivo de la paleta, siempre con el ícono de WhatsApp */
+  whatsapp: "bg-azul text-white hover:bg-azul-2",
+  acento: "bg-marino text-white hover:bg-marino-2",
+  /* sin borde: el corte diagonal se lo comería en los costados */
+  linea: "bg-celeste-suave text-marino hover:bg-[#d3e6f9]",
 };
 
 const TAMANOS: Record<Tamano, string> = {

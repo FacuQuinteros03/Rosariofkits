@@ -11,14 +11,14 @@ export type TipoInsignia =
   | "fan";
 
 const ESTILOS: Record<TipoInsignia, string> = {
-  nuevo: "bg-celeste text-noche",
-  lanzamiento: "bg-tiza text-noche",
-  rebajada: "bg-bengala text-black",
-  ultima: "bg-black/80 text-[#ff8a7a] ring-1 ring-inset ring-[#ff8a7a]/70",
-  quedan: "bg-black/80 text-white ring-1 ring-inset ring-white/30",
-  agotado: "bg-black/80 text-white/75 ring-1 ring-inset ring-white/15",
-  player: "bg-acento text-acento-tinta",
-  fan: "bg-marino-2 text-white",
+  nuevo: "bg-azul text-white",
+  lanzamiento: "bg-celeste text-marino",
+  rebajada: "bg-bengala text-white",
+  ultima: "bg-white text-bengala",
+  quedan: "bg-white text-marino",
+  agotado: "bg-panel-2 text-niebla",
+  player: "bg-marino text-white",
+  fan: "bg-celeste-suave text-marino",
 };
 
 /** Las etiquetas de producto. El texto lo pone quien la usa ("Quedan 2"). */

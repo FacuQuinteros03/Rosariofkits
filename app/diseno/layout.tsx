@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className={`rfk ${barlow.variable} ${sofia.variable} ${shoulders.variable} bg-noche text-tiza`}
+      className={`rfk ${barlow.variable} ${sofia.variable} ${shoulders.variable} bg-fondo text-tinta [color-scheme:light]`}
       style={{ ["--font-titulo" as string]: 'var(--fuente-barlow), "Arial Narrow", sans-serif' }}
     >
       {children}

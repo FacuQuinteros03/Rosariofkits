@@ -170,27 +170,26 @@ html {
 
 /*
   ============================================================
-  Rediseño "estadio de noche" — tokens nuevos.
+  Rediseño — tokens nuevos: blanco con azules.
   Conviven con los de arriba: nada del sitio actual los usa
   hasta que se apruebe /diseno.
   ============================================================
 */
 @theme {
-  --color-noche: #070a11;
-  --color-tribuna: #0d1420;
-  --color-tribuna-2: #152033;
-  --color-raya: #24324a;
-  --color-tiza: #f2f5f9;
-  --color-niebla: #93a3b8;
+  --color-fondo: #f5f7fa;
+  --color-panel: #ffffff;
+  --color-panel-2: #ecf1f7;
+  --color-raya: #d9e1ec;
+  --color-tinta: #0b1a2e;
+  --color-niebla: #55637a;
 
   --color-marino: #0f2340;
-  --color-marino-2: #1a3a68;
-  --color-celeste: #7ccbf7;
-  --color-celeste-2: #3d9be0;
-
-  --color-acento: #d4ff3f;
-  --color-acento-tinta: #0c1400;
-  --color-bengala: #ff5a47;
+  --color-marino-2: #1b3a66;
+  --color-azul: #1a5fd0;
+  --color-azul-2: #1550b3;
+  --color-celeste: #7cc4f5;
+  --color-celeste-suave: #e3f0fc;
+  --color-bengala: #cf2a17;
 
   --font-titulo: var(--fuente-titulo), var(--fuente-display), "Arial Narrow", sans-serif;
 }
@@ -199,31 +198,27 @@ html {
 .corte {
   clip-path: polygon(0.7em 0, 100% 0, calc(100% - 0.7em) 100%, 0 100%);
 }
-.corte-der {
-  clip-path: polygon(0 0, 100% 0, calc(100% - 0.9em) 100%, 0 100%);
-}
 
-/* reflectores: dos conos de luz que bajan desde las esquinas */
-.reflectores {
+/* portada: blanco con un resplandor celeste que baja desde arriba */
+.resplandor {
   background:
-    radial-gradient(60% 55% at 12% -8%, rgb(124 203 247 / 0.38), transparent 70%),
-    radial-gradient(55% 50% at 92% -12%, rgb(242 245 249 / 0.22), transparent 70%),
-    radial-gradient(90% 60% at 50% 120%, rgb(26 58 104 / 0.55), transparent 70%),
-    var(--color-noche);
+    radial-gradient(70% 60% at 85% -10%, rgb(124 196 245 / 0.42), transparent 70%),
+    radial-gradient(50% 50% at 0% 0%, rgb(26 95 208 / 0.1), transparent 70%),
+    linear-gradient(180deg, #ffffff, var(--color-fondo));
 }
 
-/* líneas de cal: la trama fina de fondo de las secciones */
+/* líneas de cal: la trama fina de fondo */
 .cal {
   background-image: repeating-linear-gradient(
     100deg,
     transparent 0 46px,
-    rgb(124 203 247 / 0.045) 46px 47px
+    rgb(15 35 64 / 0.035) 46px 47px
   );
 }
 
 /* foco visible, uno solo para todo el sistema nuevo */
 .rfk :focus-visible {
-  outline: 2px solid var(--color-celeste);
+  outline: 2px solid var(--color-azul);
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -258,39 +253,4 @@ html {
   .anuncio:first-child {
     opacity: 1;
   }
-}
-
-/*
-  Zonas con fondo propio. Cada una pinta su fondo y su texto desde los tokens,
-  así el tema claro se prende zona por zona redefiniendo solo las variables.
-*/
-.zona {
-  background-color: var(--color-noche);
-  color: var(--color-tiza);
-}
-
-/* tema claro: "blanco tiza". Mismos nombres de token, valores invertidos. */
-.tema-claro,
-[data-fondo="blanco"] .zona,
-[data-fondo="mixto"] .zona-catalogo {
-  --color-noche: #f5f6f8;
-  --color-tribuna: #ffffff;
-  --color-tribuna-2: #eceff4;
-  --color-raya: #d8dee8;
-  --color-tiza: #0a1220;
-  --color-niebla: #566275;
-  --color-celeste: #1565b8;
-  --color-bengala: #d42c18;
-  --color-acento: #0f2340;
-  --color-acento-tinta: #ffffff;
-  color-scheme: light;
-}
-[data-fondo="blanco"] .reflectores {
-  background:
-    radial-gradient(60% 55% at 12% -8%, rgb(21 101 184 / 0.16), transparent 70%),
-    radial-gradient(90% 60% at 50% 120%, rgb(15 35 64 / 0.1), transparent 70%),
-    var(--color-noche);
-}
-[data-fondo="blanco"] .zona .logo-blanco {
-  filter: brightness(0);
 }
