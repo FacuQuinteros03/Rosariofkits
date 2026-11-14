@@ -16,6 +16,19 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  /*
+    Los cuadros de la portada viven en carpetas con versión (/hero/azul-v1):
+    nunca cambian bajo la misma URL, así que el navegador los guarda un año.
+  */
+  async headers() {
+    return [
+      {
+        source: "/hero/:ruta*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+    ];
+  },
+
   images: {
     // AVIF primero: pesa bastante menos que WebP en fotos de producto
     formats: ["image/avif", "image/webp"],

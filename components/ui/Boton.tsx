@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 
-type Variante = "whatsapp" | "acento" | "linea";
+type Variante = "whatsapp" | "acento" | "linea" | "claro";
 type Tamano = "sm" | "md" | "lg";
 
 const BASE =
@@ -12,6 +12,8 @@ const VARIANTES: Record<Variante, string> = {
   /* el botón de pedir: el azul más vivo de la paleta, siempre con el ícono de WhatsApp */
   whatsapp: "bg-azul text-white hover:bg-azul-2",
   acento: "bg-marino text-white hover:bg-marino-2",
+  /* para apoyar sobre foto o color */
+  claro: "bg-white text-marino hover:bg-celeste-suave",
   /* sin borde: el corte diagonal se lo comería en los costados */
   linea: "bg-celeste-suave text-marino hover:bg-[#d3e6f9]",
 };

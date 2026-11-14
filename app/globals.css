@@ -207,6 +207,14 @@ html {
     linear-gradient(180deg, #ffffff, var(--color-fondo));
 }
 
+@media (min-width: 1024px) {
+  .resplandor-lg {
+    background:
+      radial-gradient(70% 60% at 85% -10%, rgb(124 196 245 / 0.42), transparent 70%),
+      linear-gradient(180deg, #ffffff, var(--color-fondo));
+  }
+}
+
 /* líneas de cal: la trama fina de fondo */
 .cal {
   background-image: repeating-linear-gradient(
@@ -252,5 +260,50 @@ html {
   }
   .anuncio:first-child {
     opacity: 1;
+  }
+}
+
+/*
+  Portada con scroll. La sección mide más que la pantalla y adentro hay un
+  escenario pegado: mientras se recorre esa altura extra, avanza la secuencia.
+  Con movimiento reducido no hay recorrido: queda una portada fija y común.
+*/
+.hero-scroll {
+  height: 230svh;
+}
+.hero-escenario {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+.hero-etapa {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+.hero-scroll:not([data-etapa]) .hero-etapa[data-n="1"],
+.hero-scroll[data-etapa="1"] .hero-etapa[data-n="1"],
+.hero-scroll[data-etapa="2"] .hero-etapa[data-n="2"],
+.hero-scroll[data-etapa="3"] .hero-etapa[data-n="3"] {
+  opacity: 1;
+  transform: none;
+}
+.hero-barra {
+  transform: scaleX(var(--avance, 0));
+  transform-origin: left;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll {
+    height: auto;
+  }
+  .hero-escenario {
+    position: relative;
+    height: auto;
+    min-height: 86svh;
+  }
+  .hero-barra {
+    display: none;
   }
 }
