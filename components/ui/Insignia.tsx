@@ -14,11 +14,11 @@ const ESTILOS: Record<TipoInsignia, string> = {
   nuevo: "bg-celeste text-noche",
   lanzamiento: "bg-tiza text-noche",
   rebajada: "bg-bengala text-black",
-  ultima: "bg-black/75 text-bengala ring-1 ring-inset ring-bengala/70",
-  quedan: "bg-black/75 text-tiza ring-1 ring-inset ring-white/30",
-  agotado: "bg-black/75 text-niebla ring-1 ring-inset ring-white/15",
+  ultima: "bg-black/80 text-[#ff8a7a] ring-1 ring-inset ring-[#ff8a7a]/70",
+  quedan: "bg-black/80 text-white ring-1 ring-inset ring-white/30",
+  agotado: "bg-black/80 text-white/75 ring-1 ring-inset ring-white/15",
   player: "bg-acento text-acento-tinta",
-  fan: "bg-marino-2 text-tiza",
+  fan: "bg-marino-2 text-white",
 };
 
 /** Las etiquetas de producto. El texto lo pone quien la usa ("Quedan 2"). */

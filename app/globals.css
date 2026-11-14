@@ -259,3 +259,38 @@ html {
     opacity: 1;
   }
 }
+
+/*
+  Zonas con fondo propio. Cada una pinta su fondo y su texto desde los tokens,
+  así el tema claro se prende zona por zona redefiniendo solo las variables.
+*/
+.zona {
+  background-color: var(--color-noche);
+  color: var(--color-tiza);
+}
+
+/* tema claro: "blanco tiza". Mismos nombres de token, valores invertidos. */
+.tema-claro,
+[data-fondo="blanco"] .zona,
+[data-fondo="mixto"] .zona-catalogo {
+  --color-noche: #f5f6f8;
+  --color-tribuna: #ffffff;
+  --color-tribuna-2: #eceff4;
+  --color-raya: #d8dee8;
+  --color-tiza: #0a1220;
+  --color-niebla: #566275;
+  --color-celeste: #1565b8;
+  --color-bengala: #d42c18;
+  --color-acento: #0f2340;
+  --color-acento-tinta: #ffffff;
+  color-scheme: light;
+}
+[data-fondo="blanco"] .reflectores {
+  background:
+    radial-gradient(60% 55% at 12% -8%, rgb(21 101 184 / 0.16), transparent 70%),
+    radial-gradient(90% 60% at 50% 120%, rgb(15 35 64 / 0.1), transparent 70%),
+    var(--color-noche);
+}
+[data-fondo="blanco"] .zona .logo-blanco {
+  filter: brightness(0);
+}

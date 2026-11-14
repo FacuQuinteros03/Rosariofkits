@@ -12,7 +12,7 @@ const VARIANTES: Record<Variante, string> = {
   /* el verde queda solo para WhatsApp: es el color que la gente ya asocia a "escribir" */
   whatsapp: "bg-wa text-black",
   acento: "bg-acento text-acento-tinta",
-  linea: "bg-white/[0.07] text-tiza ring-1 ring-inset ring-white/25 hover:bg-white/[0.12]",
+  linea: "bg-tiza/[0.07] text-tiza ring-1 ring-inset ring-tiza/30 hover:bg-tiza/[0.12]",
 };
 
 const TAMANOS: Record<Tamano, string> = {

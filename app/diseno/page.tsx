@@ -65,12 +65,12 @@ function Tarjeta({
 }) {
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-lg border border-raya bg-tribuna">
-      <div className="relative aspect-[3/4] overflow-hidden">
+      <div className="relative aspect-[4/5] overflow-hidden">
         <Image
           src={foto}
           alt={`${nombre}, vista de frente`}
           fill
-          sizes="(min-width: 640px) 300px, 50vw"
+          sizes="(min-width: 1024px) 430px, (min-width: 640px) 33vw, 50vw"
           className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
         <div className="absolute left-0 top-3 flex flex-col items-start gap-1.5">
@@ -81,8 +81,8 @@ function Tarjeta({
           ))}
         </div>
       </div>
-      <div className="flex flex-1 flex-col gap-3 p-3.5">
-        <h3 className="text-[14px] font-semibold leading-snug">{nombre}</h3>
+      <div className="flex flex-1 flex-col gap-3 p-3.5 lg:gap-4 lg:p-5">
+        <h3 className="text-[14px] font-semibold leading-snug lg:text-[17px]">{nombre}</h3>
         <div>
           {antes && (
             <p className="mb-1 flex flex-wrap items-center gap-x-2 text-[12.5px]">
@@ -90,7 +90,7 @@ function Tarjeta({
               <span className="whitespace-nowrap font-bold tabular-nums text-bengala">Ahorrás {antes.ahorro}</span>
             </p>
           )}
-          <p className="font-titulo text-[34px] font-extrabold italic leading-none tabular-nums">{precio}</p>
+          <p className="font-titulo text-[34px] font-extrabold italic leading-none tabular-nums lg:text-[44px]">{precio}</p>
         </div>
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Talles disponibles">
           {talles.map((t, i) => (
@@ -107,11 +107,13 @@ function Tarjeta({
           ))}
         </div>
         <div className="mt-auto flex flex-col gap-2">
-          <Boton variante="whatsapp" tamano="sm" href="#" className="w-full">
+          <Boton variante="whatsapp" tamano="sm" href="#" className="w-full lg:min-h-[50px] lg:text-[18px]">
             <MessageCircle className="h-[18px] w-[18px] shrink-0" strokeWidth={2.5} aria-hidden />
-            Pedir<span className="max-[420px]:sr-only">por WhatsApp</span>
+            <span>
+              Pedir<span className="max-sm:sr-only"> por WhatsApp</span>
+            </span>
           </Boton>
-          <Boton variante="linea" tamano="sm" className="w-full">
+          <Boton variante="linea" tamano="sm" className="w-full lg:min-h-[50px] lg:text-[18px]">
             <Plus className="h-[18px] w-[18px] shrink-0" strokeWidth={2.5} aria-hidden />
             Al pedido
           </Boton>
@@ -126,11 +128,11 @@ export default function Page() {
     <SelectorAcento>
       {/* ---------- muestra de portada ---------- */}
       <BarraAnuncios />
-      <header className="reflectores relative overflow-hidden">
+      <header className="zona reflectores relative overflow-hidden">
         <div className="cal absolute inset-0" aria-hidden />
         <div className="relative mx-auto max-w-[1100px] px-4 pb-14 pt-6 sm:pb-20">
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="" width={40} height={40} className="h-9 w-9" />
+            <Image src="/logo.png" alt="" width={40} height={40} className="logo-blanco h-9 w-9" />
             <span className="font-titulo text-xl font-extrabold uppercase italic tracking-wide">
               Rosario F Kits
             </span>
@@ -159,14 +161,14 @@ export default function Page() {
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-[1100px] flex-col gap-16 px-4 py-14">
+      <main className="zona zona-catalogo">
+      <div className="mx-auto flex max-w-[1100px] flex-col gap-16 px-4 py-14">
         {/* ---------- paleta ---------- */}
         <section>
           <Titulo n="01">Paleta</Titulo>
           <p className="mb-6 max-w-2xl text-[15px] leading-relaxed text-niebla">
-            Un estadio de noche: fondo casi negro tirando a azul, el marino del logo como base y el
-            celeste como luz. El verde queda reservado para WhatsApp. Probá los tres acentos con el
-            selector de arriba.
+            Con el selector de arriba podés ver el catálogo de noche o en blanco. Los cuadros de abajo
+            muestran los colores del fondo que tengas elegido. El verde queda reservado para WhatsApp.
           </p>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {PALETA.map((c) => (
@@ -174,7 +176,6 @@ export default function Page() {
                 <div className="h-16" style={{ background: `var(--color-${c.token})` }} />
                 <div className="p-3">
                   <p className="text-[14px] font-bold">{c.nombre}</p>
-                  {c.hex !== "var" && <p className="font-mono text-[12px] text-niebla">{c.hex}</p>}
                   <p className="mt-1 text-[12.5px] leading-snug text-niebla">{c.uso}</p>
                 </div>
               </li>
@@ -260,9 +261,9 @@ export default function Page() {
         </section>
 
         {/* ---------- tarjetas ---------- */}
-        <section>
+        <section className="lg:-mx-[110px]">
           <Titulo n="04">Tarjeta de producto</Titulo>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-6">
             <Tarjeta
               foto="/fotos/3029.jpg"
               nombre="Camiseta Argentina titular con dorsal Messi 10"
@@ -313,6 +314,7 @@ export default function Page() {
             </li>
           </ul>
         </section>
+      </div>
       </main>
     </SelectorAcento>
   );
