@@ -167,3 +167,95 @@ html {
     animation: none;
   }
 }
+
+/*
+  ============================================================
+  Rediseño "estadio de noche" — tokens nuevos.
+  Conviven con los de arriba: nada del sitio actual los usa
+  hasta que se apruebe /diseno.
+  ============================================================
+*/
+@theme {
+  --color-noche: #070a11;
+  --color-tribuna: #0d1420;
+  --color-tribuna-2: #152033;
+  --color-raya: #24324a;
+  --color-tiza: #f2f5f9;
+  --color-niebla: #93a3b8;
+
+  --color-marino: #0f2340;
+  --color-marino-2: #1a3a68;
+  --color-celeste: #7ccbf7;
+  --color-celeste-2: #3d9be0;
+
+  --color-acento: #d4ff3f;
+  --color-acento-tinta: #0c1400;
+  --color-bengala: #ff5a47;
+
+  --font-titulo: var(--fuente-titulo), var(--fuente-display), "Arial Narrow", sans-serif;
+}
+
+/* la diagonal del logo: el mismo ángulo en botones, insignias y cortes */
+.corte {
+  clip-path: polygon(0.7em 0, 100% 0, calc(100% - 0.7em) 100%, 0 100%);
+}
+.corte-der {
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.9em) 100%, 0 100%);
+}
+
+/* reflectores: dos conos de luz que bajan desde las esquinas */
+.reflectores {
+  background:
+    radial-gradient(60% 55% at 12% -8%, rgb(124 203 247 / 0.38), transparent 70%),
+    radial-gradient(55% 50% at 92% -12%, rgb(242 245 249 / 0.22), transparent 70%),
+    radial-gradient(90% 60% at 50% 120%, rgb(26 58 104 / 0.55), transparent 70%),
+    var(--color-noche);
+}
+
+/* líneas de cal: la trama fina de fondo de las secciones */
+.cal {
+  background-image: repeating-linear-gradient(
+    100deg,
+    transparent 0 46px,
+    rgb(124 203 247 / 0.045) 46px 47px
+  );
+}
+
+/* foco visible, uno solo para todo el sistema nuevo */
+.rfk :focus-visible {
+  outline: 2px solid var(--color-celeste);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* barra de anuncios: tres mensajes que se turnan */
+@keyframes anuncio-turno {
+  0%,
+  3% {
+    opacity: 0;
+    transform: translateY(70%);
+  }
+  7%,
+  30% {
+    opacity: 1;
+    transform: none;
+  }
+  34%,
+  100% {
+    opacity: 0;
+    transform: translateY(-70%);
+  }
+}
+.anuncio {
+  opacity: 0;
+  animation: anuncio-turno 12s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anuncio {
+    animation: none;
+    opacity: 0;
+  }
+  .anuncio:first-child {
+    opacity: 1;
+  }
+}
