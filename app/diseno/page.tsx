@@ -2,7 +2,7 @@ import Image from "next/image";
 import { ArrowDown, MessageCircle, Plus, Ruler } from "lucide-react";
 import { BarraAnuncios } from "@/components/ui/BarraAnuncios";
 import { Boton } from "@/components/ui/Boton";
-import { HeroScroll } from "@/components/HeroScroll";
+import { HeroFotos } from "@/components/HeroFotos";
 import { Insignia, type TipoInsignia } from "@/components/ui/Insignia";
 
 /*
@@ -150,56 +150,50 @@ export default function Page() {
     <>
       {/* ---------- muestra de portada ---------- */}
       <BarraAnuncios />
-      <section className="hero-scroll relative bg-fondo" aria-label="Portada">
-        <div className="hero-escenario overflow-hidden lg:grid lg:grid-cols-[1.05fr_0.95fr]">
-          {/* la camiseta: fondo entero en celular, panel con el corte del logo en escritorio */}
-          <div className="absolute inset-0 lg:relative lg:order-2 lg:[clip-path:polygon(16%_0,100%_0,100%_100%,0_100%)]">
-            <HeroScroll alt="Tela de una camiseta azul, vista de cerca" />
-            {/* velo: en celular el texto va encima de la tela */}
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-gradient-to-t from-marino via-marino/70 via-45% to-marino/10 lg:hidden"
-            />
+      <section className="relative bg-fondo lg:grid lg:min-h-[min(calc(100svh-36px),860px)] lg:grid-cols-[1.02fr_0.98fr]" aria-label="Portada">
+        {/* las fotos: arriba en celular, a la derecha con el corte del logo en escritorio */}
+        <div className="relative h-[52svh] min-h-[300px] lg:order-2 lg:h-auto lg:[clip-path:polygon(14%_0,100%_0,100%_100%,0_100%)]">
+          <HeroFotos />
+          {/* marca sobre la foto, solo en celular */}
+          <div className="absolute inset-x-0 top-0 flex items-center gap-3 bg-gradient-to-b from-black/50 to-transparent px-4 pb-8 pt-4 text-white lg:hidden">
+            <Logo className="h-9 w-9 bg-white" />
+            <span className="font-titulo text-xl font-extrabold uppercase italic tracking-wide">
+              Rosario F Kits
+            </span>
+          </div>
+        </div>
+
+        <div className="resplandor-lg relative flex flex-col px-4 pb-8 pt-6 text-marino lg:order-1 lg:px-12 lg:py-10 xl:px-20">
+          <div className="hidden items-center gap-3 lg:flex">
+            <Logo className="h-9 w-9 bg-marino" />
+            <span className="font-titulo text-xl font-extrabold uppercase italic tracking-wide">
+              Rosario F Kits
+            </span>
           </div>
 
-          <div className="resplandor-lg relative flex h-full flex-col px-5 pb-24 pt-5 text-white lg:order-1 lg:px-12 lg:pb-12 lg:pt-8 lg:text-marino xl:px-20">
-            <div className="flex items-center gap-3">
-              <Logo className="h-9 w-9 bg-white lg:bg-marino" />
-              <span className="font-titulo text-xl font-extrabold uppercase italic tracking-wide">
-                Rosario F Kits
-              </span>
-            </div>
-
-            <div className="mt-auto lg:my-auto">
-              {/* la línea de arriba del título cambia con el recorrido */}
-              <p className="relative h-7 font-titulo text-lg font-bold uppercase italic tracking-[0.14em] text-celeste lg:text-azul">
-                <span className="hero-etapa absolute inset-0" data-n="1">Camisetas de fútbol · Rosario</span>
-                <span className="hero-etapa absolute inset-0" data-n="2" aria-hidden>Mirala de cerca</span>
-                <span className="hero-etapa absolute inset-0" data-n="3" aria-hidden>Así te llega</span>
-              </p>
-              <h1 className="mt-1 font-titulo text-[clamp(3.4rem,15vw,6rem)] font-black xl:text-[6.6rem] uppercase italic leading-[0.84] tracking-[-0.01em]">
-                La que querés,
-                <br />
-                <span className="text-celeste lg:text-azul">en mano.</span>
-              </h1>
-              <p className="mt-4 max-w-md text-[16.5px] leading-relaxed text-white/90 lg:text-tinta/80">
-                Stock real, talle por talle. Elegís, nos escribís y la tenés: entrega en Rosario o
-                envío a todo el país.
-              </p>
-              <div className="mt-6 flex gap-2.5 sm:gap-3">
-                <Boton tamano="lg" variante="claro" href="#componentes" className="flex-1 !px-4 sm:flex-none sm:!px-8 lg:!bg-marino lg:!text-white">
-                  Ver el stock
-                  <ArrowDown className="h-5 w-5" strokeWidth={2.8} aria-hidden />
-                </Boton>
-                <Boton tamano="lg" variante="whatsapp" href="#componentes" className="flex-1 !px-4 sm:flex-none sm:!px-8">
-                  <MessageCircle className="h-5 w-5" strokeWidth={2.5} aria-hidden />
-                  Escribinos
-                </Boton>
-              </div>
+          <div className="lg:my-auto">
+            <h1 className="font-titulo text-[clamp(3rem,13.5vw,6rem)] font-black uppercase italic leading-[0.86] tracking-[-0.01em] xl:text-[6.6rem]">
+              Bienvenido a
+              <br />
+              <span className="text-azul">Rosario F Kits</span>
+            </h1>
+            <p className="mt-3 font-titulo text-[22px] font-bold uppercase italic leading-tight tracking-[0.06em] text-marino-2 lg:mt-4 lg:text-[28px]">
+              Indumentaria de fútbol importada
+            </p>
+            <p className="mt-3 max-w-md text-[16px] leading-relaxed text-tinta/80 lg:text-[17px]">
+              Stock real, talle por talle. Entrega en mano en Rosario y envíos a todo el país.
+            </p>
+            <div className="mt-5 flex gap-2.5 sm:gap-3 lg:mt-7">
+              <Boton tamano="lg" href="#componentes" className="flex-1 !px-4 sm:flex-none sm:!px-8">
+                Ver el stock
+                <ArrowDown className="h-5 w-5" strokeWidth={2.8} aria-hidden />
+              </Boton>
+              <Boton tamano="lg" variante="whatsapp" href="#componentes" className="flex-1 !px-4 sm:flex-none sm:!px-8">
+                <MessageCircle className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+                Escribinos
+              </Boton>
             </div>
           </div>
-
-          <div aria-hidden className="hero-barra absolute inset-x-0 bottom-0 h-1 bg-celeste" />
         </div>
       </section>
 
