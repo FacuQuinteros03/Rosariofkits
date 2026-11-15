@@ -10,6 +10,14 @@
  */
 export type Version = "fan" | "player";
 
+/**
+ * Interruptor de la guía. En `false` el botón "Guía de talles" no aparece en
+ * ningún lado y el sitio se apoya en las preguntas frecuentes de la ficha
+ * ("¿Cómo vienen los talles?"). Pasa a `true` cuando las medidas de abajo
+ * sean las reales.
+ */
+export const GUIA_TALLES_PUBLICA = false;
+
 export const TABLA_TALLES: Record<Version, { talle: string; ancho: number; largo: number }[]> = {
   fan: [
     { talle: "S", ancho: 50, largo: 69 },

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Ruler, X } from "lucide-react";
-import { TABLA_TALLES, VERSIONES, type Version } from "@/lib/talles";
+import { GUIA_TALLES_PUBLICA, TABLA_TALLES, VERSIONES, type Version } from "@/lib/talles";
 import { linkWhatsAppGeneral } from "@/lib/whatsapp";
 
 /**
@@ -21,6 +21,8 @@ export function GuiaTalles({
   const dialogo = useRef<HTMLDialogElement>(null);
   const [version, setVersion] = useState<Version>(versionInicial);
   const info = VERSIONES.find((v) => v.id === version)!;
+
+  if (!GUIA_TALLES_PUBLICA) return null;
 
   return (
     <>
