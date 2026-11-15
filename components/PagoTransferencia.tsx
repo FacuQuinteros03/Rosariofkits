@@ -78,7 +78,7 @@ export function PagoTransferencia({
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 flex w-full items-center justify-center gap-2.5 rounded-xl bg-wa px-5 py-3.5 text-[15px]
-                     font-bold text-black/85 transition-colors hover:bg-wa-dark"
+                     font-bold text-white transition-colors hover:bg-wa-dark"
         >
           <MessageCircle className="h-5 w-5 shrink-0" strokeWidth={2.4} aria-hidden />
           Avisar por WhatsApp
@@ -147,7 +147,7 @@ export function PagoTransferencia({
         </div>
 
         {error && (
-          <p role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2.5 text-[13px] leading-snug text-red-200">
+          <p role="alert" className="rounded-xl border border-bengala/40 bg-bengala/10 px-3 py-2.5 text-[13px] leading-snug text-bengala">
             {error}
           </p>
         )}
@@ -158,7 +158,7 @@ export function PagoTransferencia({
           type="submit"
           disabled={enviando}
           className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-gold px-5 py-3.5 text-[15px]
-                     font-bold text-black/85 transition-opacity disabled:opacity-60"
+                     font-bold text-white transition-opacity disabled:opacity-60"
         >
           {enviando ? "Enviando..." : "Enviar comprobante y reservar"}
         </button>

@@ -281,8 +281,8 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
                       type="button"
                       disabled={mirando}
                       onClick={() => setPaso("pago")}
-                      className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-gold px-5 py-3.5
-                                 text-[15px] font-bold text-black/85 transition-opacity disabled:opacity-60"
+                      className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-navy px-5 py-3.5
+                                 text-[15px] font-bold text-white transition-opacity disabled:opacity-60"
                     >
                       <Landmark className="h-5 w-5 shrink-0" strokeWidth={2.4} aria-hidden />
                       Pagar con transferencia
