@@ -425,8 +425,14 @@ pedido esté por llegar (diciembre de 2026): commitear y pasar el interruptor a
    Shopping. Antes Facu tiene que definir costo de envío y política de cambios.
 6. **Páginas `/preguntas-frecuentes` y `/envios`**, en texto, enlazadas desde
    el pie.
-7. **Dominio propio** (`rosariofkits.com.ar`): al cambiarlo, actualizar
-   `NEXT_PUBLIC_SITE_URL` en Vercel.
+7. **Dominio propio** (`rosariofkits.com.ar`, registrado en NIC.ar el 14/11/2026):
+   - Vercel → Domains → agregar `rosariofkits.com.ar` y `www`; en NIC.ar,
+     "Delegar" con los nameservers que muestra Vercel.
+   - Con el dominio en verde: `NEXT_PUBLIC_SITE_URL=https://rosariofkits.com.ar`
+     en Production y Redeploy.
+   - Supabase → Authentication → URL Configuration: sumar
+     `https://rosariofkits.com.ar/**` a Redirect URLs, o el login del panel falla.
+   - Google Search Console: agregar el dominio nuevo.
 8. **Alt de las fotos** con qué muestra cada una (frente, espalda, escudo) en
    vez de "foto 2 de 5".
 
