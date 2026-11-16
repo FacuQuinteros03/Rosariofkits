@@ -376,14 +376,19 @@ unidades, archivos de 8 MB como máximo (imagen o PDF), y un campo trampa para
 bots. Un comprobante se puede falsificar: por eso la venta no queda cobrada
 hasta que alguien mira el banco.
 
-Para activarlo, en Vercel (Production, y Redeploy):
+Para activarlo, en Vercel (Production y Preview; las variables valen desde el
+próximo deploy):
 
 - `SUPABASE_SECRET_KEY`: la clave secreta de Supabase (Settings → API Keys).
-  **Marcarla Sensitive**: pasa por encima de los permisos de la base.
-- `TRANSFERENCIA_ALIAS`, `TRANSFERENCIA_CBU` (opcional), `TRANSFERENCIA_TITULAR`.
+  **Marcarla Sensitive** (el interruptor aparece con Development destildado):
+  pasa por encima de los permisos de la base.
+- `TRANSFERENCIA_ALIAS` (`rosariofkits`) y `TRANSFERENCIA_TITULAR`.
+- Opcionales: `TRANSFERENCIA_BANCO`, `TRANSFERENCIA_CBU`, `TRANSFERENCIA_CUIT`.
+  El CUIT no hace falta: la app del banco lo muestra al pegar el alias.
 
-Y en Supabase → Storage, crear el bucket `comprobantes` **privado**. Sin todo
-eso el botón no aparece y el carrito sigue como antes.
+Y en Supabase → SQL Editor, correr `supabase/migrations/0023_bucket_comprobantes.sql`,
+que crea el bucket privado `comprobantes`. Sin todo eso el botón no aparece y el
+carrito sigue como antes.
 
 **El checkout con pago es otra etapa, más adelante:** el stock ya sale del ERP,
 pero hay que reservar al pagar: con una unidad por talle dos
