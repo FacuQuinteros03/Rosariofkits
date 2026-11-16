@@ -27,6 +27,11 @@ Lo que se publicó en `main`, con fecha, y lo que está hecho en rama esperando 
   privado `comprobantes` en Supabase. Sin eso el botón no aparece.
 - **No se probó contra la base real.** Falta un pedido de prueba de punta a punta.
 
+- 16/11/2026: el paso de pago muestra también CUIT y banco (`TRANSFERENCIA_CUIT`,
+  `TRANSFERENCIA_BANCO`, opcionales). El bucket `comprobantes` se crea con la migración
+  `0023_bucket_comprobantes.sql`. El Inicio del panel avisa cuántos comprobantes hay para
+  verificar y lleva a Ventas.
+
 ### Seguridad (16/11/2026)
 
 - Next 16.4.6; sin vulnerabilidades críticas ni altas.

@@ -109,12 +109,9 @@ export function PagoTransferencia({
         <dl className="space-y-2 rounded-xl border border-line bg-surface p-3.5 text-sm">
           {datos.alias && <Dato etiqueta="Alias" valor={datos.alias} />}
           {datos.cbu && <Dato etiqueta="CBU / CVU" valor={datos.cbu} />}
-          {datos.titular && (
-            <div className="flex justify-between gap-3">
-              <dt className="text-muted">Titular</dt>
-              <dd className="text-right">{datos.titular}</dd>
-            </div>
-          )}
+          {datos.titular && <Fila etiqueta="Titular" valor={datos.titular} />}
+          {datos.cuit && <Fila etiqueta="CUIT" valor={datos.cuit} />}
+          {datos.banco && <Fila etiqueta="Banco" valor={datos.banco} />}
         </dl>
 
         <div className="space-y-3">
@@ -177,6 +174,16 @@ export function PagoTransferencia({
         )}
       </div>
     </form>
+  );
+}
+
+/** Un dato que se lee para confirmar a quién se transfiere, sin botón de copiar. */
+function Fila({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <dt className="text-muted">{etiqueta}</dt>
+      <dd className="text-right tabular-nums">{valor}</dd>
+    </div>
   );
 }
 
