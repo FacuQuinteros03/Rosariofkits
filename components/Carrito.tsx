@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
-import { MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { Check, Copy, MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import {
   actualizarStock,
   cambiarCantidad,
@@ -17,6 +17,7 @@ import {
   type StockActual,
 } from "@/lib/carrito";
 import { calcularTotales, PROMO_PAR } from "@/lib/promo";
+import { TRANSFERENCIA } from "@/lib/site";
 import { precio } from "@/lib/whatsapp";
 
 /** Lo dispara AgregarAlCarrito: el texto del aviso de "agregaste". */
@@ -247,6 +248,8 @@ export function Carrito() {
                     </div>
                   </dl>
 
+                  <DatosTransferencia />
+
                   <a
                     href={linkPedido(items)}
                     target="_blank"
@@ -263,7 +266,7 @@ export function Carrito() {
                     {mirando ? "Revisando el stock..." : "Enviar pedido por WhatsApp"}
                   </a>
                   <p className="text-center text-[11.5px] leading-snug text-muted">
-                    No se cobra nada acá: te confirmamos stock, pago y entrega por WhatsApp.
+                    Transferí cuando te confirmemos el stock por WhatsApp, y mandanos el comprobante por ahí.
                   </p>
                   <button
                     type="button"
@@ -282,5 +285,50 @@ export function Carrito() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+/**
+ * Alias y titular para transferir, con un botón que copia el alias: en el
+ * celular es lo que la persona pega en la app del banco.
+ */
+function DatosTransferencia() {
+  const [copiado, setCopiado] = useState(false);
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(TRANSFERENCIA.alias);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // sin permiso para el portapapeles: el alias queda a la vista igual
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-line bg-surface px-3.5 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
+        Para pagar por transferencia
+      </p>
+      <div className="mt-1.5 flex items-center justify-between gap-3">
+        <p className="min-w-0 text-[13px]">
+          <span className="text-muted">Alias </span>
+          <span className="font-bold tracking-wide text-ink">{TRANSFERENCIA.alias}</span>
+        </p>
+        <button
+          type="button"
+          onClick={() => void copiar()}
+          aria-label="Copiar alias"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5
+                     text-[12px] font-semibold text-ink hover:bg-navy/5"
+        >
+          {copiado ? <Check className="h-3.5 w-3.5" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
+          <span aria-live="polite">{copiado ? "Copiado" : "Copiar"}</span>
+        </button>
+      </div>
+      <p className="mt-1 text-[11.5px] leading-snug text-muted">
+        {TRANSFERENCIA.titular} · CUIT {TRANSFERENCIA.cuit} · {TRANSFERENCIA.banco}
+      </p>
+    </div>
   );
 }

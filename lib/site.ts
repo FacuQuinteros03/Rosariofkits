@@ -17,3 +17,11 @@ export const NEGOCIO = {
   provincia: "Santa Fe",
   pais: "AR",
 } as const;
+
+/** Datos para que el cliente transfiera. Se muestran en el carrito. */
+export const TRANSFERENCIA = {
+  alias: "rosariofkits",
+  titular: "Facundo Emanuel Quinteros",
+  cuit: "20-45346346-0",
+  banco: "Naranja Digital Compañía Financiera",
+} as const;
