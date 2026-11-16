@@ -24,7 +24,7 @@ export function BarraAnuncios() {
           <p
             key={texto}
             className="anuncio absolute inset-0 flex items-center justify-center gap-2 px-4 text-center
-                       text-[12.5px] font-semibold"
+                       text-[13px] font-semibold"
             style={{ animationDelay: `${i * 4}s` }}
           >
             <Icono className="h-4 w-4 shrink-0 text-celeste" strokeWidth={2} />

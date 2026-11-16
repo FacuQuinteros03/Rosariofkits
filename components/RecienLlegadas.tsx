@@ -31,7 +31,7 @@ export function RecienLlegadas({ productos }: { productos: Producto[] }) {
         >
           Recién llegadas
         </h2>
-        <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-muted">
+        <span className="text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
           {nuevos.length} {nuevos.length === 1 ? "modelo" : "modelos"}
         </span>
       </div>
@@ -52,7 +52,6 @@ export function RecienLlegadas({ productos }: { productos: Producto[] }) {
                   alt={p.nombre}
                   fill
                   sizes="(min-width: 640px) 260px, 62vw"
-                  priority={i < 2}
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                 />
                 {/*
@@ -82,7 +81,7 @@ export function RecienLlegadas({ productos }: { productos: Producto[] }) {
                 <span className="line-clamp-2 text-sm font-semibold leading-snug text-ink">{p.nombre}</span>
                 <span className="mt-2 flex items-end justify-between gap-2">
                   <Precio producto={p} tamano="text-2xl" />
-                  <span className="text-[11px] font-bold tabular-nums text-muted">{talles.join(" · ")}</span>
+                  <span className="text-[13px] font-bold tabular-nums text-muted">{talles.join(" · ")}</span>
                 </span>
               </span>
             </Link>

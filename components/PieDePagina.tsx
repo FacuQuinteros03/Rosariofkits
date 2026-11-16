@@ -1,6 +1,7 @@
 import { Logo } from "./ui/Logo";
 import Link from "next/link";
 import { IconoInstagram } from "./IconoInstagram";
+import { LEGALES_PUBLICOS } from "@/lib/legal";
 import { INSTAGRAM, NEGOCIO, USUARIO_IG } from "@/lib/site";
 
 /**
@@ -20,7 +21,7 @@ export function PieDePagina() {
     <footer className="mt-14 border-t border-line pt-8 text-center">
       <Link
         href="/"
-        className="inline-flex items-center gap-2.5 transition-opacity hover:opacity-80"
+        className="inline-flex min-h-11 items-center gap-2.5 transition-opacity hover:opacity-80"
       >
         <Logo className="h-8 w-8 bg-navy" />
         <span className="font-display text-lg font-bold uppercase tracking-wide text-ink">
@@ -36,7 +37,7 @@ export function PieDePagina() {
         href={INSTAGRAM}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-3.5 inline-flex items-center gap-2 rounded-xl border border-line px-4 py-2.5
+        className="mt-3.5 inline-flex min-h-12 items-center gap-2 rounded-xl border border-line px-4
                    text-[13.5px] font-bold text-ink transition-colors hover:border-muted
                    hover:bg-surface focus-visible:outline focus-visible:outline-2
                    focus-visible:outline-offset-2 focus-visible:outline-gold"
@@ -46,11 +47,22 @@ export function PieDePagina() {
         <span className="font-semibold text-muted">{USUARIO_IG}</span>
       </a>
 
-      <p className="mt-7 text-[12px] leading-relaxed text-muted">
+      <p className="mt-7 text-[13px] leading-relaxed text-muted">
         {NEGOCIO.nombre} · Indumentaria deportiva
         <br />
         Entrega en mano en {NEGOCIO.ciudad} · Envíos a todo el país
       </p>
+
+      {LEGALES_PUBLICOS && (
+      <nav aria-label="Legales" className="mt-3 flex flex-wrap justify-center gap-x-5 text-[14px] font-semibold">
+        <Link href="/arrepentimiento" className="inline-flex min-h-11 items-center text-ink underline underline-offset-4">
+          Botón de arrepentimiento
+        </Link>
+        <Link href="/privacidad" className="inline-flex min-h-11 items-center text-ink underline underline-offset-4">
+          Privacidad
+        </Link>
+      </nav>
+      )}
     </footer>
   );
 }

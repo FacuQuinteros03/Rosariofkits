@@ -28,7 +28,8 @@
 }
 
 html {
-  color-scheme: light;
+  /* "only light": el modo oscuro automatico de Chrome en Android no da vuelta los colores */
+  color-scheme: only light;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -218,37 +219,8 @@ html {
   font-style: italic;
 }
 .tema-oscuro .font-display {
+  font-family: var(--fuente-display-recta), "Arial Narrow", sans-serif;
   font-style: normal;
-}
-
-/* la diagonal del logo: el mismo ángulo en botones, insignias y cortes */
-.corte {
-  clip-path: polygon(0.7em 0, 100% 0, calc(100% - 0.7em) 100%, 0 100%);
-}
-
-/* portada: blanco con un resplandor celeste que baja desde arriba */
-.resplandor {
-  background:
-    radial-gradient(70% 60% at 85% -10%, rgb(124 196 245 / 0.42), transparent 70%),
-    radial-gradient(50% 50% at 0% 0%, rgb(26 95 208 / 0.1), transparent 70%),
-    linear-gradient(180deg, #ffffff, var(--color-fondo));
-}
-
-@media (min-width: 1024px) {
-  .resplandor-lg {
-    background:
-      radial-gradient(70% 60% at 85% -10%, rgb(124 196 245 / 0.42), transparent 70%),
-      linear-gradient(180deg, #ffffff, var(--color-fondo));
-  }
-}
-
-/* líneas de cal: la trama fina de fondo */
-.cal {
-  background-image: repeating-linear-gradient(
-    100deg,
-    transparent 0 46px,
-    rgb(15 35 64 / 0.035) 46px 47px
-  );
 }
 
 /* foco visible, uno solo para todo el sistema nuevo */
@@ -288,4 +260,23 @@ html {
   .anuncio:first-child {
     opacity: 1;
   }
+}
+
+/* El pedido: el velo aparece y el panel entra desde la derecha. Solo opacity y
+   transform; con movimiento reducido la regla general los deja instantáneos. */
+@keyframes velo-entra {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes panel-entra {
+  from {
+    transform: translateX(100%);
+  }
+}
+.velo-entra {
+  animation: velo-entra 0.2s ease-out both;
+}
+.panel-entra {
+  animation: panel-entra 0.22s cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }

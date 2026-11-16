@@ -28,13 +28,13 @@ export function Precio({
   return (
     <span className="flex flex-col gap-1">
       {esLanzamiento(producto) ? (
-        <span className="text-[11px] font-extrabold uppercase tracking-[0.11em] text-gold">
+        <span className="text-[13px] font-extrabold uppercase tracking-[0.11em] text-gold">
           Precio de lanzamiento
         </span>
       ) : (
         precioAntes &&
         ahorro > 0 && (
-          <span className="flex flex-wrap items-center gap-x-2 text-[12.5px]">
+          <span className="flex flex-wrap items-center gap-x-2 text-[13px]">
             <s className="font-semibold tabular-nums text-muted">{precio(precioAntes)}</s>
             <span className="whitespace-nowrap font-bold tabular-nums text-bengala">
               Ahorrás {precio(ahorro)}

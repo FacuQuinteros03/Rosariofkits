@@ -78,3 +78,10 @@ export function descripcionProducto(p: Producto): string {
     talles.length === 1 && talles[0] === "ÚNICO" ? "" : ` en talle${talles.length > 1 ? "s" : ""} ${enumerar(talles)}`;
   return `${p.nombre}${deEquipo}, en stock${enTalles} a ${precio(p.precio)}. ${entrega}`;
 }
+
+/**
+ * JSON-LD listo para meter en un <script>. El "<" se escapa: si un nombre de
+ * producto trajera "</script>", cerraría la etiqueta y lo que sigue se
+ * ejecutaría como HTML.
+ */
+export const jsonLdSeguro = (datos: unknown) => JSON.stringify(datos).replace(/</g, "\\u003c");

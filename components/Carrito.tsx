@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
-import { MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { Landmark, MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import {
   actualizarStock,
   cambiarCantidad,
@@ -18,6 +17,8 @@ import {
 } from "@/lib/carrito";
 import { calcularTotales, PROMO_PAR } from "@/lib/promo";
 import { precio } from "@/lib/whatsapp";
+import type { DatosTransferencia } from "@/lib/transferencia";
+import { PagoTransferencia } from "./PagoTransferencia";
 
 /** Lo dispara AgregarAlCarrito: el texto del aviso de "agregaste". */
 export const EVENTO_AGREGADO = "rfk:agregado";
@@ -30,14 +31,19 @@ export const EVENTO_AGREGADO = "rfk:agregado";
  * Al abrir el panel se vuelve a mirar el stock: lo que se agotó mientras tanto
  * sale, con un aviso, antes de que la persona mande un pedido que no se puede
  * cumplir.
+ *
+ * `transferencia` viene del servidor (variables de Vercel): con datos, el panel
+ * ofrece pagar por transferencia y reservar subiendo el comprobante; sin datos,
+ * solo el pedido por WhatsApp.
  */
-export function Carrito() {
+export function Carrito({ transferencia }: { transferencia: DatosTransferencia | null }) {
   const items = useCarrito();
   const ruta = usePathname();
   const [abierto, setAbierto] = useState(false);
   const [mirando, setMirando] = useState(false);
   const [avisos, setAvisos] = useState<string[]>([]);
   const [agregado, setAgregado] = useState<string | null>(null);
+  const [paso, setPaso] = useState<"pedido" | "pago">("pedido");
   const cerrarRef = useRef<HTMLButtonElement>(null);
 
   const unidades = contarUnidades(items);
@@ -60,6 +66,11 @@ export function Carrito() {
     }
   }
 
+  function cerrar() {
+    setAbierto(false);
+    setPaso("pedido");
+  }
+
   /* "Agregaste ..." unos segundos, sin abrir el panel: se puede seguir eligiendo */
   useEffect(() => {
     let reloj: ReturnType<typeof setTimeout>;
@@ -79,7 +90,11 @@ export function Carrito() {
   useEffect(() => {
     if (!abierto) return;
     cerrarRef.current?.focus();
-    const tecla = (e: KeyboardEvent) => e.key === "Escape" && setAbierto(false);
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setAbierto(false);
+      setPaso("pedido");
+    };
     window.addEventListener("keydown", tecla);
     return () => window.removeEventListener("keydown", tecla);
   }, [abierto]);
@@ -89,18 +104,12 @@ export function Carrito() {
 
   return (
     <>
-      <AnimatePresence>
-        {unidades > 0 && !abierto && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            className="fixed bottom-4 left-4 z-30 flex flex-col items-start gap-2"
-          >
+      {unidades > 0 && !abierto && (
+          <div className="aparece fixed bottom-4 left-4 z-30 flex flex-col items-start gap-2">
             {agregado && (
               <p
                 role="status"
-                className="max-w-[16rem] rounded-xl border border-line bg-surface px-3 py-2 text-[12.5px]
+                className="max-w-[16rem] rounded-xl border border-line bg-surface px-3 py-2 text-[13px]
                            leading-snug text-ink shadow-lg shadow-navy/20"
               >
                 Agregaste {agregado}
@@ -116,40 +125,28 @@ export function Carrito() {
             >
               <ShoppingBag className="h-5 w-5" strokeWidth={2.4} aria-hidden />
               Ver pedido
-              <span className="grid h-6 min-w-6 place-items-center rounded-full bg-white px-1.5 text-xs text-navy tabular-nums">
+              <span className="grid h-6 min-w-6 place-items-center rounded-full bg-white px-1.5 text-[13px] text-navy tabular-nums">
                 {unidades}
               </span>
             </button>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
-      <AnimatePresence>
-        {abierto && (
-          <motion.div
-            className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-[2px]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setAbierto(false)}
-          >
-            <motion.aside
+      {abierto && (
+          <div className="velo-entra fixed inset-0 z-50 flex justify-end bg-navy/60" onClick={cerrar}>
+            <aside
               role="dialog"
               aria-modal="true"
               aria-label="Tu pedido"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "tween", duration: 0.22, ease: [0.2, 0.7, 0.3, 1] }}
               onClick={(e) => e.stopPropagation()}
-              className="flex h-full w-full max-w-md flex-col border-l border-line bg-ground"
+              className="panel-entra flex h-full w-full max-w-md flex-col border-l border-line bg-ground"
             >
               <header className="flex items-center justify-between border-b border-line px-5 py-4">
                 <h2 className="font-display text-2xl font-extrabold uppercase leading-none">Tu pedido</h2>
                 <button
                   ref={cerrarRef}
                   type="button"
-                  onClick={() => setAbierto(false)}
+                  onClick={cerrar}
                   aria-label="Cerrar"
                   className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-navy/5 hover:text-ink"
                 >
@@ -157,9 +154,22 @@ export function Carrito() {
                 </button>
               </header>
 
+              {paso === "pago" && transferencia ? (
+                <PagoTransferencia
+                  items={items}
+                  total={total}
+                  datos={transferencia}
+                  onVolver={() => setPaso("pedido")}
+                  onListo={() => {
+                    vaciar();
+                    setAvisos([]);
+                  }}
+                />
+              ) : (
+                <>
               <div className="flex-1 overflow-y-auto px-5 py-4">
                 {avisos.length > 0 && (
-                  <ul className="mb-4 space-y-1 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2.5 text-[12.5px] leading-snug text-gold">
+                  <ul className="mb-4 space-y-1 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2.5 text-[13px] leading-snug text-gold">
                     {avisos.map((a) => (
                       <li key={a}>{a}</li>
                     ))}
@@ -176,14 +186,14 @@ export function Carrito() {
                       <li key={i.sku} className="flex gap-3 py-3">
                         <Link
                           href={`/producto/${i.productoId}`}
-                          onClick={() => setAbierto(false)}
+                          onClick={cerrar}
                           className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-surface"
                         >
                           {i.foto && <Image src={i.foto} alt="" fill sizes="64px" className="object-cover" />}
                         </Link>
                         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                           <p className="text-[13.5px] font-semibold leading-snug">{i.nombre}</p>
-                          <p className="text-[12px] text-muted">
+                          <p className="text-[13px] text-muted">
                             {i.talle !== "ÚNICO" && <>Talle {i.talle} · </>}
                             {precio(i.precio)}
                           </p>
@@ -247,6 +257,18 @@ export function Carrito() {
                     </div>
                   </dl>
 
+                  {transferencia && (
+                    <button
+                      type="button"
+                      disabled={mirando}
+                      onClick={() => setPaso("pago")}
+                      className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-navy px-5 py-3.5
+                                 text-[15px] font-bold text-white transition-opacity disabled:opacity-60"
+                    >
+                      <Landmark className="h-5 w-5 shrink-0" strokeWidth={2.4} aria-hidden />
+                      Pagar con transferencia
+                    </button>
+                  )}
                   <a
                     href={linkPedido(items)}
                     target="_blank"
@@ -262,8 +284,10 @@ export function Carrito() {
                     <MessageCircle className="h-5 w-5 shrink-0" strokeWidth={2.4} aria-hidden />
                     {mirando ? "Revisando el stock..." : "Enviar pedido por WhatsApp"}
                   </a>
-                  <p className="text-center text-[11.5px] leading-snug text-muted">
-                    No se cobra nada acá: te confirmamos stock, pago y entrega por WhatsApp.
+                  <p className="text-center text-[13px] leading-snug text-muted">
+                    {transferencia
+                      ? "Transferí y subí el comprobante para reservar, o mandanos el pedido y lo charlamos."
+                      : "No se cobra nada acá: te confirmamos stock, pago y entrega por WhatsApp."}
                   </p>
                   <button
                     type="button"
@@ -271,16 +295,17 @@ export function Carrito() {
                       vaciar();
                       setAvisos([]);
                     }}
-                    className="mx-auto block text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline"
+                    className="mx-auto block text-[13px] text-muted underline-offset-2 hover:text-ink hover:underline"
                   >
                     Vaciar pedido
                   </button>
                 </footer>
               )}
-            </motion.aside>
-          </motion.div>
+                </>
+              )}
+            </aside>
+          </div>
         )}
-      </AnimatePresence>
     </>
   );
 }

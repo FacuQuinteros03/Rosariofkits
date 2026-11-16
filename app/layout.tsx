@@ -4,8 +4,9 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Carrito } from "@/components/Carrito";
 import { Ruleta } from "@/components/Ruleta";
-import { jsonLdSitio, jsonLdTienda } from "@/lib/seo";
+import { jsonLdSeguro, jsonLdSitio, jsonLdTienda } from "@/lib/seo";
 import { SITIO } from "@/lib/site";
+import { datosTransferencia, pagoTransferenciaActivo } from "@/lib/transferencia";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -13,12 +14,28 @@ const archivo = Archivo({
   display: "swap",
 });
 
+/*
+  Los títulos del sitio van siempre en cursiva y en dos pesos: son los únicos
+  archivos que se precargan. Cada archivo precargado le compite a la foto de la
+  portada, que es lo primero que se ve (pasó: siete precargas, LCP de 4 s).
+*/
 const barlow = Barlow_Condensed({
   subsets: ["latin"],
-  weight: ["700", "800", "900"],
-  style: ["normal", "italic"],
+  weight: ["800", "900"],
+  style: ["italic"],
   variable: "--fuente-display",
   display: "swap",
+  fallback: ["Arial Narrow", "sans-serif"],
+});
+
+/* La versión derecha la usan solo el panel y la ruleta: se baja si hace falta. */
+const barlowRecta = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  style: ["normal"],
+  variable: "--fuente-display-recta",
+  display: "swap",
+  preload: false,
   fallback: ["Arial Narrow", "sans-serif"],
 });
 
@@ -50,23 +67,23 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0f2340",
-  colorScheme: "light",
+  colorScheme: "only light",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${archivo.variable} ${barlow.variable}`}>
+    <html lang="es" className={`${archivo.variable} ${barlow.variable} ${barlowRecta.variable}`}>
       <body className="min-h-dvh bg-ground font-sans text-ink antialiased">
         {/* quién vende: lo citan por @id las ofertas de cada ficha (lib/seo.ts) */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLdTienda, jsonLdSitio]) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdSeguro([jsonLdTienda, jsonLdSitio]) }}
         />
         {children}
         {/* el boton flotante vive en todo el sitio, tambien en la ficha de producto */}
         <Ruleta />
         {/* el pedido de varias camisetas, abajo a la izquierda (la ruleta está a la derecha) */}
-        <Carrito />
+        <Carrito transferencia={pagoTransferenciaActivo() ? datosTransferencia() : null} />
         {/*
           Visitas, de donde vienen y con que entran. Es de Vercel, sin cookies y
           sin seguir a nadie de un sitio a otro: cuenta paginas vistas, no

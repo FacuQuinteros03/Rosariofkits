@@ -354,6 +354,42 @@ venta la sigue confirmando Facu.
 Para publicarlo: probarlo en el celular desde el preview de la rama, revisar el
 mensaje que arma y unir `carrito` a `main`.
 
+### Pago por transferencia desde el carrito
+
+Rama `transferencia`. Para el que quiere asegurarse la camiseta aunque Facu no
+pueda contestar en ese momento. **El comprobante es lo que reserva**: sin
+archivo no queda nada apartado, así nadie bloquea stock sin pagar.
+
+1. En el carrito, "Pagar con transferencia" muestra el total (sin envío: se
+   arregla después por WhatsApp), el alias y el CBU con botón de copiar.
+2. La persona pone nombre, WhatsApp y sube la captura o el PDF.
+3. `app/api/pedido` recalcula precios y promo con el catálogo (no confía en lo
+   que manda el navegador) y crea la venta en el ERP como **Reservada, canal
+   Web, sin cobrar**. Esas unidades dejan de figurar en la web al instante. El
+   comprobante queda en el bucket privado `comprobantes`, en `V-0040/`.
+4. En /admin → Ventas aparece "Transferencia a verificar" con "Ver comprobante".
+   Si la plata está en el banco: **Cobrar**. Si no: **Revertir**, y el stock
+   vuelve a la web.
+
+Límites contra abusos: un pedido web sin verificar por teléfono, hasta 10
+unidades, archivos de 8 MB como máximo (imagen o PDF), y un campo trampa para
+bots. Un comprobante se puede falsificar: por eso la venta no queda cobrada
+hasta que alguien mira el banco.
+
+Para activarlo, en Vercel (Production y Preview; las variables valen desde el
+próximo deploy):
+
+- `SUPABASE_SECRET_KEY`: la clave secreta de Supabase (Settings → API Keys).
+  **Marcarla Sensitive** (el interruptor aparece con Development destildado):
+  pasa por encima de los permisos de la base.
+- `TRANSFERENCIA_ALIAS` (`rosariofkits`) y `TRANSFERENCIA_TITULAR`.
+- Opcionales: `TRANSFERENCIA_BANCO`, `TRANSFERENCIA_CBU`, `TRANSFERENCIA_CUIT`.
+  El CUIT no hace falta: la app del banco lo muestra al pegar el alias.
+
+Y en Supabase → SQL Editor, correr `supabase/migrations/0023_bucket_comprobantes.sql`,
+que crea el bucket privado `comprobantes`. Sin todo eso el botón no aparece y el
+carrito sigue como antes.
+
 **El checkout con pago es otra etapa, más adelante:** el stock ya sale del ERP,
 pero hay que reservar al pagar: con una unidad por talle dos
 compras simultáneas venden la misma camiseta.
@@ -389,8 +425,14 @@ pedido esté por llegar (diciembre de 2026): commitear y pasar el interruptor a
    Shopping. Antes Facu tiene que definir costo de envío y política de cambios.
 6. **Páginas `/preguntas-frecuentes` y `/envios`**, en texto, enlazadas desde
    el pie.
-7. **Dominio propio** (`rosariofkits.com.ar`): al cambiarlo, actualizar
-   `NEXT_PUBLIC_SITE_URL` en Vercel.
+7. **Dominio propio** (`rosariofkits.com.ar`, registrado en NIC.ar el 14/11/2026):
+   - Vercel → Domains → agregar `rosariofkits.com.ar` y `www`; en NIC.ar,
+     "Delegar" con los nameservers que muestra Vercel.
+   - Con el dominio en verde: `NEXT_PUBLIC_SITE_URL=https://rosariofkits.com.ar`
+     en Production y Redeploy.
+   - Supabase → Authentication → URL Configuration: sumar
+     `https://rosariofkits.com.ar/**` a Redirect URLs, o el login del panel falla.
+   - Google Search Console: agregar el dominio nuevo.
 8. **Alt de las fotos** con qué muestra cada una (frente, espalda, escudo) en
    vez de "foto 2 de 5".
 

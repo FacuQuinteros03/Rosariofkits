@@ -33,8 +33,8 @@ export function Insignia({
 }) {
   return (
     <span
-      className={`corte inline-flex h-[22px] items-center px-3 font-titulo text-[13px] font-extrabold
-                  uppercase italic leading-none tracking-[0.06em] ${ESTILOS[tipo]} ${className}`}
+      className={`inline-flex h-6 items-center rounded-md px-2 text-[13px] font-bold leading-none
+                  ${ESTILOS[tipo]} ${className}`}
     >
       {children}
     </span>

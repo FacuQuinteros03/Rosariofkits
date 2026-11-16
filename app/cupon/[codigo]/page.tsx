@@ -54,7 +54,7 @@ export default async function Page({ params }: { params: Promise<{ codigo: strin
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-12">
       <div className="rounded-3xl border border-line bg-surface p-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+        <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-muted">
           Cupón de la ruleta
         </p>
 
@@ -70,19 +70,19 @@ export default async function Page({ params }: { params: Promise<{ codigo: strin
         ) : (
           <div className="mt-4 space-y-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Premio</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wider text-muted">Premio</p>
               <p className="text-lg font-bold text-ink">{r.cupon.premio.titulo}</p>
               <p className="text-[13px] leading-snug text-muted">{r.cupon.premio.detalle}</p>
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+              <p className="text-[13px] font-semibold uppercase tracking-wider text-muted">
                 {r.estado === "vencido" ? "Vencía" : "Vence"}
               </p>
               <p className="text-[14px] text-ink">{fecha(r.cupon.vence)} hs</p>
             </div>
             {registrado && (
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                <p className="text-[13px] font-semibold uppercase tracking-wider text-muted">
                   Lo sacó
                 </p>
                 <p className="text-[15px] font-semibold text-ink">{registrado.nombre}</p>

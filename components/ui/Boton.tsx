@@ -1,33 +1,30 @@
 import type { ComponentProps, ReactNode } from "react";
 
-type Variante = "whatsapp" | "acento" | "linea" | "claro";
-type Tamano = "sm" | "md" | "lg";
+type Variante = "whatsapp" | "acento" | "linea";
+type Tamano = "md" | "lg";
 
-const BASE =
-  "corte inline-flex items-center justify-center gap-2 font-titulo font-extrabold uppercase italic " +
-  "tracking-[0.04em] leading-none transition-[transform,background-color] duration-150 " +
-  "active:scale-[0.97]";
+/*
+  Una sola regla de forma para todo el sitio: esquinas de 12 px y 48 px de alto
+  como mínimo. El texto va en una línea; si no entra, se acorta el texto.
+*/
+export const BOTON_BASE =
+  "inline-flex min-h-12 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 " +
+  "text-[15px] font-bold leading-none transition-colors disabled:opacity-60";
 
-const VARIANTES: Record<Variante, string> = {
-  /* el botón de pedir: el azul más vivo de la paleta, siempre con el ícono de WhatsApp */
-  whatsapp: "bg-azul text-white hover:bg-azul-2",
+export const BOTON_VARIANTE: Record<Variante, string> = {
+  /* la acción principal: pedir. Azul vivo, siempre con el ícono de WhatsApp */
+  whatsapp: "bg-wa text-white hover:bg-wa-dark",
   acento: "bg-marino text-white hover:bg-marino-2",
-  /* para apoyar sobre foto o color */
-  claro: "bg-white text-marino hover:bg-celeste-suave",
-  /* sin borde: el corte diagonal se lo comería en los costados */
+  /* secundaria: más suave, para que no le compita a la principal */
   linea: "bg-celeste-suave text-marino hover:bg-[#d3e6f9]",
 };
 
 const TAMANOS: Record<Tamano, string> = {
-  sm: "min-h-11 px-3 text-[15px] whitespace-nowrap",
-  md: "min-h-11 px-6 text-[17px]",
-  lg: "min-h-[52px] px-8 text-xl",
+  md: "",
+  lg: "sm:min-h-[52px] sm:px-7 sm:text-[16px]",
 };
 
-/**
- * El botón del sistema nuevo. Siempre es un enlace o un <button> real: se le
- * pasa `href` y sale <a>; sin `href`, <button>.
- */
+/** Siempre un enlace o un <button> real: con `href` sale <a>; sin `href`, <button>. */
 export function Boton({
   variante = "acento",
   tamano = "md",
@@ -39,7 +36,7 @@ export function Boton({
   tamano?: Tamano;
   children: ReactNode;
 } & (ComponentProps<"a"> | ComponentProps<"button">)) {
-  const clases = `${BASE} ${VARIANTES[variante]} ${TAMANOS[tamano]} ${className}`;
+  const clases = `${BOTON_BASE} ${BOTON_VARIANTE[variante]} ${TAMANOS[tamano]} ${className}`;
   if ("href" in resto && resto.href) {
     return (
       <a className={clases} {...(resto as ComponentProps<"a">)}>

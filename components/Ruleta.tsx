@@ -1,5 +1,6 @@
 "use client";
 
+import { LEGALES_PUBLICOS } from "@/lib/legal";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
@@ -435,8 +436,18 @@ export function Ruleta() {
         </ul>
 
         {!mostrandoResultado && (
-          <p className="mt-2 text-center text-[11px] leading-snug text-muted/70">
+          <p className="mt-2 text-center text-[13px] leading-snug text-muted">
             Usamos tu nombre y tu número solo para validar el cupón.
+            {LEGALES_PUBLICOS && (
+              <>
+                {" "}
+                Al girar aceptás la{" "}
+                <a href="/privacidad" target="_blank" className="underline underline-offset-2">
+                  política de privacidad
+                </a>
+                .
+              </>
+            )}
           </p>
         )}
       </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, MessageCircle, Plus } from "lucide-react";
+import { CheckCircle2, FileText, MessageCircle, Plus } from "lucide-react";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { nombreMes, plata, plataCorta, porciento } from "@/app/admin/_lib/formato";
 import { Tarjeta } from "@/app/admin/_componentes/Controles";
@@ -46,7 +46,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
       q("v_ventas_por_talle", "talle, unidades"),
       q("v_margen_pedido").order("fecha"),
       q("v_por_entregar", "id, venta_id, cliente, producto, cantidad, estado, pedido_id, llego, saldo_venta").order("pedido_id"),
-      q("v_ventas", "id, fecha, cliente, cliente_id, total, cobrado, saldo, estado").gt("saldo", 0).order("fecha"),
+      q("v_ventas", "id, fecha, cliente, cliente_id, total, cobrado, saldo, estado, canal").gt("saldo", 0).order("fecha"),
       q("v_ventas", "id, fecha, cliente, total, unidades, saldo, estado").order("id", { ascending: false }).limit(6),
       q("v_clientes_metricas", "id, telefono, recurrente"),
     ]);
@@ -64,9 +64,13 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
 
   // Alertas
   const alertas: string[] = [];
+  /* Pedidos del carrito pagados por transferencia: esperan que Facu vea la plata en el banco. */
+  const webAVerificar = ((conSaldo.data ?? []) as Fila[]).filter(
+    (v) => v.canal === "Web" && v.estado === "Reservada" && Number(v.cobrado) === 0,
+  );
   if (Number(t.skus_en_negativo) > 0) alertas.push(`${t.skus_en_negativo} productos con stock negativo: hay que revisarlos`);
   for (const v of (conSaldo.data ?? []) as Fila[]) {
-    if (v.estado === "Reservada" && Number(v.cobrado) === 0 && diasDesde(v.fecha) >= DIAS_RESERVA_SIN_SENA)
+    if (v.canal !== "Web" && v.estado === "Reservada" && Number(v.cobrado) === 0 && diasDesde(v.fecha) >= DIAS_RESERVA_SIN_SENA)
       alertas.push(`${v.cliente} tiene ${plata(v.total)} reservados sin seña hace ${diasDesde(v.fecha)} días`);
   }
 
@@ -87,6 +91,17 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
         <p className="flex items-center gap-2 rounded-xl border border-wa/40 bg-wa/10 px-4 py-3 text-sm text-wa">
           <CheckCircle2 className="h-4 w-4" /> Venta {cargada} cargada. El stock de la web ya se actualizó.
         </p>
+      )}
+      {webAVerificar.length > 0 && (
+        <Link href="/admin/ventas?estado=Reservada"
+          className="flex items-center gap-3 rounded-xl border border-gold/60 bg-gold/15 px-4 py-3 text-sm text-gold hover:bg-gold/20">
+          <FileText className="h-5 w-5 shrink-0" />
+          <span className="flex-1">
+            <b>{webAVerificar.length === 1 ? "1 comprobante" : `${webAVerificar.length} comprobantes`} de transferencia para verificar</b>
+            {" · "}{webAVerificar.map((v) => `${v.cliente} ${plata(v.total)}`).join(" · ")}
+          </span>
+          <span className="shrink-0 font-semibold underline underline-offset-2">Ver</span>
+        </Link>
       )}
       {alertas.map((a) => (
         <p key={a} className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-gold">{a}</p>

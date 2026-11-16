@@ -61,8 +61,9 @@ export function HeroFotos() {
             if (pedida.current === i) setVisible(i);
           }}
           fill
-          priority={i === 0}
-          quality={90}
+          preload={i === 0}
+          fetchPriority={i === 0 ? "high" : "auto"}
+          loading={i === 0 ? "eager" : "lazy"}
           sizes="(min-width: 1024px) 50vw, 100vw"
           className={`object-cover transition-opacity duration-700 ease-out ${i === visible ? "opacity-100" : "opacity-0"}`}
         />

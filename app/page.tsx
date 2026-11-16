@@ -29,7 +29,7 @@ export default async function Page() {
       <BarraAnuncios />
       <Hero />
 
-      <main className="mx-auto max-w-[1360px] px-4 pb-20">
+      <main className="mx-auto max-w-[1200px] px-4 pb-20">
         <div className="mt-8">
           <TrustBar />
         </div>
@@ -44,7 +44,7 @@ export default async function Page() {
           <h2 className="font-display text-3xl font-extrabold uppercase leading-none text-ink sm:text-4xl">
             Stock disponible
           </h2>
-          <p className="mt-1.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-muted">
+          <p className="mt-1.5 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
             {enStock.length} modelos · {unidades} unidades en mano
           </p>
 

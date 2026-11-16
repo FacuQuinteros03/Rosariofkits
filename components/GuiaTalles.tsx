@@ -29,7 +29,7 @@ export function GuiaTalles({
       <button
         type="button"
         onClick={() => dialogo.current?.showModal()}
-        className={`inline-flex min-h-9 items-center gap-1.5 text-[12.5px] font-semibold text-azul underline-offset-4 hover:underline ${className}`}
+        className={`inline-flex min-h-9 items-center gap-1.5 text-[13px] font-semibold text-azul underline-offset-4 hover:underline ${className}`}
       >
         <Ruler className="h-4 w-4" strokeWidth={2} aria-hidden />
         Guía de talles
@@ -76,7 +76,7 @@ export function GuiaTalles({
           <table className="mt-3 w-full text-[14.5px] tabular-nums">
             <caption className="sr-only">Medidas en centímetros, versión {info.nombre}</caption>
             <thead>
-              <tr className="border-b border-line text-left text-[12px] uppercase tracking-[0.08em] text-muted">
+              <tr className="border-b border-line text-left text-[13px] uppercase tracking-[0.08em] text-muted">
                 <th scope="col" className="py-2 font-semibold">Talle</th>
                 <th scope="col" className="py-2 text-right font-semibold">Ancho</th>
                 <th scope="col" className="py-2 text-right font-semibold">Largo</th>
@@ -93,7 +93,7 @@ export function GuiaTalles({
             </tbody>
           </table>
 
-          <p className="mt-3 text-[12.5px] leading-snug text-muted">
+          <p className="mt-3 text-[13px] leading-snug text-muted">
             Medidas con la prenda apoyada plana: ancho de axila a axila, largo desde el hombro.
             Pueden variar 1 o 2 cm. Compará con una remera tuya que te quede bien.
           </p>

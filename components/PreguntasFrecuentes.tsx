@@ -12,7 +12,7 @@ export function PreguntasFrecuentes({ preguntas }: { preguntas: Pregunta[] }) {
     <section className="mt-14" aria-labelledby="preguntas">
       <h2
         id="preguntas"
-        className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted"
+        className="mb-4 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted"
       >
         Preguntas frecuentes
       </h2>
