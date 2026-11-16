@@ -24,19 +24,12 @@ import { BUCKET_COMPROBANTES, supabaseServicio } from "@/lib/supabase/servicio";
 import { pagoTransferenciaActivo } from "@/lib/transferencia";
 import { normalizarTelefono } from "@/lib/telefono";
 import { precio } from "@/lib/whatsapp";
+import { esDelPropioSitio, ipDe, superaLimite, tipoPorBytes } from "@/lib/pedidos-web";
 
 export const dynamic = "force-dynamic";
 
 /** Una foto de celular pesa 2-4 MB; un PDF de home banking, menos de 1. */
 const MAX_BYTES = 8 * 1024 * 1024;
-const TIPOS: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/heic": "heic",
-  "image/heif": "heif",
-  "application/pdf": "pdf",
-};
 /** Un pedido de verdad son unas pocas camisetas: más que esto se arregla por WhatsApp. */
 const MAX_UNIDADES = 10;
 /**
@@ -45,6 +38,15 @@ const MAX_UNIDADES = 10;
  * verdad y le pone techo al que quiere molestar.
  */
 const MAX_PENDIENTES = 1;
+/**
+ * Pedidos web sin verificar en total, de todos los teléfonos. Es el techo que
+ * importa contra el que inventa teléfonos para vaciar el stock: llegado a este
+ * número, la web deja de reservar hasta que Facu cobre o revierta alguno.
+ */
+const MAX_PENDIENTES_TOTAL = 12;
+/** Intentos por IP: alcanza para equivocarse varias veces, no para un robot. */
+const MAX_POR_IP = 6;
+const VENTANA_IP_MS = 10 * 60 * 1000;
 
 const error = (mensaje: string, status = 400) => NextResponse.json({ error: mensaje }, { status });
 
@@ -59,6 +61,17 @@ function explicarErrorBase(mensaje: string): string {
 export async function POST(request: NextRequest) {
   const supabase = supabaseServicio();
   if (!supabase || !pagoTransferenciaActivo()) return error("El pago por transferencia no está disponible.", 503);
+
+  if (!esDelPropioSitio(request)) return error("No se pudo enviar.", 403);
+  /* El tope de tamaño se mira antes de leer nada: el formulario entero es el
+     comprobante más unos pocos campos de texto. */
+  const largo = Number(request.headers.get("content-length") ?? 0);
+  if (!largo || largo > MAX_BYTES + 64 * 1024) {
+    return error("El comprobante pesa demasiado: mandá una captura o el PDF del banco.", 413);
+  }
+  if (superaLimite(`pedido:${ipDe(request)}`, MAX_POR_IP, VENTANA_IP_MS)) {
+    return error("Demasiados intentos seguidos. Esperá unos minutos o escribinos por WhatsApp.", 429);
+  }
 
   let datos: FormData;
   try {
@@ -78,8 +91,9 @@ export async function POST(request: NextRequest) {
   const archivo = datos.get("comprobante");
   if (!(archivo instanceof File) || archivo.size === 0) return error("Falta el comprobante de la transferencia.");
   if (archivo.size > MAX_BYTES) return error("El comprobante pesa demasiado: mandá una captura o el PDF del banco.");
-  const extension = TIPOS[archivo.type];
-  if (!extension) return error("El comprobante tiene que ser una imagen (foto o captura) o un PDF.");
+  /* El tipo sale de los bytes del archivo, no de lo que dice el navegador. */
+  const tipo = tipoPorBytes(new Uint8Array(await archivo.slice(0, 16).arrayBuffer()));
+  if (!tipo) return error("El comprobante tiene que ser una imagen (foto o captura) o un PDF.");
 
   let pedidos: { sku: string; cantidad: number }[];
   try {
@@ -112,7 +126,18 @@ export async function POST(request: NextRequest) {
     return error(`Cambió el precio de algo del pedido: el total ahora es ${precio(total)}. Revisalo antes de transferir.`, 409);
   }
 
-  // Techo de pedidos sin verificar por teléfono.
+  // Techo de pedidos sin verificar: primero el de toda la web, después el del teléfono.
+  const { count: pendientes, error: errorTecho } = await supabase
+    .from("v_ventas")
+    .select("id", { count: "exact", head: true })
+    .eq("canal", "Web")
+    .eq("estado", "Reservada")
+    .eq("cobrado", 0);
+  /* si no se puede contar, no se reserva: mejor frenar que dejar el techo abierto */
+  if (errorTecho || (pendientes ?? 0) >= MAX_PENDIENTES_TOTAL) {
+    return error("En este momento no podemos tomar la reserva por la web. Escribinos por WhatsApp con tu comprobante y te la guardamos.", 503);
+  }
+
   const { data: cliente } = await supabase.from("clientes").select("id").eq("telefono", telefono).maybeSingle();
   if (cliente) {
     const { count } = await supabase
@@ -150,7 +175,7 @@ export async function POST(request: NextRequest) {
 
   const { error: errorArchivo } = await supabase.storage
     .from(BUCKET_COMPROBANTES)
-    .upload(`${venta}/comprobante.${extension}`, archivo, { contentType: archivo.type, upsert: false });
+    .upload(`${venta}/comprobante.${tipo.extension}`, archivo, { contentType: tipo.mime, upsert: false });
   if (errorArchivo) {
     // Sin comprobante guardado no hay pedido: se deshace la reserva.
     console.error("[pedido] comprobante:", errorArchivo);

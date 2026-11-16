@@ -11,7 +11,7 @@ import { conStock } from "@/lib/types";
 import { INSTAGRAM, NEGOCIO, SITIO } from "@/lib/site";
 import { precio } from "@/lib/whatsapp";
 import { Precio } from "@/components/Precio";
-import { descripcionProducto, ID_TIENDA } from "@/lib/seo";
+import { descripcionProducto, ID_TIENDA, jsonLdSeguro } from "@/lib/seo";
 import { jsonLdPreguntas, preguntasProducto } from "@/lib/faq";
 import { PreguntasFrecuentes } from "@/components/PreguntasFrecuentes";
 import { EtiquetaCyber } from "@/components/EtiquetaCyber";
@@ -117,15 +117,15 @@ export default async function ProductoPage({ params }: Props) {
     <main className="mx-auto max-w-[1100px] px-4 pb-20">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdSeguro(jsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(migas) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdSeguro(migas) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdPreguntas(preguntas)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdSeguro(jsonLdPreguntas(preguntas)) }}
       />
 
       <nav aria-label="Migas de pan" className="py-5">

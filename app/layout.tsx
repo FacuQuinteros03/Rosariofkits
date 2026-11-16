@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Carrito } from "@/components/Carrito";
 import { Ruleta } from "@/components/Ruleta";
-import { jsonLdSitio, jsonLdTienda } from "@/lib/seo";
+import { jsonLdSeguro, jsonLdSitio, jsonLdTienda } from "@/lib/seo";
 import { SITIO } from "@/lib/site";
 import { datosTransferencia, pagoTransferenciaActivo } from "@/lib/transferencia";
 
@@ -61,7 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* quién vende: lo citan por @id las ofertas de cada ficha (lib/seo.ts) */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify([jsonLdTienda, jsonLdSitio]) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdSeguro([jsonLdTienda, jsonLdSitio]) }}
         />
         {children}
         {/* el boton flotante vive en todo el sitio, tambien en la ficha de producto */}

@@ -19,6 +19,7 @@
  *      queda un cupón que su dueño no puede usar.
  */
 
+import { esDelPropioSitio } from "@/lib/pedidos-web";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { RULETA_ACTIVA, girar, verificar } from "@/lib/ruleta-server";
@@ -80,13 +81,23 @@ export async function GET() {
 
 export async function POST(req: Request) {
   if (!RULETA_ACTIVA) return NextResponse.json({ activa: false }, { status: 503 });
+  if (!esDelPropioSitio(req)) return NextResponse.json({ error: "No se pudo enviar." }, { status: 403 });
 
   /* Ya giró en este navegador: se le devuelve lo mismo de siempre, sin premio
      nuevo y sin molestar a Google. */
   const previo = await cuponGuardado();
   if (previo) return NextResponse.json(respuesta(previo, false));
 
-  const datos = await req.json().catch(() => ({}));
+  /* Nombre y teléfono entran en unos pocos cientos de bytes: se lee como texto
+     con tope, porque el content-length se puede omitir. */
+  const crudo = await req.text().catch(() => "");
+  if (crudo.length > 2000) return error("No se pudo enviar.");
+  let datos: { nombre?: unknown; telefono?: unknown; vieneDe?: unknown } = {};
+  try {
+    datos = JSON.parse(crudo) ?? {};
+  } catch {
+    /* cuerpo vacío o roto: cae en "escribí tu nombre" */
+  }
   const nombre = String(datos?.nombre ?? "")
     .trim()
     .replace(/\s+/g, " ")
