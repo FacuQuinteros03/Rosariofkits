@@ -63,8 +63,8 @@ Qué se cambió:
 - **Rendimiento:** se precargan 3 archivos de letra en vez de 7, una sola foto con prioridad,
   logo de 7 KB en vez de 55, y se sacó la librería de animaciones (ahora es CSS).
 - **Precios** con formato argentino: `$ 52.500`.
-- **Legal:** páginas `/privacidad` y `/arrepentimiento`, enlazadas en el pie; línea de
-  consentimiento en la transferencia y en la ruleta; el pedido guarda qué versión se aceptó.
+- **Legal:** páginas `/privacidad` y `/arrepentimiento` y línea de consentimiento, armadas
+  pero **apagadas** (`LEGALES_PUBLICOS` en `lib/legal.ts`). Facu decidió esperar (16/11/2026).
 - **Ancho máximo** de 1200 px y grilla de relacionados de 4 columnas.
 
 Qué quedó pendiente:

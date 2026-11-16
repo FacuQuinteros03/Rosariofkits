@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PieDePagina } from "@/components/PieDePagina";
-import { LEGAL } from "@/lib/legal";
+import { LEGAL, LEGALES_PUBLICOS } from "@/lib/legal";
 import { INSTAGRAM, NEGOCIO, USUARIO_IG } from "@/lib/site";
 import { linkWhatsAppGeneral } from "@/lib/whatsapp";
 
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
  * se sube LEGAL.version en lib/legal.ts.
  */
 export default function Privacidad() {
+  if (!LEGALES_PUBLICOS) notFound();
   const contacto = linkWhatsAppGeneral();
   return (
     <main className="mx-auto max-w-[680px] px-4 pb-20 pt-6">

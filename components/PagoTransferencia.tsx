@@ -1,5 +1,6 @@
 "use client";
 
+import { LEGALES_PUBLICOS } from "@/lib/legal";
 import { useState } from "react";
 import { ArrowLeft, Check, CheckCircle2, Copy, MessageCircle, Upload } from "lucide-react";
 import type { ItemCarrito } from "@/lib/carrito";
@@ -165,6 +166,7 @@ export function PagoTransferencia({
         <p className="text-center text-[13px] leading-snug text-muted">
           Confirmamos el pago con el banco y te escribimos. Si algo no está, te devolvemos la plata.
         </p>
+        {LEGALES_PUBLICOS && (
         <p className="text-center text-[13px] leading-snug text-muted">
           Al enviar aceptás la{" "}
           <a href="/privacidad" target="_blank" className="font-semibold text-azul underline underline-offset-2">
@@ -172,6 +174,7 @@ export function PagoTransferencia({
           </a>
           .
         </p>
+        )}
       </div>
     </form>
   );

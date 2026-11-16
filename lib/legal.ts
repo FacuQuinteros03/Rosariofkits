@@ -5,6 +5,14 @@
  * razón social de quien responde por los datos) y `plazo` (cuánto se guardan).
  * Lo demás sale de cómo funciona hoy el sitio.
  */
+/**
+ * Interruptor de todo lo legal. En `false` (decisión de Facu, 16/11/2026: lo
+ * legal espera) las páginas /privacidad y /arrepentimiento dan 404, no hay
+ * enlaces en el pie y los formularios no muestran la línea de consentimiento.
+ * Pasa a `true` cuando estén confirmados el responsable y el plazo de abajo.
+ */
+export const LEGALES_PUBLICOS = false;
+
 export const LEGAL = {
   /** Cada cambio de fondo en la política sube este número: queda anotado cuál aceptó cada persona. */
   version: 1,

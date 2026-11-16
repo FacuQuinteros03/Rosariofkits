@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { BotonArrepentimiento } from "@/components/BotonArrepentimiento";
 import { PieDePagina } from "@/components/PieDePagina";
+import { LEGALES_PUBLICOS } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Botón de arrepentimiento",
@@ -13,6 +15,7 @@ export const metadata: Metadata = {
  * número de gestión. El pedido sale por WhatsApp, que es por donde se compra.
  */
 export default function Arrepentimiento() {
+  if (!LEGALES_PUBLICOS) notFound();
   return (
     <main className="mx-auto max-w-[680px] px-4 pb-20 pt-6">
       <Link href="/" className="inline-flex min-h-11 items-center text-[14px] font-semibold text-azul hover:underline">

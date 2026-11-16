@@ -1,6 +1,7 @@
 import { Logo } from "./ui/Logo";
 import Link from "next/link";
 import { IconoInstagram } from "./IconoInstagram";
+import { LEGALES_PUBLICOS } from "@/lib/legal";
 import { INSTAGRAM, NEGOCIO, USUARIO_IG } from "@/lib/site";
 
 /**
@@ -52,6 +53,7 @@ export function PieDePagina() {
         Entrega en mano en {NEGOCIO.ciudad} · Envíos a todo el país
       </p>
 
+      {LEGALES_PUBLICOS && (
       <nav aria-label="Legales" className="mt-3 flex flex-wrap justify-center gap-x-5 text-[14px] font-semibold">
         <Link href="/arrepentimiento" className="inline-flex min-h-11 items-center text-ink underline underline-offset-4">
           Botón de arrepentimiento
@@ -60,6 +62,7 @@ export function PieDePagina() {
           Privacidad
         </Link>
       </nav>
+      )}
     </footer>
   );
 }
