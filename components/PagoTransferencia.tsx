@@ -83,7 +83,7 @@ export function PagoTransferencia({
           <MessageCircle className="h-5 w-5 shrink-0" strokeWidth={2.4} aria-hidden />
           Avisar por WhatsApp
         </a>
-        <p className="text-[11.5px] text-muted">Opcional: tu pedido ya nos llegó igual.</p>
+        <p className="text-[13px] text-muted">Opcional: tu pedido ya nos llegó igual.</p>
       </div>
     );
   }
@@ -94,15 +94,15 @@ export function PagoTransferencia({
         <button
           type="button"
           onClick={onVolver}
-          className="flex items-center gap-1.5 text-[13px] text-muted hover:text-ink"
+          className="flex min-h-11 items-center gap-1.5 text-[14px] text-muted hover:text-ink"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden /> Volver al pedido
         </button>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">1 · Transferí</p>
+          <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">Transferí</p>
           <p className="mt-1 font-display text-4xl font-bold tabular-nums">{precio(total)}</p>
-          <p className="mt-1 text-[12px] text-muted">El envío no está incluido: lo coordinamos después por WhatsApp.</p>
+          <p className="mt-1 text-[13px] text-muted">El envío no está incluido: lo coordinamos después por WhatsApp.</p>
         </div>
 
         <dl className="space-y-2 rounded-xl border border-line bg-surface p-3.5 text-sm">
@@ -117,8 +117,8 @@ export function PagoTransferencia({
         </dl>
 
         <div className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
-            2 · Subí el comprobante y queda reservado
+          <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
+            Subí el comprobante y queda reservado
           </p>
           <Campo nombre="nombre" etiqueta="Tu nombre" autoComplete="name" />
           <Campo nombre="telefono" etiqueta="Tu WhatsApp" tipo="tel" autoComplete="tel" ayuda="Con código de área, ej. 341 612 3456" />
@@ -126,8 +126,8 @@ export function PagoTransferencia({
           <input type="text" name="web" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
 
           <label
-            className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-line px-3.5 py-3
-                       text-sm hover:border-muted"
+            className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-line px-3.5 py-3
+                       text-base hover:border-muted focus-within:border-azul"
           >
             {archivo ? (
               <Check className="h-5 w-5 shrink-0 text-wa" aria-hidden />
@@ -157,13 +157,20 @@ export function PagoTransferencia({
         <button
           type="submit"
           disabled={enviando}
-          className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-gold px-5 py-3.5 text-[15px]
-                     font-bold text-white transition-opacity disabled:opacity-60"
+          className="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-wa px-5 text-[15px]
+                     font-bold text-white transition-colors hover:bg-wa-dark disabled:opacity-60"
         >
-          {enviando ? "Enviando..." : "Enviar comprobante y reservar"}
+          {enviando ? "Enviando…" : "Enviar comprobante y reservar"}
         </button>
-        <p className="text-center text-[11.5px] leading-snug text-muted">
+        <p className="text-center text-[13px] leading-snug text-muted">
           Confirmamos el pago con el banco y te escribimos. Si algo no está, te devolvemos la plata.
+        </p>
+        <p className="text-center text-[13px] leading-snug text-muted">
+          Al enviar aceptás la{" "}
+          <a href="/privacidad" target="_blank" className="font-semibold text-azul underline underline-offset-2">
+            política de privacidad
+          </a>
+          .
         </p>
       </div>
     </form>
@@ -189,7 +196,7 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
             }
           }}
           aria-label={`Copiar ${etiqueta}`}
-          className="flex shrink-0 items-center gap-1 rounded-lg border border-line px-2 py-1 text-[11px] font-semibold text-muted hover:text-ink"
+          className="flex shrink-0 items-center gap-1 rounded-lg border border-line px-2 py-1 text-[13px] font-semibold text-muted hover:text-ink"
         >
           {copiado ? <Check className="h-3.5 w-3.5 text-wa" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
           {copiado ? "Copiado" : "Copiar"}
@@ -214,15 +221,15 @@ function Campo({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[12.5px] text-muted">{etiqueta}</span>
+      <span className="mb-1 block text-[14px] font-semibold text-ink">{etiqueta}</span>
       <input
         name={nombre}
         type={tipo}
         required
         autoComplete={autoComplete}
-        className="w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[15px] outline-none focus:border-muted"
+        className="min-h-12 w-full rounded-xl border border-line bg-surface px-3.5 text-base focus:border-azul"
       />
-      {ayuda && <span className="mt-1 block text-[11.5px] text-muted">{ayuda}</span>}
+      {ayuda && <span className="mt-1 block text-[13px] text-muted">{ayuda}</span>}
     </label>
   );
 }

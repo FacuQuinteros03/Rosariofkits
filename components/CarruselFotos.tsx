@@ -95,7 +95,7 @@ export function CarruselFotos({
             alt={i === 0 ? alt : ""}
             fill
             sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 20vw"
-            priority={prioridad && i === 0}
+            loading={prioridad && i === 0 ? "eager" : "lazy"}
             aria-hidden={i !== indice}
             className={[
               "object-cover transition-[opacity,transform] duration-300",
@@ -123,8 +123,8 @@ export function CarruselFotos({
               onClick={() => mover(paso)}
               aria-label={texto}
               className={[
-                "absolute top-1/2 z-10 hidden h-7 w-7 -translate-y-1/2 place-items-center",
-                "rounded-full bg-black/55 text-white/90 backdrop-blur-sm transition-colors",
+                "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center",
+                "rounded-full bg-black/60 text-white transition-colors",
                 "hover:bg-black/80 focus-visible:outline focus-visible:outline-2",
                 "focus-visible:outline-white sm:grid sm:opacity-0 sm:group-hover/foto:opacity-100",
                 lado,
@@ -146,24 +146,16 @@ export function CarruselFotos({
                        bg-gradient-to-t from-black/45 to-transparent"
             aria-hidden
           />
-          <div
-            className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1"
-            role="group"
-            aria-label={`Foto ${indice + 1} de ${fotos.length}`}
-          >
+          {/* solo indican cuántas fotos hay y cuál se ve: se pasa deslizando, con
+              las flechas, o abriendo la ficha. No son botones (serían de 6 px). */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1" aria-hidden>
             {fotos.map((f, i) => (
-              <button
+              <span
                 key={f}
-                type="button"
-                onClick={() => mostrar(i)}
-                aria-label={`Ver foto ${i + 1}`}
-                aria-current={i === indice}
                 className={[
-                  "rounded-full transition-all",
+                  "rounded-full",
                   fotos.length > 6 ? "h-1 w-1" : "h-1.5 w-1.5",
-                  i === indice
-                    ? "bg-white shadow-sm " + (fotos.length > 6 ? "w-3" : "w-4")
-                    : "bg-white/55 hover:bg-white/80",
+                  i === indice ? "bg-white " + (fotos.length > 6 ? "w-3" : "w-4") : "bg-white/55",
                 ].join(" ")}
               />
             ))}

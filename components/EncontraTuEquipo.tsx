@@ -89,7 +89,7 @@ export function EncontraTuEquipo({
                   con aire alrededor para que ninguno se vea apretado. El SVG
                   va sin optimizar: next/image no los procesa.
                 */
-                <span className="absolute inset-0 bg-[radial-gradient(circle_at_50%_36%,#fff_30%,var(--color-celeste-suave))]">
+                <span className="absolute inset-0 bg-celeste-suave">
                   <Image
                     src={e.escudo}
                     alt=""
@@ -121,14 +121,14 @@ export function EncontraTuEquipo({
               )}
               <span className="absolute inset-x-2 bottom-2">
                 <span
-                  className={`block font-display text-[17px] font-extrabold uppercase leading-[0.95] ${
+                  className={`line-clamp-2 font-display text-[17px] font-extrabold uppercase leading-[0.95] [overflow-wrap:anywhere] ${
                     e.escudo ? "text-navy" : "text-white"
                   }`}
                 >
                   {e.nombre}
                 </span>
                 <span
-                  className={`mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.1em] ${
+                  className={`mt-0.5 block text-[13px] font-semibold uppercase tracking-[0.1em] ${
                     e.escudo ? "text-muted" : "text-white/75"
                   }`}
                 >

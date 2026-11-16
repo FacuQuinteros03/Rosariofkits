@@ -26,7 +26,7 @@ export function SelectorTalle({ producto }: { producto: Producto }) {
     <div className="flex flex-col gap-4">
       <div>
         <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
             {agotado ? "¿Qué talle buscás?" : "Talles disponibles"}
           </p>
           {producto.categoria !== "Shorts" && (
@@ -43,7 +43,7 @@ export function SelectorTalle({ producto }: { producto: Producto }) {
                 onClick={() => setTalle(v.talle)}
                 aria-pressed={activo}
                 className={[
-                  "min-w-[52px] rounded-xl border px-4 py-2.5 text-sm font-bold tabular-nums transition-colors",
+                  "min-h-12 min-w-[52px] rounded-xl border px-4 text-[15px] font-bold tabular-nums transition-colors",
                   activo
                     ? "border-navy bg-navy text-white"
                     : "border-line text-muted hover:border-muted hover:text-ink",
@@ -51,7 +51,7 @@ export function SelectorTalle({ producto }: { producto: Producto }) {
               >
                 {v.talle}
                 {!agotado && (
-                  <span className="ml-1.5 text-[10px] font-semibold opacity-60">{v.disponible}</span>
+                  <span className="ml-1.5 text-[13px] font-semibold opacity-60">{v.disponible}</span>
                 )}
               </button>
             );

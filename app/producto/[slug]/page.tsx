@@ -128,10 +128,10 @@ export default async function ProductoPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: jsonLdSeguro(jsonLdPreguntas(preguntas)) }}
       />
 
-      <nav aria-label="Migas de pan" className="py-5">
+      <nav aria-label="Migas de pan" className="py-2">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted transition-colors hover:text-ink"
+          className="inline-flex min-h-11 items-center gap-1.5 text-[14px] font-semibold text-muted transition-colors hover:text-ink"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden />
           Volver al catálogo
@@ -151,10 +151,10 @@ export default async function ProductoPage({ params }: Props) {
         {/* ---------- datos y compra ---------- */}
         <div className="flex flex-col gap-5 md:pt-4">
           <div>
-            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+            <p className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
               {p.categoria}
               {p.total === 0 && (
-                <span className="rounded-full bg-navy/10 px-2 py-0.5 text-[10px] tracking-[0.11em] text-navy">
+                <span className="rounded-full bg-navy/10 px-2 py-0.5 text-[13px] tracking-[0.11em] text-navy">
                   Agotado
                 </span>
               )}
@@ -208,10 +208,10 @@ export default async function ProductoPage({ params }: Props) {
 
       {relacionados.length > 0 && (
         <section className="mt-14">
-          <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">
+          <h2 className="mb-4 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
             Más de {p.categoria}
           </h2>
-          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5 lg:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5">
             {relacionados.map((r) => (
               <ProductCard key={r.id} producto={r} />
             ))}

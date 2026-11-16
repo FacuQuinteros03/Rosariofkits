@@ -47,8 +47,8 @@ export function FranjaDeslizable({
   };
 
   const flecha =
-    "absolute top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 place-items-center rounded-full " +
-    "border border-line bg-surface/95 text-ink shadow-md shadow-navy/15 backdrop-blur-sm " +
+    "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full " +
+    "border border-line bg-surface text-ink shadow-md shadow-navy/15 " +
     "transition-colors hover:bg-surface sm:grid";
 
   return (
@@ -57,6 +57,7 @@ export function FranjaDeslizable({
         ref={fila}
         role="region"
         aria-label={etiqueta}
+        tabIndex={0}
         className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1
                    [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >

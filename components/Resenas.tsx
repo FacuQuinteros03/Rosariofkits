@@ -22,7 +22,7 @@ export function Resenas() {
       >
         Lo que dicen los que ya compraron
       </h2>
-      <p className="mt-1.5 text-[12px] font-semibold uppercase tracking-[0.16em] text-muted">
+      <p className="mt-1.5 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">
         Mensajes de clientes, tal cual llegaron
       </p>
 
@@ -43,7 +43,7 @@ export function Resenas() {
             </div>
             <blockquote className="mt-3 text-[15px] leading-relaxed text-ink">{r.texto}</blockquote>
             {(r.nombre || r.camiseta) && (
-              <p className="mt-auto pt-4 text-[12px] font-semibold uppercase tracking-[0.12em] text-muted">
+              <p className="mt-auto pt-4 text-[13px] font-semibold uppercase tracking-[0.12em] text-muted">
                 {[r.nombre, r.camiseta].filter(Boolean).join(" · ")}
               </p>
             )}

@@ -4,6 +4,7 @@ import { Check, ShoppingBag } from "lucide-react";
 import { agregar, useCarrito } from "@/lib/carrito";
 import type { Producto } from "@/lib/types";
 import { EVENTO_AGREGADO } from "./Carrito";
+import { BOTON_BASE, BOTON_VARIANTE } from "./ui/Boton";
 
 /**
  * Suma el talle elegido al pedido. Va al lado de "Pedir por WhatsApp", no en su
@@ -46,14 +47,14 @@ export function AgregarAlCarrito({
         type="button"
         onClick={sumar}
         disabled={lleno}
-        aria-label={`${etiqueta}: ${producto.nombre}, talle ${talle}`}
-        className="corte relative z-10 flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap
-                   bg-celeste-suave px-3 font-titulo text-[15px] font-extrabold uppercase leading-none
-                   tracking-[0.04em] text-marino transition-colors hover:bg-[#d3e6f9]
-                   disabled:bg-panel-2 disabled:text-muted lg:min-h-12 lg:text-[17px]"
+        aria-label={`${lleno ? "En tu pedido" : "Sumar al pedido"}: ${producto.nombre}, talle ${talle}`}
+        className={`relative z-10 w-full ${BOTON_BASE} ${BOTON_VARIANTE.linea} disabled:bg-panel-2 disabled:text-muted disabled:opacity-100`}
       >
-        <Icono className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
-        {lleno ? "En tu pedido" : "Al pedido"}
+        <Icono className="h-[18px] w-[18px] shrink-0" strokeWidth={2.4} aria-hidden />
+        <span aria-hidden>
+          {lleno ? "En tu pedido" : "Sumar"}
+          {!lleno && <span className="hidden @[230px]:inline"> al pedido</span>}
+        </span>
       </button>
     );
   }

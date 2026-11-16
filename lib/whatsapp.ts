@@ -60,4 +60,5 @@ export function linkWhatsAppCupon(codigo: string, frase: string): string {
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;
 }
 
-export const precio = (n: number) => `$${Math.round(n).toLocaleString("es-AR")}`;
+/** "$ 52.500": signo, espacio que no corta la linea y miles con punto. */
+export const precio = (n: number) => `$\u00a0${Math.round(n).toLocaleString("es-AR")}`;

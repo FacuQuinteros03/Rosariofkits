@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
 import { Landmark, MessageCircle, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import {
   actualizarStock,
@@ -105,18 +104,12 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
 
   return (
     <>
-      <AnimatePresence>
-        {unidades > 0 && !abierto && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            className="fixed bottom-4 left-4 z-30 flex flex-col items-start gap-2"
-          >
+      {unidades > 0 && !abierto && (
+          <div className="aparece fixed bottom-4 left-4 z-30 flex flex-col items-start gap-2">
             {agregado && (
               <p
                 role="status"
-                className="max-w-[16rem] rounded-xl border border-line bg-surface px-3 py-2 text-[12.5px]
+                className="max-w-[16rem] rounded-xl border border-line bg-surface px-3 py-2 text-[13px]
                            leading-snug text-ink shadow-lg shadow-navy/20"
               >
                 Agregaste {agregado}
@@ -132,33 +125,21 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
             >
               <ShoppingBag className="h-5 w-5" strokeWidth={2.4} aria-hidden />
               Ver pedido
-              <span className="grid h-6 min-w-6 place-items-center rounded-full bg-white px-1.5 text-xs text-navy tabular-nums">
+              <span className="grid h-6 min-w-6 place-items-center rounded-full bg-white px-1.5 text-[13px] text-navy tabular-nums">
                 {unidades}
               </span>
             </button>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
-      <AnimatePresence>
-        {abierto && (
-          <motion.div
-            className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-[2px]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={cerrar}
-          >
-            <motion.aside
+      {abierto && (
+          <div className="velo-entra fixed inset-0 z-50 flex justify-end bg-navy/60" onClick={cerrar}>
+            <aside
               role="dialog"
               aria-modal="true"
               aria-label="Tu pedido"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "tween", duration: 0.22, ease: [0.2, 0.7, 0.3, 1] }}
               onClick={(e) => e.stopPropagation()}
-              className="flex h-full w-full max-w-md flex-col border-l border-line bg-ground"
+              className="panel-entra flex h-full w-full max-w-md flex-col border-l border-line bg-ground"
             >
               <header className="flex items-center justify-between border-b border-line px-5 py-4">
                 <h2 className="font-display text-2xl font-extrabold uppercase leading-none">Tu pedido</h2>
@@ -188,7 +169,7 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
                 <>
               <div className="flex-1 overflow-y-auto px-5 py-4">
                 {avisos.length > 0 && (
-                  <ul className="mb-4 space-y-1 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2.5 text-[12.5px] leading-snug text-gold">
+                  <ul className="mb-4 space-y-1 rounded-xl border border-gold/40 bg-gold/10 px-3 py-2.5 text-[13px] leading-snug text-gold">
                     {avisos.map((a) => (
                       <li key={a}>{a}</li>
                     ))}
@@ -212,7 +193,7 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
                         </Link>
                         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                           <p className="text-[13.5px] font-semibold leading-snug">{i.nombre}</p>
-                          <p className="text-[12px] text-muted">
+                          <p className="text-[13px] text-muted">
                             {i.talle !== "ÚNICO" && <>Talle {i.talle} · </>}
                             {precio(i.precio)}
                           </p>
@@ -303,7 +284,7 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
                     <MessageCircle className="h-5 w-5 shrink-0" strokeWidth={2.4} aria-hidden />
                     {mirando ? "Revisando el stock..." : "Enviar pedido por WhatsApp"}
                   </a>
-                  <p className="text-center text-[11.5px] leading-snug text-muted">
+                  <p className="text-center text-[13px] leading-snug text-muted">
                     {transferencia
                       ? "Transferí y subí el comprobante para reservar, o mandanos el pedido y lo charlamos."
                       : "No se cobra nada acá: te confirmamos stock, pago y entrega por WhatsApp."}
@@ -314,7 +295,7 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
                       vaciar();
                       setAvisos([]);
                     }}
-                    className="mx-auto block text-[12px] text-muted underline-offset-2 hover:text-ink hover:underline"
+                    className="mx-auto block text-[13px] text-muted underline-offset-2 hover:text-ink hover:underline"
                   >
                     Vaciar pedido
                   </button>
@@ -322,10 +303,9 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
               )}
                 </>
               )}
-            </motion.aside>
-          </motion.div>
+            </aside>
+          </div>
         )}
-      </AnimatePresence>
     </>
   );
 }

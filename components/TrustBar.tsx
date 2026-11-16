@@ -14,7 +14,7 @@ export function TrustBar() {
           <Icono className="h-5 w-5 shrink-0 text-gold" strokeWidth={1.75} aria-hidden />
           <div className="min-w-0">
             <p className="text-[13px] font-semibold leading-tight text-ink">{titulo}</p>
-            <p className="mt-0.5 text-[11.5px] leading-tight text-muted">{detalle}</p>
+            <p className="mt-0.5 text-[13px] leading-tight text-muted">{detalle}</p>
           </div>
         </li>
       ))}

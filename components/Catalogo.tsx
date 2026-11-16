@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { Search, X } from "lucide-react";
 import { CATEGORIAS, pesoTalle, type Categoria, type Producto } from "@/lib/types";
 import { EncontraTuEquipo, equiposConStock } from "./EncontraTuEquipo";
@@ -38,7 +37,7 @@ function tieneTalle(p: Producto, talle: string) {
 }
 
 const GRILLA =
-  "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4";
+  "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4";
 
 export function Catalogo({ productos }: { productos: Producto[] }) {
   const [texto, setTexto] = useState("");
@@ -153,7 +152,7 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
       </div>
 
       {/* ---------- controles ---------- */}
-      <div className="sticky top-0 z-20 -mx-4 border-b border-line bg-ground/85 px-4 py-3 backdrop-blur-md">
+      <div className="sticky top-0 z-20 -mx-4 border-b border-line bg-ground px-4 py-3">
         <div className="relative">
           <Search
             className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
@@ -166,7 +165,7 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
             placeholder="Buscar: Boca, River, Messi, Real Madrid, short…"
             aria-label="Buscar en el catálogo"
             className="w-full rounded-xl border border-line bg-surface py-2.5 pl-10 pr-10
-                       text-[15px] text-ink placeholder:text-muted
+                       text-base text-ink placeholder:text-muted
                        focus:border-navy-2 focus:outline-none focus:ring-2 focus:ring-navy-2/60"
           />
           {texto && (
@@ -174,7 +173,7 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
               type="button"
               onClick={() => setTexto("")}
               aria-label="Limpiar búsqueda"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-muted hover:text-ink"
+              className="absolute right-0.5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full text-muted hover:text-ink"
             >
               <X className="h-4 w-4" aria-hidden />
             </button>
@@ -191,17 +190,10 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
                 onClick={() => setCategoria(c)}
                 aria-pressed={activo}
                 className={[
-                  "relative shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors",
-                  activo ? "text-ground" : "border border-line text-muted hover:text-ink",
+                  "relative min-h-11 shrink-0 rounded-full px-4 text-[14px] font-semibold transition-colors",
+                  activo ? "bg-ink text-ground" : "border border-line text-muted hover:text-ink",
                 ].join(" ")}
               >
-                {activo && (
-                  <motion.span
-                    layoutId="chip-activo"
-                    className="absolute inset-0 rounded-full bg-ink"
-                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                  />
-                )}
                 <span className="relative">{c}</span>
               </button>
             );
@@ -215,7 +207,7 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
         */}
         {tallesChips.length > 1 && (
           <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
+            <span className="shrink-0 text-[13px] font-semibold text-muted">
               Talle
             </span>
             {tallesChips.map((t) => {
@@ -227,7 +219,7 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
                   onClick={() => setTalle(activo ? null : t)}
                   aria-pressed={activo}
                   className={[
-                    "shrink-0 rounded-lg border px-2.5 py-1 text-[12px] font-bold tabular-nums transition-colors",
+                    "min-h-11 min-w-11 shrink-0 rounded-lg border px-2.5 text-[14px] font-bold tabular-nums transition-colors",
                     activo
                       ? "border-navy bg-navy text-white"
                       : "border-line text-muted hover:border-muted hover:text-ink",
@@ -241,7 +233,7 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
               <button
                 type="button"
                 onClick={() => setTalle(null)}
-                className="shrink-0 rounded-lg px-2 py-1 text-[12px] font-semibold text-muted underline underline-offset-2 hover:text-ink"
+                className="min-h-11 shrink-0 rounded-lg px-2 text-[13px] font-semibold text-muted underline underline-offset-2 hover:text-ink"
               >
                 Todos
               </button>
@@ -250,29 +242,24 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
         )}
       </div>
 
-      <p id="grilla" className="flex scroll-mt-40 flex-wrap items-center gap-x-2.5 gap-y-1.5 py-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-        <span
-          className="h-3 w-2.5 shrink-0 bg-navy-2"
-          style={{ clipPath: "polygon(38% 0,100% 0,62% 100%,0 100%)" }}
-          aria-hidden
-        />
+      <p id="grilla" className="flex scroll-mt-40 flex-wrap items-center gap-x-2.5 gap-y-1.5 py-4 text-[13px] font-semibold text-muted">
         {enStock.length} {enStock.length === 1 ? "modelo" : "modelos"} · {unidades}{" "}
         {unidades === 1 ? "unidad" : "unidades"}
-        {talleActivo && <span className="text-muted/70">· talle {talleActivo}</span>}
+        {talleActivo && <span>· talle {talleActivo}</span>}
         {equipo && (
           <button
             type="button"
             onClick={() => setEquipo(null)}
             aria-label={`Quitar el filtro ${equipo}`}
-            className="inline-flex items-center gap-1 rounded-full border border-navy/25 bg-navy/5
-                       py-0.5 pl-2.5 pr-1.5 normal-case tracking-normal text-ink hover:bg-navy/10"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-navy/25 bg-navy/5
+                       pl-3.5 pr-3 text-ink hover:bg-navy/10"
           >
             {equipo}
-            <X className="h-3 w-3" aria-hidden />
+            <X className="h-4 w-4" aria-hidden />
           </button>
         )}
         {agotados.length > 0 && (
-          <span className="text-muted/70">
+          <span className="text-muted">
             · {agotados.length} {agotados.length === 1 ? "agotado" : "agotados"}
           </span>
         )}
@@ -304,13 +291,11 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
       ) : (
         <>
           {enStock.length > 0 && (
-            <motion.div layout className={`${GRILLA} ${agotados.length > 0 ? "pb-4" : "pb-16"}`}>
-              <AnimatePresence mode="popLayout">
-                {enStock.map((p, i) => (
-                  <ProductCard key={p.id} producto={p} prioridad={i < 4} />
-                ))}
-              </AnimatePresence>
-            </motion.div>
+            <div className={`${GRILLA} ${agotados.length > 0 ? "pb-4" : "pb-16"}`}>
+              {enStock.map((p) => (
+                <ProductCard key={p.id} producto={p} />
+              ))}
+            </div>
           )}
 
           {agotados.length > 0 && (
@@ -322,13 +307,11 @@ export function Catalogo({ productos }: { productos: Producto[] }) {
                 Estos ya volaron. Si te interesa alguno escribinos: lo conseguimos por encargue.
               </p>
 
-              <motion.div layout className={`${GRILLA} mt-5 pb-16`}>
-                <AnimatePresence mode="popLayout">
-                  {agotados.map((p) => (
-                    <ProductCard key={p.id} producto={p} />
-                  ))}
-                </AnimatePresence>
-              </motion.div>
+              <div className={`${GRILLA} mt-5 pb-16`}>
+                {agotados.map((p) => (
+                  <ProductCard key={p.id} producto={p} />
+                ))}
+              </div>
             </section>
           )}
         </>

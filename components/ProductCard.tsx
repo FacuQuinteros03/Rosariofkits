@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
 import { MessageCircle } from "lucide-react";
 import { CarruselFotos } from "./CarruselFotos";
 import { conStock, esLanzamiento, type Producto } from "@/lib/types";
@@ -11,6 +10,7 @@ import { Precio } from "./Precio";
 import { AgregarAlCarrito } from "./AgregarAlCarrito";
 import { EtiquetaCyber } from "./EtiquetaCyber";
 import { GuiaTalles } from "./GuiaTalles";
+import { BOTON_BASE, BOTON_VARIANTE } from "./ui/Boton";
 import { Insignia, type TipoInsignia } from "./ui/Insignia";
 import { versionDe } from "@/lib/talles";
 
@@ -45,15 +45,12 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
   }
 
   return (
-    <motion.article
-      layout
-      /* sin entrada animada: el contenido no puede depender de rAF, que el
-         navegador pausa en pestañas de fondo. Motion queda para el hover. */
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2, ease: [0.2, 0.7, 0.3, 1] }}
-      className="group relative flex flex-col overflow-hidden rounded-lg border border-line bg-surface
-                 shadow-[0_1px_2px_rgb(15_35_64/0.06)] transition-shadow duration-300
-                 hover:shadow-[0_14px_34px_-12px_rgb(15_35_64/0.28)]"
+    <article
+      /* El hover es solo CSS y solo mueve con transform: nada de animar sombras.
+         @container: los textos de los botones se acomodan al ancho de la
+         tarjeta, no al de la pantalla. */
+      className="@container group relative flex flex-col overflow-hidden rounded-xl border border-line bg-surface
+                 transition-transform duration-200 hover:-translate-y-1 motion-reduce:transform-none"
     >
       {/* ---------- foto ---------- */}
       <CarruselFotos
@@ -63,14 +60,10 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
         prioridad={prioridad}
         apagado={apagado}
       >
-        <div className="absolute left-0 top-3 z-10 flex flex-col items-start gap-1.5">
-          {producto.cyber && !agotado && <EtiquetaCyber tipo={producto.cyber} className="ml-2.5" />}
+        <div className="absolute left-2 top-2 z-10 flex flex-col items-start gap-1">
+          {producto.cyber && !agotado && <EtiquetaCyber tipo={producto.cyber} />}
           {etiquetas.map((e) => (
-            <Insignia
-              key={e.texto}
-              tipo={e.tipo}
-              className="shadow-sm [clip-path:polygon(0_0,100%_0,calc(100%-0.7em)_100%,0_100%)]"
-            >
+            <Insignia key={e.texto} tipo={e.tipo}>
               {e.texto}
             </Insignia>
           ))}
@@ -78,8 +71,8 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
       </CarruselFotos>
 
       {/* ---------- datos ---------- */}
-      <div className="flex flex-1 flex-col gap-3 p-3 sm:p-4 lg:gap-3.5">
-        <h3 className="text-[14px] font-semibold leading-snug lg:text-[16px]">
+      <div className="flex flex-1 flex-col gap-3 p-3 @[230px]:p-4">
+        <h3 className="line-clamp-3 text-[15px] font-semibold leading-snug [overflow-wrap:anywhere] @[190px]:text-base">
           {/*
             Enlace estirado: el ::after cubre la tarjeta entera, así se puede
             hacer clic en cualquier lado sin anidar <a> dentro de <a>.
@@ -103,10 +96,10 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
           promesa que no podemos sostener.
         */}
         {agotado ? (
-          <p className="text-[12.5px] font-semibold text-muted">Precio a confirmar</p>
+          <p className="text-[13px] font-semibold text-muted">Precio a confirmar</p>
         ) : (
           <p>
-            <Precio producto={producto} tamano="text-[32px] lg:text-[40px]" />
+            <Precio producto={producto} tamano="text-[28px] @[190px]:text-[32px] @[260px]:text-[38px]" />
           </p>
         )}
 
@@ -116,7 +109,7 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
             que hay stock. Va como texto, que es lo que es — información de
             qué talles hubo, para quien quiera encargarlo.
           */
-          <p className="mt-auto text-[12px] leading-snug text-muted">
+          <p className="mt-auto text-[13px] leading-snug text-muted">
             Se agotó
             {producto.variantes.length > 0 && (
               <> · hubo {producto.variantes.map((v) => v.talle).join(", ")}</>
@@ -124,7 +117,7 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
           </p>
         ) : (
           <div className="relative z-10 mt-auto">
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Talles disponibles">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Talles disponibles">
               {disponibles.map((v) => {
                 const activo = v.talle === talle;
                 return (
@@ -135,7 +128,7 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
                     aria-pressed={activo}
                     title={`${v.disponible} ${v.disponible === 1 ? "disponible" : "disponibles"}`}
                     className={[
-                      "min-h-9 min-w-10 rounded-md border px-2 text-[13px] font-bold tabular-nums transition-colors",
+                      "min-h-11 min-w-11 rounded-lg border px-2 text-[14px] font-bold tabular-nums transition-colors",
                       activo
                         ? "border-navy bg-navy text-white"
                         : "border-line bg-surface text-muted hover:border-navy/50 hover:text-ink",
@@ -159,13 +152,12 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
             href={linkWhatsAppEncargue(producto.nombre, producto.categoria)}
             target="_blank"
             rel="noopener noreferrer"
-            className="corte relative z-10 flex min-h-11 items-center justify-center gap-2 whitespace-nowrap
-                       bg-celeste-suave px-3 font-titulo text-[15px] font-extrabold uppercase leading-none
-                       tracking-[0.04em] text-marino transition-colors hover:bg-[#d3e6f9] lg:text-[17px]"
+            aria-label={`Encargar por WhatsApp: ${producto.nombre}`}
+            className={`relative z-10 w-full ${BOTON_BASE} ${BOTON_VARIANTE.linea}`}
           >
-            <MessageCircle className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
-            <span>
-              Pedila<span className="max-sm:sr-only"> por encargue</span>
+            <MessageCircle className="h-[18px] w-[18px] shrink-0" strokeWidth={2.4} aria-hidden />
+            <span aria-hidden>
+              Encargar<span className="hidden @[230px]:inline"> por WhatsApp</span>
             </span>
           </a>
         ) : (
@@ -174,19 +166,18 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
               href={linkWhatsApp(producto.nombre, talle, producto.categoria)}
               target="_blank"
               rel="noopener noreferrer"
-              className="corte relative z-10 flex min-h-11 items-center justify-center gap-2 whitespace-nowrap bg-wa
-                         px-3 font-titulo text-[15px] font-extrabold uppercase leading-none tracking-[0.04em]
-                         text-white transition-colors hover:bg-wa-dark lg:min-h-12 lg:text-[17px]"
+              aria-label={`Pedir por WhatsApp: ${producto.nombre}, talle ${talle}`}
+              className={`relative z-10 w-full ${BOTON_BASE} ${BOTON_VARIANTE.whatsapp}`}
             >
-              <MessageCircle className="h-[18px] w-[18px] shrink-0" strokeWidth={2.5} aria-hidden />
-              <span>
-                Pedir<span className="max-sm:sr-only"> por WhatsApp</span>
+              <MessageCircle className="h-[18px] w-[18px] shrink-0" strokeWidth={2.4} aria-hidden />
+              <span aria-hidden>
+                Pedir<span className="hidden @[230px]:inline"> por WhatsApp</span>
               </span>
             </a>
             <AgregarAlCarrito producto={producto} talle={talle} compacto />
           </div>
         )}
       </div>
-    </motion.article>
+    </article>
   );
 }

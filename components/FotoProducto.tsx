@@ -21,12 +21,9 @@ export function FotoProducto({ producto }: { producto: Producto }) {
   const fotos = producto.fotos?.length ? producto.fotos : producto.foto ? [producto.foto] : [];
   const [actual, setActual] = useState(0);
   const [abierta, setAbierta] = useState(false);
-  const [montado, setMontado] = useState(false);
 
   const cerrarRef = useRef<HTMLButtonElement>(null);
   const disparadorRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => setMontado(true), []);
 
   const cerrar = useCallback(() => setAbierta(false), []);
   const mover = useCallback(
@@ -52,10 +49,11 @@ export function FotoProducto({ producto }: { producto: Producto }) {
     document.body.style.overflow = "hidden";
     cerrarRef.current?.focus();
 
+    const disparador = disparadorRef.current;
     return () => {
       document.removeEventListener("keydown", alTeclear);
       document.body.style.overflow = overflowPrevio;
-      disparadorRef.current?.focus();
+      disparador?.focus();
     };
   }, [abierta, cerrar, mover]);
 
@@ -137,7 +135,7 @@ export function FotoProducto({ producto }: { producto: Producto }) {
         />
       </div>
 
-      <p className="pointer-events-none absolute inset-x-0 bottom-4 text-center text-[12.5px] text-white/60">
+      <p className="pointer-events-none absolute inset-x-0 bottom-4 text-center text-[13px] text-white/60">
         {varias && (
           <span className="mr-2 font-semibold text-white/80 tabular-nums">
             {actual + 1} / {fotos.length}
@@ -183,12 +181,13 @@ export function FotoProducto({ producto }: { producto: Producto }) {
           fill
           sizes="(max-width:768px) 100vw, 50vw"
           quality={90}
-          priority
+          preload
+          fetchPriority="high"
           className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
         />
         <span
           className="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5
-                     rounded-full bg-black/55 px-3 py-1.5 text-[11px] font-semibold
+                     rounded-full bg-black/55 px-3 py-1.5 text-[13px] font-semibold
                      text-white/90 backdrop-blur-sm transition-opacity
                      sm:opacity-0 sm:group-hover:opacity-100"
         >
@@ -217,7 +216,7 @@ export function FotoProducto({ producto }: { producto: Producto }) {
         </div>
       )}
 
-      {montado && abierta && createPortal(visor, document.body)}
+      {abierta && createPortal(visor, document.body)}
     </div>
   );
 }

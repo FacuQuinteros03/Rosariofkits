@@ -24,6 +24,7 @@ import { BUCKET_COMPROBANTES, supabaseServicio } from "@/lib/supabase/servicio";
 import { pagoTransferenciaActivo } from "@/lib/transferencia";
 import { normalizarTelefono } from "@/lib/telefono";
 import { precio } from "@/lib/whatsapp";
+import { LEGAL } from "@/lib/legal";
 import { esDelPropioSitio, ipDe, superaLimite, tipoPorBytes } from "@/lib/pedidos-web";
 
 export const dynamic = "force-dynamic";
@@ -166,7 +167,11 @@ export async function POST(request: NextRequest) {
     p_canal: "Web",
     p_fecha: hoy,
     p_cupon: null,
-    p_notas: `Pedido web de ${nombre}: transferencia de ${precio(total)} a verificar. El envío se coordina aparte.`,
+    /* Queda anotado qué versión de la política aceptó, cuándo y desde dónde:
+       es la prueba del consentimiento que pide la Ley 25.326. */
+    p_notas:
+      `Pedido web de ${nombre}: transferencia de ${precio(total)} a verificar. El envío se coordina aparte. ` +
+      `Aceptó la política de privacidad v${LEGAL.version} el ${new Date().toISOString()} desde ${ipDe(request)}.`,
   });
   if (errorVenta || typeof venta !== "string") {
     console.error("[pedido] registrar_venta:", errorVenta);

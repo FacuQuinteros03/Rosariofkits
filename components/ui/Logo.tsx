@@ -3,7 +3,7 @@ export function Logo({ className = "" }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={`inline-block [mask:url(/logo.png)_center/contain_no-repeat] ${className}`}
+      className={`inline-block [mask:url(/logo-v2.png)_center/contain_no-repeat] ${className}`}
     />
   );
 }
