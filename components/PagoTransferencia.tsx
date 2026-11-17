@@ -33,13 +33,16 @@ export function PagoTransferencia({
   const [error, setError] = useState<string | null>(null);
   const [archivo, setArchivo] = useState<string | null>(null);
   /* el pedido confirmado: se guarda acá porque el carrito se vacía al terminar */
-  const [listo, setListo] = useState<{ venta: string; total: number } | null>(null);
+  const [listo, setListo] = useState<{ venta: string; total: number; conBox: boolean } | null>(null);
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     const datosForm = new FormData(e.currentTarget);
-    datosForm.set("items", JSON.stringify(items.map((i) => ({ sku: i.sku, cantidad: i.cantidad }))));
+    datosForm.set(
+      "items",
+      JSON.stringify(items.map((i) => (i.box ? { box: i.box, cantidad: i.cantidad } : { sku: i.sku, cantidad: i.cantidad })))
+    );
     datosForm.set("total", String(total));
     setEnviando(true);
     try {
@@ -49,7 +52,7 @@ export function PagoTransferencia({
         setError(r.error ?? "No se pudo enviar. Probá de nuevo o escribinos por WhatsApp.");
         return;
       }
-      setListo({ venta: r.venta, total: r.total ?? total });
+      setListo({ venta: r.venta, total: r.total ?? total, conBox: items.some((i) => i.box) });
       onListo();
     } catch {
       setError("Sin conexión. Probá de nuevo en un rato o mandá el comprobante por WhatsApp.");
@@ -71,8 +74,9 @@ export function PagoTransferencia({
           </p>
         </div>
         <p className="text-[13.5px] leading-relaxed text-ink">
-          Tus camisetas quedaron apartadas. En cuanto veamos la transferencia te escribimos por WhatsApp para
-          coordinar el envío.
+          {listo.conBox
+            ? "Tu pedido quedó reservado. En cuanto veamos la transferencia elegimos la camiseta de tu Mystery Box y te escribimos por WhatsApp para coordinar el envío."
+            : "Tus camisetas quedaron apartadas. En cuanto veamos la transferencia te escribimos por WhatsApp para coordinar el envío."}
         </p>
         <a
           href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`}

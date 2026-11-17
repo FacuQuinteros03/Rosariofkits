@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, LogOut, Plus, ArrowLeftRight, Receipt, Users } from "lucide-react";
+import { LayoutDashboard, LogOut, Plus, ArrowLeftRight, Gift, Receipt, Users } from "lucide-react";
 
 /** Barra de arriba del panel, con los accesos de todos los días. */
 export function Barra({ email }: { email: string }) {
@@ -20,6 +20,9 @@ export function Barra({ email }: { email: string }) {
         </Link>
         <Link href="/admin/ventas" className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm sm:px-3 text-muted hover:text-ink">
           <Receipt className="h-4 w-4" /> <span className="hidden sm:inline">Ventas</span>
+        </Link>
+        <Link href="/admin/mystery-box" className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm sm:px-3 text-muted hover:text-ink">
+          <Gift className="h-4 w-4" /> <span className="hidden sm:inline">Box</span>
         </Link>
         <Link href="/admin/clientes" className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm sm:px-3 text-muted hover:text-ink">
           <Users className="h-4 w-4" /> <span className="hidden sm:inline">Clientes</span>
