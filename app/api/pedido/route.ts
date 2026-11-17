@@ -135,6 +135,7 @@ export async function POST(request: NextRequest) {
     .eq("estado", "Reservada")
     .eq("cobrado", 0);
   /* si no se puede contar, no se reserva: mejor frenar que dejar el techo abierto */
+  if (errorTecho) console.error("[pedido] contar pendientes:", errorTecho);
   if (errorTecho || (pendientes ?? 0) >= MAX_PENDIENTES_TOTAL) {
     return error("En este momento no podemos tomar la reserva por la web. Escribinos por WhatsApp con tu comprobante y te la guardamos.", 503);
   }
