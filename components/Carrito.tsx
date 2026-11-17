@@ -9,6 +9,7 @@ import {
   actualizarStock,
   cambiarCantidad,
   contarUnidades,
+  linkItem,
   linkPedido,
   quitar,
   useCarrito,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/carrito";
 import { calcularTotales, PROMO_PAR } from "@/lib/promo";
 import { precio } from "@/lib/whatsapp";
+import { describirBox, requisitosBox } from "@/lib/box";
 import type { DatosTransferencia } from "@/lib/transferencia";
 import { PagoTransferencia } from "./PagoTransferencia";
 
@@ -53,7 +55,7 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
   async function abrir() {
     setAbierto(true);
     setAgregado(null);
-    const skus = items.map((i) => i.sku);
+    const skus = items.filter((i) => !i.box).map((i) => i.sku);
     if (skus.length === 0) return;
     setMirando(true);
     try {
@@ -185,7 +187,7 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
                     {items.map((i) => (
                       <li key={i.sku} className="flex gap-3 py-3">
                         <Link
-                          href={`/producto/${i.productoId}`}
+                          href={linkItem(i)}
                           onClick={cerrar}
                           className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-surface"
                         >
@@ -194,9 +196,16 @@ export function Carrito({ transferencia }: { transferencia: DatosTransferencia |
                         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                           <p className="text-[13.5px] font-semibold leading-snug">{i.nombre}</p>
                           <p className="text-[13px] text-muted">
-                            {i.talle !== "ÚNICO" && <>Talle {i.talle} · </>}
+                            {i.box ? (
+                              <>{describirBox(i.box)} · </>
+                            ) : (
+                              i.talle !== "ÚNICO" && <>Talle {i.talle} · </>
+                            )}
                             {precio(i.precio)}
                           </p>
+                          {i.box && requisitosBox(i.box) && (
+                            <p className="text-[13px] leading-snug text-muted">{requisitosBox(i.box)}</p>
+                          )}
                           <div className="mt-auto flex items-center gap-2">
                             <div className="flex items-center rounded-lg border border-line">
                               <button

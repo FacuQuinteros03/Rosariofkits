@@ -12,6 +12,8 @@ Qué hace cada parte y dónde vive. El detalle técnico de la planilla, la rulet
 | Pedido | Carrito en el navegador que arma un solo mensaje de WhatsApp | `lib/carrito.ts`, `components/Carrito.tsx` |
 | Pago por transferencia | Muestra alias, recibe el comprobante y reserva el stock. Se activa con variables de Vercel | `components/PagoTransferencia.tsx`, `app/api/pedido/route.ts`, `lib/transferencia.ts` |
 | Verificación de pagos | "Transferencia a verificar": ver comprobante, Cobrar o Revertir | `/admin` → Ventas |
+| Mystery Box | Camiseta sorpresa: el cliente elige versión (Fan $35.000, Player $45.000; la retro va como Player), tipo, talle y qué equipos no quiere. Entra al carrito como un producto más. Solo ofrece talles con stock | `app/mystery-box/page.tsx`, `components/ConfiguradorBox.tsx`, `components/BannerBox.tsx`, `lib/box.ts` |
+| Asignar Mystery Box | Las boxes pagadas por transferencia esperan en el panel: ver comprobante, elegir la camiseta (recién ahí es venta y descuenta stock) o rechazar | `/admin/mystery-box`, `supabase/migrations/0025_mystery_box.sql` |
 | Encargues | Los agotados siguen visibles y se piden por WhatsApp | `lib/whatsapp.ts` |
 | Ruleta | Un cupón firmado por teléfono | `components/Ruleta.tsx`, `app/api/ruleta/route.ts` |
 | Portada | Fotos propias que rotan | `components/Hero.tsx`, `components/HeroFotos.tsx`, `lib/portada.ts` |

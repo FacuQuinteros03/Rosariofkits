@@ -1,4 +1,5 @@
 import { Catalogo } from "@/components/Catalogo";
+import { BannerBox } from "@/components/BannerBox";
 import { CyberCinta } from "@/components/CyberCinta";
 import { CyberMonday } from "@/components/CyberMonday";
 import { Hero } from "@/components/Hero";
@@ -37,6 +38,8 @@ export default async function Page() {
         <CyberMonday productos={productos} />
 
         <RecienLlegadas productos={productos} />
+
+        <BannerBox productos={productos} />
 
         <Resenas />
 

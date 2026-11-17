@@ -30,7 +30,19 @@ Lo que se publicó en `main`, con fecha, y lo que está hecho en rama esperando 
 
 - Se sacaron el botón de pausa y los puntos del carrusel de la portada.
 
-## En la rama `redesign-epico`, sin publicar
+## En rama, sin publicar
+
+### Mystery Box (17/11/2026)
+
+- Página `/mystery-box` con portada propia y bloque destacado en la portada del sitio.
+- Entra al carrito; se paga por transferencia con comprobante o por WhatsApp.
+- Panel: `/admin/mystery-box` para asignar la camiseta o rechazar, y aviso en el Inicio.
+- **Antes de publicar:** correr `supabase/migrations/0025_mystery_box.sql` en Supabase.
+- Probado: migraciones y pruebas de la base en un Postgres local (todas en verde, 14 nuevas);
+  pantallas en 320, 390 y 1440 px con `next build` + `next start`. No se probó contra la base
+  real ni el panel logueado.
+
+## En la rama `redesign-epico`, sin publicar (ya publicado el 16/11, queda como registro)
 
 ### Pago por transferencia con comprobante
 

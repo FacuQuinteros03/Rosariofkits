@@ -30,9 +30,11 @@ export const PROMO_DESDE = 52500;
  * Cyber Monday no entra nada: no son acumulables.
  */
 export function entraEnPromo(
-  item: { categoria: CategoriaReal; precio: number; precioAntes: number | null },
+  item: { categoria: CategoriaReal; precio: number; precioAntes: number | null; box?: unknown },
   ahora = Date.now()
 ): boolean {
+  /* la Mystery Box ya tiene su precio especial: no suma a ninguna promo */
+  if (item.box) return false;
   if (!PROMO_VIGENTE || enHotSale(ahora) || enCyber(ahora)) return false;
   return item.categoria !== "Shorts" && item.precio >= PROMO_DESDE && item.precioAntes === null;
 }

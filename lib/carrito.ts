@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import type { CategoriaReal, Producto, Variante } from "./types";
 import { calcularTotales, PROMO_PAR } from "./promo";
 import { precio, WHATSAPP } from "./whatsapp";
+import { BOX, claveBox, describirBox, esClaveBox, MAX_BOX_POR_LINEA, precioBox, requisitosBox, type PedidoBox } from "./box";
 
 /**
  * El carrito vive en el navegador (localStorage) y nada más. No cobra ni
@@ -25,7 +26,12 @@ export interface ItemCarrito {
   cantidad: number;
   /** unidades en mano la última vez que se miró; tope de la cantidad */
   disponible: number;
+  /** solo en la Mystery Box: lo que pidió. Su `sku` es una clave "box-..." y no un SKU del ERP */
+  box?: PedidoBox;
 }
+
+/** El link de la línea del carrito: la ficha del producto, o la página de la box. */
+export const linkItem = (i: ItemCarrito) => (i.box ? BOX.ruta : `/producto/${i.productoId}`);
 
 const CLAVE = "rfk_carrito_v1";
 const VACIO: ItemCarrito[] = [];
@@ -107,6 +113,33 @@ export function agregar(producto: Producto, variante: Variante) {
   ]);
 }
 
+/** Suma una Mystery Box. Si ya hay una igual, suma una más a esa línea. */
+export function agregarBox(b: PedidoBox) {
+  const clave = claveBox(b);
+  const actuales = instantanea();
+  const ya = actuales.find((i) => i.sku === clave);
+  if (ya) {
+    cambiarCantidad(clave, ya.cantidad + 1);
+    return;
+  }
+  guardar([
+    ...actuales,
+    {
+      sku: clave,
+      productoId: "mystery-box",
+      nombre: BOX.nombre,
+      talle: b.talle,
+      categoria: b.tipo === "seleccion" ? "Selecciones" : b.tipo === "retro" ? "Retro" : "Clubes",
+      precio: precioBox(b),
+      precioAntes: null,
+      foto: BOX.foto,
+      cantidad: 1,
+      disponible: MAX_BOX_POR_LINEA,
+      box: b,
+    },
+  ]);
+}
+
 /** Entre 1 y lo que hay en mano. Para sacar un item, `quitar`. */
 export function cambiarCantidad(sku: string, cantidad: number) {
   guardar(
@@ -141,6 +174,11 @@ export function actualizarStock(actual: Record<string, StockActual>): string[] {
   const nuevos: ItemCarrito[] = [];
 
   for (const i of instantanea()) {
+    /* la box no tiene SKU propio: su talle se vuelve a revisar al reservar */
+    if (i.box || esClaveBox(i.sku)) {
+      nuevos.push(i);
+      continue;
+    }
     const s = actual[i.sku];
     const quien = `${i.nombre} (${i.talle})`;
     if (!s || s.disponible <= 0) {
@@ -175,6 +213,11 @@ const sinTipo = (nombre: string) => nombre.replace(/^(camisetas?|shorts?)\s+/i, 
 export function mensajePedido(lista: ItemCarrito[], ahora = Date.now()): string {
   const { total, pares, ahorro } = calcularTotales(lista, ahora);
   const lineas = lista.map((i) => {
+    if (i.box) {
+      const cant = i.cantidad > 1 ? `${i.cantidad} × ` : "";
+      const req = requisitosBox(i.box);
+      return `• ${cant}${BOX.nombre} ${describirBox(i.box)} — ${precio(i.precio)}${req ? `\n   ${req}` : ""}`;
+    }
     const tipo = i.categoria === "Shorts" ? "Short" : "Camiseta";
     const talle = i.talle !== "ÚNICO" ? ` · talle ${i.talle}` : "";
     const cant = i.cantidad > 1 ? `${i.cantidad} × ` : "";

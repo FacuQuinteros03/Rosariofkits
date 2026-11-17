@@ -124,3 +124,28 @@ export async function cargarMovimiento(m: Movimiento): Promise<Resultado> {
   refrescar();
   return { ok: true, id: data as string };
 }
+
+/**
+ * Mystery Box: Facu eligió qué camiseta le manda. La base registra la venta con
+ * ese SKU al precio de la box y, si ya vio la transferencia, la cobra.
+ */
+export async function asignarBox(box: string, sku: number, cobrar: boolean): Promise<Resultado> {
+  const supabase = await supabaseServidor();
+  const { data, error } = await supabase.rpc("asignar_mystery_box", {
+    p_box: box,
+    p_sku: sku,
+    p_cobrar: cobrar,
+  });
+  if (error) return { ok: false, error: mensaje(error) };
+  refrescar();
+  return { ok: true, id: data as string };
+}
+
+/** Mystery Box rechazada: el comprobante no está o no hay cómo cumplirla. */
+export async function rechazarBox(box: string, motivo: string): Promise<Resultado> {
+  const supabase = await supabaseServidor();
+  const { error } = await supabase.rpc("rechazar_mystery_box", { p_box: box, p_motivo: motivo });
+  if (error) return { ok: false, error: mensaje(error) };
+  refrescar();
+  return { ok: true };
+}

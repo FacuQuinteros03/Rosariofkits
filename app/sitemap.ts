@@ -19,6 +19,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1,
     },
+    {
+      url: `${SITIO}/mystery-box`,
+      lastModified: ahora,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
     /* los agotados se indexan igual — traen visitas que terminan en encargue —
        pero con menos prioridad que lo que se puede comprar hoy */
     ...productos.map((p) => ({
