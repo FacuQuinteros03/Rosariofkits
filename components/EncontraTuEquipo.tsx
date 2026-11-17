@@ -128,7 +128,7 @@ export function EncontraTuEquipo({
                   {e.nombre}
                 </span>
                 <span
-                  className={`mt-0.5 block text-[13px] font-semibold uppercase tracking-[0.1em] ${
+                  className={`mt-0.5 block whitespace-nowrap text-[13px] font-semibold uppercase tracking-[0.04em] ${
                     e.escudo ? "text-muted" : "text-white/75"
                   }`}
                 >

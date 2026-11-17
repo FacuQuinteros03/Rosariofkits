@@ -4,6 +4,18 @@ Lo que se publicó en `main`, con fecha, y lo que está hecho en rama esperando 
 
 ## Publicado
 
+### 17/11/2026 · Dominio, transferencia andando y portada con Messi
+
+- Dominio `rosariofkits.com.ar` (delegado a Vercel; `www` redirige al dominio sin www).
+- Pago por transferencia probado en producción. Hizo falta la migración `0024`: la clave
+  secreta no tenía permisos en la base y toda reserva se rechazaba.
+- Portada: Messi, Chelsea, Real Madrid y Arsenal. Argentina, Boca retro y Juventus salen
+  hasta tener mejores fotos.
+
+### 16/11/2026 · Rediseño auditado y pago por transferencia (PR 1)
+
+- Todo lo que figuraba abajo como "En la rama `redesign-epico`" quedó publicado.
+
 ### 15/11/2026 · Rediseño
 
 - Todo el sitio público en blanco con azules. El panel y la ruleta siguen oscuros.
