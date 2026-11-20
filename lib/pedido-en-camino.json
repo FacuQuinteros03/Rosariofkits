@@ -1,0 +1,27 @@
+{
+  "_comentario": "Pedido al proveedor que todavía no llegó. Lo usan dos cosas: herramientas/pedidos/armar_sql.py (arma el SQL para cargarlo en la base) y la sección 'En camino' de la web (lib/sheets.ts, getEnCamino). Los nombres tienen que coincidir con los de la base. Al recibirlo: ver herramientas/pedidos/LEEME.md.",
+  "pedido": {
+    "fecha": "2026-11-20",
+    "proveedor": "Indumentaria BA10",
+    "costo_unit": 27000,
+    "llega": "fines de noviembre",
+    "notas": "Pedido de 34 prendas (24 camisetas y 10 shorts) a $ 27.000 cada una."
+  },
+  "modelos": [
+    { "nombre": "Camiseta Roma Titular", "tipo": "Jugador", "linea": "Clubes", "categoria": "Camiseta", "precio": 45000, "talles": { "L": 1, "XL": 1 }, "confirmar": "temporada y si es versión jugador o fan" },
+    { "nombre": "Camiseta River Plate 2027 Tricolor", "tipo": "Jugador", "linea": "Clubes", "categoria": "Camiseta", "precio": 45000, "talles": { "M": 1, "L": 1, "XL": 1 } },
+    { "nombre": "Camiseta PSG Blanca", "tipo": "Jugador", "linea": "Clubes", "categoria": "Camiseta", "precio": 45000, "talles": { "L": 1, "XL": 1 } },
+    { "nombre": "Camiseta Flamengo Titular", "tipo": "Jugador", "linea": "Clubes", "categoria": "Camiseta", "precio": 45000, "talles": { "L": 1, "XL": 1 } },
+    { "nombre": "Camiseta Boca Juniors Edición Aniversario", "tipo": "FAN", "linea": "Clubes", "categoria": "Camiseta", "precio": 42500, "talles": { "M": 1, "L": 1 } },
+    { "nombre": "Camiseta River Plate Retro 1996 Titular", "tipo": "Retro", "linea": "Retro", "categoria": "Camiseta", "precio": 50000, "talles": { "XL": 1, "XXL": 1 }, "confirmar": "es el mismo modelo que ya tenés en stock: si ya existe ese talle, se suma a ese" },
+    { "nombre": "Camiseta AC Milan Retro 2007", "tipo": "Retro", "linea": "Retro", "categoria": "Camiseta", "precio": 50000, "talles": { "L": 1, "XL": 1 } },
+    { "nombre": "Camiseta Boca Juniors Retro 1996", "tipo": "Retro", "linea": "Retro", "categoria": "Camiseta", "precio": 50000, "talles": { "M": 1, "L": 1, "XL": 1, "XXL": 1 }, "confirmar": "si es la azul titular o la blanca suplente que ya tenés" },
+    { "nombre": "Camiseta Argentina Retro 2006 Suplente (azul)", "tipo": "Retro", "linea": "Retro", "categoria": "Camiseta", "precio": 50000, "talles": { "L": 1, "XXL": 1 } },
+    { "nombre": "Camiseta Argentina Retro 2006 Titular", "tipo": "Retro", "linea": "Retro", "categoria": "Camiseta", "precio": 50000, "talles": { "L": 1, "XL": 1, "XXL": 1 } },
+    { "nombre": "Short Real Madrid Celeste", "tipo": "Short", "linea": "Shorts", "categoria": "Short", "precio": 37500, "talles": { "L": 1, "XL": 2 } },
+    { "nombre": "Short Bayern Munich Blanco", "tipo": "Short", "linea": "Shorts", "categoria": "Short", "precio": 37500, "talles": { "XL": 2 } },
+    { "nombre": "Short Real Madrid Blanco", "tipo": "Short", "linea": "Shorts", "categoria": "Short", "precio": 37500, "talles": { "XL": 1 } },
+    { "nombre": "Short Tottenham", "tipo": "Short", "linea": "Shorts", "categoria": "Short", "precio": 37500, "talles": { "XL": 1 } },
+    { "nombre": "Short Argentina", "tipo": "Short", "linea": "Shorts", "categoria": "Short", "precio": 37500, "talles": { "L": 1, "XL": 2 }, "confirmar": "en el mensaje dice 'L 2XL (3 unidades)': lo tomé como L y dos XL" }
+  ]
+}

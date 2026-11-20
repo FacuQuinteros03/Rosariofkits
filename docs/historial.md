@@ -20,6 +20,14 @@ Lo que se publicó en `main`, con fecha, y lo que está hecho en rama esperando 
 
 ## En la rama `redesign-epico`, sin publicar
 
+### Pedido nuevo en camino (20/11/2026)
+
+- 34 prendas a $ 27.000 ($ 918.000), en `lib/pedido-en-camino.json` con precios propuestos.
+- `herramientas/pedidos/pedido-en-camino.sql` para cargarlo en Supabase (probado en una base
+  local con las migraciones del repo). Nuevos SKU desde el 8001, en Preventa.
+- Sección "En camino" en la portada: solo este pedido, botón "Reservar por WhatsApp". El pedido
+  a China sigue sin mostrarse.
+
 ### Pago por transferencia con comprobante
 
 - Traído de la rama `transferencia`. Necesita en Vercel `SUPABASE_SECRET_KEY`,

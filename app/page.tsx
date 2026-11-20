@@ -7,7 +7,9 @@ import { RecienLlegadas } from "@/components/RecienLlegadas";
 import { Resenas } from "@/components/Resenas";
 import { TrustBar } from "@/components/TrustBar";
 import { BarraAnuncios } from "@/components/ui/BarraAnuncios";
-import { getCatalogo } from "@/lib/sheets";
+import { EnCamino } from "@/components/EnCamino";
+import { getCatalogo, getEnCamino } from "@/lib/sheets";
+import pedidoEnCamino from "@/lib/pedido-en-camino.json";
 
 /**
  * ISR: la página se sirve cacheada y se refresca sola cada minuto.
@@ -17,7 +19,7 @@ import { getCatalogo } from "@/lib/sheets";
 export const revalidate = 60;
 
 export default async function Page() {
-  const productos = await getCatalogo();
+  const [productos, enCamino] = await Promise.all([getCatalogo(), getEnCamino()]);
   /* el contador de arriba habla de lo que se puede comprar hoy: los agotados
      tienen su propio bloque al final del catálogo */
   const enStock = productos.filter((p) => p.total > 0);
@@ -37,6 +39,8 @@ export default async function Page() {
         <CyberMonday productos={productos} />
 
         <RecienLlegadas productos={productos} />
+
+        <EnCamino productos={enCamino} llega={pedidoEnCamino.pedido.llega} />
 
         <Resenas />
 

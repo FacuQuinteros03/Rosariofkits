@@ -1,3 +1,4 @@
+import pedidoEnCamino from "./pedido-en-camino.json";
 import "server-only";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -358,6 +359,22 @@ export async function leerFilas(): Promise<string[][]> {
 }
 
 export async function getCatalogo(): Promise<Producto[]> {
+  return armarProductos(ESTADO_PUBLICABLE);
+}
+
+/**
+ * Lo que está en camino: los modelos de lib/pedido-en-camino.json que en la base
+ * siguen en Preventa. Filtra por nombre a propósito: el pedido a China también
+ * está en Preventa y no se publica hasta diciembre.
+ */
+export async function getEnCamino(): Promise<Producto[]> {
+  const nombres = new Set(pedidoEnCamino.modelos.map((m) => m.nombre.trim().toLowerCase()));
+  if (nombres.size === 0) return [];
+  const todos = await armarProductos("preventa");
+  return todos.filter((p) => p.total > 0 && nombres.has(p.nombre.trim().toLowerCase()));
+}
+
+async function armarProductos(estado: string): Promise<Producto[]> {
   const [encabezado = [], ...filas] = await leerFilas();
   const col = ubicarColumnas(encabezado);
 
@@ -376,7 +393,7 @@ export async function getCatalogo(): Promise<Producto[]> {
   for (const f of filas) {
     const sku = (f[0] ?? "").trim();
     if (!/^\d+$/.test(sku)) continue; // filas de seccion del Sheet
-    if (estadoPub(f, col) !== ESTADO_PUBLICABLE) continue; // preventa y archivado, afuera
+    if (estadoPub(f, col) !== estado) continue; // en el catálogo, preventa y archivado afuera
 
     // Los agotados entran igual. Ver el filtro de mas abajo: quedan solo los
     // que tienen foto, porque un agotado sin foto no le dice nada a nadie.
