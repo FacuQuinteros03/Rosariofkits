@@ -198,6 +198,7 @@ export default async function ProductoPage({ params }: Props) {
               : p.total === 1
                 ? "Queda una sola unidad."
                 : `Quedan ${p.total} unidades.`}{" "}
+            {p.llega && p.total > 0 && <>Está en camino: llega {p.llega} y ya la podés pedir. </>}
             Entrega en mano en {NEGOCIO.ciudad} y envíos a todo el país. Efectivo o transferencia,
             sin recargo.
           </p>

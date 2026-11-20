@@ -1,3 +1,4 @@
+import pedidoEnCamino from "./pedido-en-camino.json";
 import "server-only";
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -358,6 +359,35 @@ export async function leerFilas(): Promise<string[][]> {
 }
 
 export async function getCatalogo(): Promise<Producto[]> {
+  return armarProductos(ESTADO_PUBLICABLE);
+}
+
+/**
+ * Lo que ya se vende pero todavía no llegó: los modelos de lib/pedido-en-camino.json.
+ * Devuelve el texto del aviso ("el martes 24/11") hasta el día que llega; desde
+ * ese día, null, y el aviso desaparece solo. Se calcula acá, en el servidor, para
+ * que la fecha sea la misma en la página que se arma y en la que ve la persona.
+ */
+const LLEGA_EL = Date.parse(`${pedidoEnCamino.pedido.llega}T00:00:00-03:00`);
+const EN_CAMINO = new Set(pedidoEnCamino.modelos.map((m) => m.nombre.trim().toLowerCase()));
+
+function llegaDe(nombre: string): string | null {
+  if (!EN_CAMINO.has(nombre.trim().toLowerCase()) || !(Date.now() < LLEGA_EL)) return null;
+  /* armado a mano: según la versión de Node, es-AR da "24/11" o "24-11" */
+  const partes = Object.fromEntries(
+    new Intl.DateTimeFormat("es-AR", {
+      weekday: "long",
+      day: "numeric",
+      month: "numeric",
+      timeZone: "America/Argentina/Buenos_Aires",
+    })
+      .formatToParts(new Date(LLEGA_EL))
+      .map((p) => [p.type, p.value])
+  );
+  return `el ${partes.weekday} ${partes.day}/${partes.month}`;
+}
+
+async function armarProductos(estado: string): Promise<Producto[]> {
   const [encabezado = [], ...filas] = await leerFilas();
   const col = ubicarColumnas(encabezado);
 
@@ -376,7 +406,7 @@ export async function getCatalogo(): Promise<Producto[]> {
   for (const f of filas) {
     const sku = (f[0] ?? "").trim();
     if (!/^\d+$/.test(sku)) continue; // filas de seccion del Sheet
-    if (estadoPub(f, col) !== ESTADO_PUBLICABLE) continue; // preventa y archivado, afuera
+    if (estadoPub(f, col) !== estado) continue; // en el catálogo, preventa y archivado afuera
 
     // Los agotados entran igual. Ver el filtro de mas abajo: quedan solo los
     // que tienen foto, porque un agotado sin foto no le dice nada a nadie.
@@ -433,6 +463,7 @@ export async function getCatalogo(): Promise<Producto[]> {
         precio: cyber?.precio ?? m.precio,
         precioAntes: cyber?.precioAntes ?? antes,
         cyber: cyber?.cyber ?? null,
+        llega: llegaDe(m.nombre),
         total: variantes.reduce((s, v) => s + v.disponible, 0),
         variantes,
         foto: fotos[0] ?? null,

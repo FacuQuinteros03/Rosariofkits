@@ -20,4 +20,6 @@ Qué hace cada parte y dónde vive. El detalle técnico de la planilla, la rulet
 | Guía de talles | Tabla Fan y Player. Oculta hasta tener medidas reales | `components/GuiaTalles.tsx`, `lib/talles.ts` |
 | Legales | Privacidad y botón de arrepentimiento | `app/privacidad`, `app/arrepentimiento`, `lib/legal.ts` |
 | Seguridad | Encabezados, límites y validaciones de las rutas públicas | `next.config.ts`, `lib/pedidos-web.ts` |
+| Pedido en camino | Lo pedido al proveedor se vende desde ya, con el aviso "Llega el ..." hasta esa fecha | `lib/pedido-en-camino.json`, `llegaDe` en `lib/sheets.ts` |
+| Carga de pedidos | Arma el SQL para cargar un pedido al proveedor en la base | `herramientas/pedidos/` |
 | Panel | Ventas, stock y caja. Oculto sin sesión | `app/admin` |

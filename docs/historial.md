@@ -4,6 +4,15 @@ Lo que se publicó en `main`, con fecha, y lo que está hecho en rama esperando 
 
 ## Publicado
 
+### 20/11/2026 · Pedido nuevo, se vende desde ya
+
+- 34 prendas a $ 27.000 ($ 918.000) en `lib/pedido-en-camino.json`. Precios de Facu: retro
+  $ 50.000; las demás camisetas y los shorts $ 49.000. Llega el martes 24/11.
+- `herramientas/pedidos/pedido-en-camino.sql` para cargarlo en Supabase (probado en una base
+  local con las migraciones del repo). Nuevos SKU desde el 8001, en Stock.
+- En el catálogo con todo (pedir, carrito, transferencia) y el aviso "Llega el martes 24/11",
+  que se apaga solo ese día.
+
 ### 17/11/2026 · Dominio, transferencia andando y portada con Messi
 
 - Dominio `rosariofkits.com.ar` (delegado a Vercel; `www` redirige al dominio sin www).

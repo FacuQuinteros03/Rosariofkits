@@ -29,6 +29,11 @@ export interface Producto {
   precioAntes: number | null;
   /** si entra en el Cyber Monday y a qué precio; null fuera de fecha. Ver lib/cyber.ts */
   cyber: TipoCyber | null;
+  /**
+   * Si ya se vende pero todavía no llegó, cuándo llega ("el martes 24/11");
+   * null si está en mano. Ver lib/pedido-en-camino.json.
+   */
+  llega?: string | null;
   /** suma de unidades de todos los talles; 0 = agotado */
   total: number;
   /**
