@@ -44,7 +44,7 @@ def main():
 -- Qué hace, todo junto o nada (si algo falla, no queda nada a medias):
 --   1. Crea los modelos que no existen. Los que ya existen se reusan.
 --   2. Por cada talle: si el modelo ya tiene ese talle sin estampado, usa ese SKU;
---      si no, crea uno nuevo desde el 8001, en estado Preventa.
+--      si no, crea uno nuevo desde el 8001, en Stock: se vende desde ya.
 --   3. Crea el pedido (estado Encargado) con el costo por unidad.
 -- Al final muestra el pedido creado y los SKU, para nombrar las fotos.
 -- Correrlo dos veces crea dos pedidos: mirá en /admin antes de repetir.
@@ -86,7 +86,7 @@ begin
       v_sku := v_proximo;
       v_proximo := v_proximo + 1;
       insert into skus (sku, modelo_id, talle, precio, estado_pub)
-      values (v_sku, v_modelo, f.talle, f.precio, 'Preventa');
+      values (v_sku, v_modelo, f.talle, f.precio, 'Stock');
     end if;
 
     update _carga set sku = v_sku where nombre = f.nombre and talle = f.talle;

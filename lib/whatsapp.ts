@@ -42,20 +42,6 @@ export function linkWhatsAppEncargue(
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;
 }
 
-/**
- * Reserva de algo que todavía no llegó (sección "En camino"). Dice que llega
- * después, así nadie cree que está en mano.
- */
-export function linkWhatsAppReserva(
-  nombre: string,
-  categoria?: CategoriaReal,
-  talle?: string | null
-): string {
-  const conTalle = talle && talle !== "ÚNICO" ? ` en talle ${talle}` : "";
-  const texto = `¡Hola Rosario F Kits! Quiero reservar ${articuloYNombre(nombre, categoria)}${conTalle}, de las que están en camino.`;
-  return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`;
-}
-
 /** Consulta general, sin producto: la del boton del encabezado. */
 export function linkWhatsAppGeneral(): string {
   const texto = "¡Hola Rosario F Kits! Quería hacerles una consulta.";

@@ -40,6 +40,7 @@ export function ProductCard({ producto, prioridad = false }: { producto: Product
       else if (producto.precioAntes) etiquetas.push({ tipo: "rebajada", texto: "Rebajada" });
       else if (producto.nuevo) etiquetas.push({ tipo: "nuevo", texto: "Nuevo" });
     }
+    if (producto.llega) etiquetas.push({ tipo: "camino", texto: `Llega ${producto.llega}` });
     if (ultima) etiquetas.push({ tipo: "ultima", texto: "Última unidad" });
     else if (producto.total <= 3) etiquetas.push({ tipo: "quedan", texto: `Quedan ${producto.total}` });
   }

@@ -363,15 +363,28 @@ export async function getCatalogo(): Promise<Producto[]> {
 }
 
 /**
- * Lo que está en camino: los modelos de lib/pedido-en-camino.json que en la base
- * siguen en Preventa. Filtra por nombre a propósito: el pedido a China también
- * está en Preventa y no se publica hasta diciembre.
+ * Lo que ya se vende pero todavía no llegó: los modelos de lib/pedido-en-camino.json.
+ * Devuelve el texto del aviso ("el martes 24/11") hasta el día que llega; desde
+ * ese día, null, y el aviso desaparece solo. Se calcula acá, en el servidor, para
+ * que la fecha sea la misma en la página que se arma y en la que ve la persona.
  */
-export async function getEnCamino(): Promise<Producto[]> {
-  const nombres = new Set(pedidoEnCamino.modelos.map((m) => m.nombre.trim().toLowerCase()));
-  if (nombres.size === 0) return [];
-  const todos = await armarProductos("preventa");
-  return todos.filter((p) => p.total > 0 && nombres.has(p.nombre.trim().toLowerCase()));
+const LLEGA_EL = Date.parse(`${pedidoEnCamino.pedido.llega}T00:00:00-03:00`);
+const EN_CAMINO = new Set(pedidoEnCamino.modelos.map((m) => m.nombre.trim().toLowerCase()));
+
+function llegaDe(nombre: string): string | null {
+  if (!EN_CAMINO.has(nombre.trim().toLowerCase()) || !(Date.now() < LLEGA_EL)) return null;
+  /* armado a mano: según la versión de Node, es-AR da "24/11" o "24-11" */
+  const partes = Object.fromEntries(
+    new Intl.DateTimeFormat("es-AR", {
+      weekday: "long",
+      day: "numeric",
+      month: "numeric",
+      timeZone: "America/Argentina/Buenos_Aires",
+    })
+      .formatToParts(new Date(LLEGA_EL))
+      .map((p) => [p.type, p.value])
+  );
+  return `el ${partes.weekday} ${partes.day}/${partes.month}`;
 }
 
 async function armarProductos(estado: string): Promise<Producto[]> {
@@ -450,6 +463,7 @@ async function armarProductos(estado: string): Promise<Producto[]> {
         precio: cyber?.precio ?? m.precio,
         precioAntes: cyber?.precioAntes ?? antes,
         cyber: cyber?.cyber ?? null,
+        llega: llegaDe(m.nombre),
         total: variantes.reduce((s, v) => s + v.disponible, 0),
         variantes,
         foto: fotos[0] ?? null,

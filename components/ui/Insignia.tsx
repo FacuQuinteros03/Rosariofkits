@@ -8,7 +8,8 @@ export type TipoInsignia =
   | "quedan"
   | "agotado"
   | "player"
-  | "fan";
+  | "fan"
+  | "camino";
 
 const ESTILOS: Record<TipoInsignia, string> = {
   nuevo: "bg-azul text-white",
@@ -19,6 +20,7 @@ const ESTILOS: Record<TipoInsignia, string> = {
   agotado: "bg-panel-2 text-niebla",
   player: "bg-marino text-white",
   fan: "bg-celeste-suave text-marino",
+  camino: "bg-marino text-white",
 };
 
 /** Las etiquetas de producto. El texto lo pone quien la usa ("Quedan 2"). */
