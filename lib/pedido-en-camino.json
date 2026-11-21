@@ -2,14 +2,14 @@
   "_comentario": "Pedido al proveedor que todavía no llegó pero ya se vende. Lo usan dos cosas: herramientas/pedidos/armar_sql.py (arma el SQL para cargarlo en la base, en Stock) y el aviso 'Llega el ...' de las tarjetas (lib/sheets.ts), que se apaga solo el día de 'llega'. Los nombres tienen que coincidir con los de la base.",
   "pedido": {
     "fecha": "2026-11-20",
-    "proveedor": "Indumentaria BA10",
+    "proveedor": "Balex Indumentaria",
     "costo_unit": 27000,
     "llega": "2026-11-24",
-    "notas": "Pedido de 34 prendas (24 camisetas y 10 shorts) a $ 27.000 cada una. Llega el martes 24/11."
+    "notas": "Pedido a Balex (indumentaria-ba10) de 34 prendas versión jugador (24 camisetas y 10 shorts) a $ 27.000 cada una. Llega el martes 24/11."
   },
   "modelos": [
     {
-      "nombre": "Camiseta Roma Titular",
+      "nombre": "Camiseta Roma 26/27' Alternativa (crema)",
       "tipo": "Jugador",
       "linea": "Clubes",
       "categoria": "Camiseta",
@@ -18,10 +18,10 @@
         "L": 1,
         "XL": 1
       },
-      "confirmar": "temporada y si es versión jugador o fan"
+      "equipo": "Roma"
     },
     {
-      "nombre": "Camiseta River Plate 2027 Tricolor",
+      "nombre": "Camiseta River Plate 26/27' Tricolor",
       "tipo": "Jugador",
       "linea": "Clubes",
       "categoria": "Camiseta",
@@ -30,10 +30,11 @@
         "M": 1,
         "L": 1,
         "XL": 1
-      }
+      },
+      "equipo": "River"
     },
     {
-      "nombre": "Camiseta PSG Blanca",
+      "nombre": "Camiseta PSG 26/27' Alternativa (blanca)",
       "tipo": "Jugador",
       "linea": "Clubes",
       "categoria": "Camiseta",
@@ -41,10 +42,11 @@
       "talles": {
         "L": 1,
         "XL": 1
-      }
+      },
+      "equipo": "PSG"
     },
     {
-      "nombre": "Camiseta Flamengo Titular",
+      "nombre": "Camiseta Flamengo 26/27' Titular",
       "tipo": "Jugador",
       "linea": "Clubes",
       "categoria": "Camiseta",
@@ -52,18 +54,21 @@
       "talles": {
         "L": 1,
         "XL": 1
-      }
+      },
+      "equipo": "Flamengo"
     },
     {
       "nombre": "Camiseta Boca Juniors Edición Aniversario",
-      "tipo": "FAN",
+      "tipo": "Jugador",
       "linea": "Clubes",
       "categoria": "Camiseta",
       "precio": 49000,
       "talles": {
         "M": 1,
         "L": 1
-      }
+      },
+      "equipo": "Boca",
+      "confirmar": "en la planilla del proveedor figura [V.F]; se cargó como jugador porque Facu dijo que todo es versión jugador"
     },
     {
       "nombre": "Camiseta River Plate Retro 1996 Titular",
@@ -75,21 +80,23 @@
         "XL": 1,
         "XXL": 1
       },
-      "confirmar": "es el mismo modelo que ya tenés en stock: si ya existe ese talle, se suma a ese"
+      "equipo": "River",
+      "sin_aviso": true
     },
     {
-      "nombre": "Camiseta AC Milan Retro 2007",
+      "nombre": "Camiseta AC Milan 06/07' Suplente",
       "tipo": "Retro",
-      "linea": "Retro",
+      "linea": "Clubes",
       "categoria": "Camiseta",
       "precio": 50000,
       "talles": {
         "L": 1,
         "XL": 1
-      }
+      },
+      "equipo": "AC Milan"
     },
     {
-      "nombre": "Camiseta Boca Juniors Retro 1996",
+      "nombre": "Camiseta Boca Juniors Retro 1996 Titular",
       "tipo": "Retro",
       "linea": "Retro",
       "categoria": "Camiseta",
@@ -100,10 +107,10 @@
         "XL": 1,
         "XXL": 1
       },
-      "confirmar": "si es la azul titular o la blanca suplente que ya tenés"
+      "equipo": "Boca"
     },
     {
-      "nombre": "Camiseta Argentina Retro 2006 Suplente (azul)",
+      "nombre": "Camiseta Argentina 2006 Suplente (Mundial)",
       "tipo": "Retro",
       "linea": "Retro",
       "categoria": "Camiseta",
@@ -111,10 +118,11 @@
       "talles": {
         "L": 1,
         "XXL": 1
-      }
+      },
+      "equipo": "Argentina"
     },
     {
-      "nombre": "Camiseta Argentina Retro 2006 Titular",
+      "nombre": "Camiseta Argentina 2006 Titular",
       "tipo": "Retro",
       "linea": "Retro",
       "categoria": "Camiseta",
@@ -123,10 +131,11 @@
         "L": 1,
         "XL": 1,
         "XXL": 1
-      }
+      },
+      "equipo": "Argentina"
     },
     {
-      "nombre": "Short Real Madrid Celeste",
+      "nombre": "Short Real Madrid (azul)",
       "tipo": "Short",
       "linea": "Shorts",
       "categoria": "Short",
@@ -134,27 +143,30 @@
       "talles": {
         "L": 1,
         "XL": 2
-      }
+      },
+      "equipo": "Real Madrid"
     },
     {
-      "nombre": "Short Bayern Munich Blanco",
+      "nombre": "Short Bayern Munich (blanco)",
       "tipo": "Short",
       "linea": "Shorts",
       "categoria": "Short",
       "precio": 49000,
       "talles": {
         "XL": 2
-      }
+      },
+      "equipo": "Bayern Munich"
     },
     {
-      "nombre": "Short Real Madrid Blanco",
+      "nombre": "Short Real Madrid (blanco)",
       "tipo": "Short",
       "linea": "Shorts",
       "categoria": "Short",
       "precio": 49000,
       "talles": {
         "XL": 1
-      }
+      },
+      "equipo": "Real Madrid"
     },
     {
       "nombre": "Short Tottenham",
@@ -164,10 +176,11 @@
       "precio": 49000,
       "talles": {
         "XL": 1
-      }
+      },
+      "equipo": "Tottenham"
     },
     {
-      "nombre": "Short Argentina",
+      "nombre": "Short Argentina (jugador)",
       "tipo": "Short",
       "linea": "Shorts",
       "categoria": "Short",
@@ -176,7 +189,8 @@
         "L": 1,
         "XL": 2
       },
-      "confirmar": "en el mensaje dice 'L 2XL (3 unidades)': lo tomé como L y dos XL"
+      "equipo": "Argentina",
+      "confirmar": "sin foto en el catálogo del proveedor; 'L 2XL (3 unidades)' se tomó como L y dos XL"
     }
   ]
 }

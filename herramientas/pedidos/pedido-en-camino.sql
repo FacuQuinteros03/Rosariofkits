@@ -1,9 +1,9 @@
--- Pedido 2026-11-20 a Indumentaria BA10: 34 prendas a $ 27.000 = $ 918.000.
+-- Pedido 2026-11-20 a Balex Indumentaria: 34 prendas a $ 27.000 = $ 918.000.
 -- Generado por herramientas/pedidos/armar_sql.py desde lib/pedido-en-camino.json.
 -- NO editar a mano: cambiar el JSON y volver a generar.
 --
 -- Qué hace, todo junto o nada (si algo falla, no queda nada a medias):
---   1. Crea los modelos que no existen. Los que ya existen se reusan.
+--   1. Crea los modelos que no existen (con su equipo). Los que ya existen se reusan.
 --   2. Por cada talle: si el modelo ya tiene ese talle sin estampado, usa ese SKU;
 --      si no, crea uno nuevo desde el 8001, en Stock: se vende desde ya.
 --   3. Crea el pedido (estado Encargado) con el costo por unidad.
@@ -13,41 +13,41 @@
 begin;
 
 create temp table _carga (
-  nombre text, categoria text, tipo text, linea text, talle text, precio numeric, cantidad int, sku int
+  nombre text, categoria text, tipo text, linea text, talle text, precio numeric, cantidad int, equipo text, sku int
 ) on commit drop;
 
-insert into _carga (nombre, categoria, tipo, linea, talle, precio, cantidad) values
-    ('Camiseta Roma Titular', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1),
-    ('Camiseta Roma Titular', 'Camiseta', 'Jugador', 'Clubes', 'XL', 49000, 1),
-    ('Camiseta River Plate 2027 Tricolor', 'Camiseta', 'Jugador', 'Clubes', 'M', 49000, 1),
-    ('Camiseta River Plate 2027 Tricolor', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1),
-    ('Camiseta River Plate 2027 Tricolor', 'Camiseta', 'Jugador', 'Clubes', 'XL', 49000, 1),
-    ('Camiseta PSG Blanca', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1),
-    ('Camiseta PSG Blanca', 'Camiseta', 'Jugador', 'Clubes', 'XL', 49000, 1),
-    ('Camiseta Flamengo Titular', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1),
-    ('Camiseta Flamengo Titular', 'Camiseta', 'Jugador', 'Clubes', 'XL', 49000, 1),
-    ('Camiseta Boca Juniors Edición Aniversario', 'Camiseta', 'FAN', 'Clubes', 'M', 49000, 1),
-    ('Camiseta Boca Juniors Edición Aniversario', 'Camiseta', 'FAN', 'Clubes', 'L', 49000, 1),
-    ('Camiseta River Plate Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'XL', 50000, 1),
-    ('Camiseta River Plate Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'XXL', 50000, 1),
-    ('Camiseta AC Milan Retro 2007', 'Camiseta', 'Retro', 'Retro', 'L', 50000, 1),
-    ('Camiseta AC Milan Retro 2007', 'Camiseta', 'Retro', 'Retro', 'XL', 50000, 1),
-    ('Camiseta Boca Juniors Retro 1996', 'Camiseta', 'Retro', 'Retro', 'M', 50000, 1),
-    ('Camiseta Boca Juniors Retro 1996', 'Camiseta', 'Retro', 'Retro', 'L', 50000, 1),
-    ('Camiseta Boca Juniors Retro 1996', 'Camiseta', 'Retro', 'Retro', 'XL', 50000, 1),
-    ('Camiseta Boca Juniors Retro 1996', 'Camiseta', 'Retro', 'Retro', 'XXL', 50000, 1),
-    ('Camiseta Argentina Retro 2006 Suplente (azul)', 'Camiseta', 'Retro', 'Retro', 'L', 50000, 1),
-    ('Camiseta Argentina Retro 2006 Suplente (azul)', 'Camiseta', 'Retro', 'Retro', 'XXL', 50000, 1),
-    ('Camiseta Argentina Retro 2006 Titular', 'Camiseta', 'Retro', 'Retro', 'L', 50000, 1),
-    ('Camiseta Argentina Retro 2006 Titular', 'Camiseta', 'Retro', 'Retro', 'XL', 50000, 1),
-    ('Camiseta Argentina Retro 2006 Titular', 'Camiseta', 'Retro', 'Retro', 'XXL', 50000, 1),
-    ('Short Real Madrid Celeste', 'Short', 'Short', 'Shorts', 'L', 49000, 1),
-    ('Short Real Madrid Celeste', 'Short', 'Short', 'Shorts', 'XL', 49000, 2),
-    ('Short Bayern Munich Blanco', 'Short', 'Short', 'Shorts', 'XL', 49000, 2),
-    ('Short Real Madrid Blanco', 'Short', 'Short', 'Shorts', 'XL', 49000, 1),
-    ('Short Tottenham', 'Short', 'Short', 'Shorts', 'XL', 49000, 1),
-    ('Short Argentina', 'Short', 'Short', 'Shorts', 'L', 49000, 1),
-    ('Short Argentina', 'Short', 'Short', 'Shorts', 'XL', 49000, 2);
+insert into _carga (nombre, categoria, tipo, linea, talle, precio, cantidad, equipo) values
+    ('Camiseta Roma 26/27'' Alternativa (crema)', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1, 'Roma'),
+    ('Camiseta Roma 26/27'' Alternativa (crema)', 'Camiseta', 'Jugador', 'Clubes', 'XL', 49000, 1, 'Roma'),
+    ('Camiseta River Plate 26/27'' Tricolor', 'Camiseta', 'Jugador', 'Clubes', 'M', 49000, 1, 'River'),
+    ('Camiseta River Plate 26/27'' Tricolor', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1, 'River'),
+    ('Camiseta River Plate 26/27'' Tricolor', 'Camiseta', 'Jugador', 'Clubes', 'XL', 49000, 1, 'River'),
+    ('Camiseta PSG 26/27'' Alternativa (blanca)', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1, 'PSG'),
+    ('Camiseta PSG 26/27'' Alternativa (blanca)', 'Camiseta', 'Jugador', 'Clubes', 'XL', 49000, 1, 'PSG'),
+    ('Camiseta Flamengo 26/27'' Titular', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1, 'Flamengo'),
+    ('Camiseta Flamengo 26/27'' Titular', 'Camiseta', 'Jugador', 'Clubes', 'XL', 49000, 1, 'Flamengo'),
+    ('Camiseta Boca Juniors Edición Aniversario', 'Camiseta', 'Jugador', 'Clubes', 'M', 49000, 1, 'Boca'),
+    ('Camiseta Boca Juniors Edición Aniversario', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1, 'Boca'),
+    ('Camiseta River Plate Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'XL', 50000, 1, 'River'),
+    ('Camiseta River Plate Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'XXL', 50000, 1, 'River'),
+    ('Camiseta AC Milan 06/07'' Suplente', 'Camiseta', 'Retro', 'Clubes', 'L', 50000, 1, 'AC Milan'),
+    ('Camiseta AC Milan 06/07'' Suplente', 'Camiseta', 'Retro', 'Clubes', 'XL', 50000, 1, 'AC Milan'),
+    ('Camiseta Boca Juniors Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'M', 50000, 1, 'Boca'),
+    ('Camiseta Boca Juniors Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'L', 50000, 1, 'Boca'),
+    ('Camiseta Boca Juniors Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'XL', 50000, 1, 'Boca'),
+    ('Camiseta Boca Juniors Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'XXL', 50000, 1, 'Boca'),
+    ('Camiseta Argentina 2006 Suplente (Mundial)', 'Camiseta', 'Retro', 'Retro', 'L', 50000, 1, 'Argentina'),
+    ('Camiseta Argentina 2006 Suplente (Mundial)', 'Camiseta', 'Retro', 'Retro', 'XXL', 50000, 1, 'Argentina'),
+    ('Camiseta Argentina 2006 Titular', 'Camiseta', 'Retro', 'Retro', 'L', 50000, 1, 'Argentina'),
+    ('Camiseta Argentina 2006 Titular', 'Camiseta', 'Retro', 'Retro', 'XL', 50000, 1, 'Argentina'),
+    ('Camiseta Argentina 2006 Titular', 'Camiseta', 'Retro', 'Retro', 'XXL', 50000, 1, 'Argentina'),
+    ('Short Real Madrid (azul)', 'Short', 'Short', 'Shorts', 'L', 49000, 1, 'Real Madrid'),
+    ('Short Real Madrid (azul)', 'Short', 'Short', 'Shorts', 'XL', 49000, 2, 'Real Madrid'),
+    ('Short Bayern Munich (blanco)', 'Short', 'Short', 'Shorts', 'XL', 49000, 2, 'Bayern Munich'),
+    ('Short Real Madrid (blanco)', 'Short', 'Short', 'Shorts', 'XL', 49000, 1, 'Real Madrid'),
+    ('Short Tottenham', 'Short', 'Short', 'Shorts', 'XL', 49000, 1, 'Tottenham'),
+    ('Short Argentina (jugador)', 'Short', 'Short', 'Shorts', 'L', 49000, 1, 'Argentina'),
+    ('Short Argentina (jugador)', 'Short', 'Short', 'Shorts', 'XL', 49000, 2, 'Argentina');
 
 do $$
 declare
@@ -64,6 +64,13 @@ begin
       insert into modelos (nombre, categoria, tipo, linea, nuevo)
       values (f.nombre, f.categoria, f.tipo::tipo_producto, f.linea::linea, true)
       returning id into v_modelo;
+    end if;
+
+    -- El equipo, para las métricas por equipo: se crea si no existe y solo se pone si falta.
+    if f.equipo is not null then
+      insert into equipos (nombre) values (f.equipo) on conflict (nombre) do nothing;
+      update modelos set equipo_id = (select id from equipos where nombre = f.equipo)
+      where id = v_modelo and equipo_id is null;
     end if;
 
     select sku into v_sku from skus
@@ -83,11 +90,11 @@ begin
     update _carga set sku = v_sku where nombre = f.nombre and talle = f.talle;
   end loop;
 
-  insert into proveedores (nombre) values ('Indumentaria BA10') on conflict (nombre) do nothing;
-  select id into v_prov from proveedores where nombre = 'Indumentaria BA10';
+  insert into proveedores (nombre) values ('Balex Indumentaria') on conflict (nombre) do nothing;
+  select id into v_prov from proveedores where nombre = 'Balex Indumentaria';
 
   insert into pedidos (fecha, proveedor_id, costo_mercaderia, notas)
-  values (date '2026-11-20', v_prov, 918000, 'Pedido de 34 prendas (24 camisetas y 10 shorts) a $ 27.000 cada una. Llega el martes 24/11.')
+  values (date '2026-11-20', v_prov, 918000, 'Pedido a Balex (indumentaria-ba10) de 34 prendas versión jugador (24 camisetas y 10 shorts) a $ 27.000 cada una. Llega el martes 24/11.')
   returning id into v_pedido;
 
   insert into pedido_items (pedido_id, sku, cantidad, costo_unit)

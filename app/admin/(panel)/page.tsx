@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, FileText, Gift, MessageCircle, Plus } from "lucide-react";
+import { CheckCircle2, ChevronRight, FileText, Gift, MessageCircle, Plus } from "lucide-react";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { nombreMes, plata, plataCorta, porciento } from "@/app/admin/_lib/formato";
 import { Tarjeta } from "@/app/admin/_componentes/Controles";
@@ -34,7 +34,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
   const supabase = await supabaseServidor();
   const q = (vista: string, campos = "*") => supabase.from(vista).select(campos);
 
-  const [tablero, inversion, mercaderia, caja, meses, lineas, equipos, talles, pedidos, porEntregar, conSaldo, ultimas, clientes, boxes] =
+  const [tablero, inversion, mercaderia, caja, meses, lineas, equipos, talles, pedidos, porEntregar, conSaldo, ultimas, clientes, boxes, vendidoPorPedido] =
     await Promise.all([
       q("v_tablero").single(),
       q("v_inversion").single(),
@@ -50,13 +50,21 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
       q("v_ventas", "id, fecha, cliente, total, unidades, saldo, estado").order("id", { ascending: false }).limit(6),
       q("v_clientes_metricas", "id, telefono, recurrente"),
       q("mystery_boxes", "id, nombre, talle").eq("estado", "Pendiente").order("creado_en"),
+      q("v_hechos_venta", "id, pedido_id, venta_id, fecha, cliente, modelo, talle, cantidad, facturado, ganancia, estado")
+        .not("pedido_id", "is", null).order("fecha", { ascending: false }),
     ]);
 
   // Si una consulta falla (por ejemplo, se corta por tiempo) sus números quedarían en 0
   // sin aviso: mejor decirlo.
   const fallas = Object.entries({
     tablero, inversion, mercaderia, caja, meses, lineas, equipos, talles, pedidos, porEntregar, conSaldo, ultimas, clientes,
+    vendidoPorPedido,
   }).filter(([, r]) => r.error);
+
+  // Lo vendido de cada pedido, para el desplegable.
+  const detallePedido = new Map<string, Fila[]>();
+  for (const f of (vendidoPorPedido.data ?? []) as Fila[])
+    detallePedido.set(f.pedido_id, [...(detallePedido.get(f.pedido_id) ?? []), f]);
   for (const [nombre, r] of fallas) console.error(`Panel: falló ${nombre}`, r.error);
 
   const t: Fila = tablero.data ?? {};
@@ -69,6 +77,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
   const totalClientes = (clientes.data ?? []).length;
   const margen = Number(t.facturado) > 0 ? Number(t.ganancia) / Number(t.facturado) : 0;
   const ventasTotales = mes.reduce((s, m) => s + Number(m.ventas), 0);
+  const esteMes = mes.at(-1);
 
   // Alertas
   const alertas: string[] = [];
@@ -134,16 +143,24 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
 
       {/* Números de arriba */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi titulo="Vendido y cobrado" valor={plataCorta(t.facturado)} pie={`${ventasTotales} ventas`}
+        <Kpi titulo="Vendido y cobrado" valor={plataCorta(t.facturado)} exacto={plata(t.facturado)} pie={`${ventasTotales} ventas`}
           chispa={<Chispa valores={mes.map((m) => Number(m.facturado))} />} />
-        <Kpi titulo="Ganancia" valor={plataCorta(t.ganancia)} pie={`margen ${porciento(margen)}`} acento="text-wa"
+        <Kpi titulo="Ganancia" valor={plataCorta(t.ganancia)} exacto={plata(t.ganancia)} pie={`margen ${porciento(margen)}`} acento="text-wa"
           chispa={<Chispa valores={mes.map((m) => Number(m.ganancia))} color={COLORES.verde} />} />
-        <Kpi titulo="Caja" valor={plataCorta(t.saldo_caja)}
+        <Kpi titulo="Caja" valor={plataCorta(t.saldo_caja)} exacto={plata(t.saldo_caja)}
           pie={`Banco ${plataCorta(porMetodo["Transferencia"])} · Efvo ${plataCorta(porMetodo["Efectivo"])}`}
-          chispa={<Chispa valores={mes.map((m) => Number(m.caja_al_cierre))} color={COLORES.azul} />} />
-        <Kpi titulo="A cobrar" valor={plataCorta(t.a_cobrar)}
+          chispa={<Chispa valores={mes.map((m) => Number(m.caja_al_cierre))} color={COLORES.celeste} />} />
+        <Kpi titulo="A cobrar" valor={plataCorta(t.a_cobrar)} exacto={plata(t.a_cobrar)}
           pie={`${t.ventas_a_cobrar ?? 0} ventas · ganancia ${plataCorta(t.ganancia_a_cobrar)} cuando paguen`} acento="text-gold" />
       </div>
+      {esteMes && (
+        <p className="-mt-1 flex flex-wrap gap-x-4 gap-y-1 px-1 text-xs text-muted">
+          <span className="font-semibold text-ink">{nombreMes(esteMes.mes)}:</span>
+          <span>vendido y cobrado <b className="text-ink">{plata(esteMes.facturado)}</b></span>
+          <span>ganancia <b className="text-wa">{plata(esteMes.ganancia)}</b></span>
+          <span>{esteMes.ventas} ventas pagas · {esteMes.unidades} prendas</span>
+        </p>
+      )}
 
       {/* La mercadería sin vender: la plata que está en camisetas. */}
       <section className="relative overflow-hidden rounded-2xl border border-gold/40 bg-gradient-to-br from-gold/15 via-surface to-surface p-5">
@@ -175,10 +192,10 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
           <BarrasMes
             etiquetas={mes.map((m) => nombreMes(m.mes))}
             series={[
-              { nombre: "Vendido", color: COLORES.oro, valores: mes.map((m) => Number(m.facturado)) },
+              { nombre: "Vendido", color: COLORES.azul, valores: mes.map((m) => Number(m.facturado)) },
               { nombre: "Ganancia", color: COLORES.verde, valores: mes.map((m) => Number(m.ganancia)) },
             ]}
-            linea={{ nombre: "Caja al cierre", color: COLORES.azul, valores: mes.map((m) => Number(m.caja_al_cierre)) }}
+            linea={{ nombre: "Caja al cierre", color: COLORES.celeste, valores: mes.map((m) => Number(m.caja_al_cierre)) }}
           />
         </Tarjeta>
         <Tarjeta titulo="Stock">
@@ -187,7 +204,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
             sub="para vender"
             partes={[
               { nombre: "En casa", valor: Number(t.fisico ?? 0), color: COLORES.verde },
-              { nombre: "En camino", valor: Number(t.unidades_en_camino ?? 0), color: COLORES.azul },
+              { nombre: "En camino", valor: Number(t.unidades_en_camino ?? 0), color: COLORES.celeste },
             ]}
             formato={(n) => `${n} u.`}
           />
@@ -219,26 +236,35 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
         </Tarjeta>
 
         <Tarjeta titulo="Pedidos: cuánto recuperó cada uno" className="lg:col-span-2">
-          <ul className="flex flex-col gap-3.5">
+          <ul className="flex flex-col gap-2">
             {((pedidos.data ?? []) as Fila[]).map((p) => (
               <li key={p.pedido_id}>
-                <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
-                  <span className="min-w-0 truncate">
-                    <b>{p.pedido_id}</b> <span className="text-muted">{p.proveedor}</span>
-                    {p.estado !== "Recibido" && (
-                      <span className="ml-2 rounded bg-sky-400/15 px-1.5 py-0.5 text-[10px] text-sky-300">{p.estado}</span>
-                    )}
-                  </span>
-                  <span className="shrink-0 text-xs text-muted">
-                    {p.unidades_vendidas}/{p.unidades} vendidas · <b className="text-ink">{plataCorta(p.facturado)}</b> de {plataCorta(p.costo_total)}
-                  </span>
-                </div>
-                <Avance valor={Number(p.facturado)} total={Number(p.costo_total)}
-                  color={Number(p.recuperado) >= 1 ? COLORES.verde : COLORES.oro} />
+                <details className="group rounded-xl border border-transparent px-2 py-1.5 open:border-line open:bg-ground/50">
+                  <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3 text-sm">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted transition-transform group-open:rotate-90" />
+                        <b>{p.pedido_id}</b> <span className="truncate text-muted">{p.proveedor}</span>
+                        {p.estado !== "Recibido" && (
+                          <span className="ml-1 rounded bg-sky-400/15 px-1.5 py-0.5 text-[10px] text-sky-300">{p.estado}</span>
+                        )}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted">
+                        {p.unidades_vendidas}/{p.unidades} vendidas · <b className="text-ink">{plataCorta(p.facturado)}</b> de {plataCorta(p.costo_total)}
+                      </span>
+                    </div>
+                    <Avance valor={Number(p.facturado)} total={Number(p.costo_total)}
+                      color={Number(p.recuperado) >= 1 ? COLORES.verde : COLORES.azul} />
+                  </summary>
+                  <DetallePedido filas={detallePedido.get(p.pedido_id) ?? []} />
+                </details>
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-muted">En verde, los pedidos que ya se pagaron solos con lo vendido: lo que queda es ganancia.</p>
+          <p className="mt-3 text-xs text-muted">
+            En verde, los pedidos que ya se pagaron solos con lo vendido: lo que queda es ganancia. Tocá un pedido para ver
+            qué se vendió.
+          </p>
         </Tarjeta>
       </div>
 
@@ -251,7 +277,7 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
             partes={sumarPor((lineas.data ?? []) as Fila[], "linea", "facturado").slice(0, 6)} formato={plataCorta} />
         </Tarjeta>
         <Tarjeta titulo="Talles que salen">
-          <Ranking filas={tallesOrden} color={COLORES.azul} formato={(n) => `${n} u.`} />
+          <Ranking filas={tallesOrden} color={COLORES.celeste} formato={(n) => `${n} u.`} />
           <p className="mt-3 text-xs text-muted">{recurrentes} de {totalClientes} clientes ya compraron más de una vez.</p>
         </Tarjeta>
       </div>
@@ -345,8 +371,8 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
   );
 }
 
-function Kpi({ titulo, valor, pie, chispa, acento = "" }: {
-  titulo: string; valor: string; pie?: string; chispa?: React.ReactNode; acento?: string;
+function Kpi({ titulo, valor, exacto, pie, chispa, acento = "" }: {
+  titulo: string; valor: string; exacto?: string; pie?: string; chispa?: React.ReactNode; acento?: string;
 }) {
   return (
     <div className="flex flex-col justify-between gap-2 rounded-2xl border border-line bg-surface p-4">
@@ -356,6 +382,7 @@ function Kpi({ titulo, valor, pie, chispa, acento = "" }: {
       </div>
       <div>
         <p className={`font-display text-3xl font-extrabold leading-none tracking-tight sm:text-4xl ${acento}`}>{valor}</p>
+        {exacto && <p className="mt-1.5 text-sm font-semibold tabular-nums">{exacto}</p>}
         {pie && <p className="mt-1 truncate text-[11px] text-muted">{pie}</p>}
       </div>
     </div>
@@ -378,10 +405,58 @@ const COLOR_ESTADO: Record<string, string> = {
   Entregada: "bg-wa/15 text-wa",
   Pagada: "bg-sky-400/15 text-sky-300",
   Señada: "bg-gold/15 text-gold",
-  Reservada: "bg-white/10 text-muted",
+  Reservada: "bg-ink/10 text-muted",
   Cancelada: "bg-red-500/15 text-red-300",
 };
 
 function Estado({ e }: { e: string }) {
-  return <span className={`rounded-full px-2 py-0.5 text-xs ${COLOR_ESTADO[e] ?? "bg-white/10"}`}>{e}</span>;
+  return <span className={`rounded-full px-2 py-0.5 text-xs ${COLOR_ESTADO[e] ?? "bg-ink/10"}`}>{e}</span>;
+}
+
+/** Lo vendido de un pedido: cada prenda con quién la compró y en qué quedó. */
+function DetallePedido({ filas }: { filas: Fila[] }) {
+  if (filas.length === 0) return <p className="mt-3 text-xs text-muted">Todavía no se vendió nada de este pedido.</p>;
+  const corto = (m: string) => m.replace(/^(Camiseta|Short) /, "");
+  // Resumen por modelo arriba, el detalle venta por venta abajo.
+  const porModelo = new Map<string, number>();
+  for (const f of filas) porModelo.set(f.modelo, (porModelo.get(f.modelo) ?? 0) + Number(f.cantidad));
+  return (
+    <div className="mt-3 flex flex-col gap-3">
+      <div className="flex flex-wrap gap-1.5">
+        {[...porModelo.entries()].sort((a, b) => b[1] - a[1]).map(([m, n]) => (
+          <span key={m} className="rounded-full bg-ink/5 px-2 py-0.5 text-[11px]">
+            {corto(m)} <b>×{n}</b>
+          </span>
+        ))}
+      </div>
+      <div className="-mx-1 overflow-x-auto">
+        <table className="w-full min-w-[520px] text-xs">
+          <thead>
+            <tr className="text-left text-muted">
+              <th className="px-1 pb-1.5 font-normal">Prenda</th>
+              <th className="px-1 pb-1.5 font-normal">Cliente</th>
+              <th className="px-1 pb-1.5 font-normal">Estado</th>
+              <th className="px-1 pb-1.5 text-right font-normal">Precio</th>
+              <th className="px-1 pb-1.5 text-right font-normal">Ganancia</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {filas.map((f) => (
+              <tr key={f.id}>
+                <td className="px-1 py-1.5">
+                  {corto(f.modelo)} <span className="text-muted">· {f.talle}{f.cantidad > 1 ? ` ×${f.cantidad}` : ""}</span>
+                </td>
+                <td className="px-1 py-1.5">
+                  {f.cliente} <span className="text-muted">· {f.fecha.slice(8, 10)}/{f.fecha.slice(5, 7)} · {f.venta_id}</span>
+                </td>
+                <td className="px-1 py-1.5"><Estado e={f.estado} /></td>
+                <td className="px-1 py-1.5 text-right tabular-nums">{plata(f.facturado)}</td>
+                <td className="px-1 py-1.5 text-right tabular-nums text-wa">{plata(f.ganancia)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

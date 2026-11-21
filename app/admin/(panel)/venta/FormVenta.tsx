@@ -201,7 +201,7 @@ export function FormVenta({ productos, clientes, hoy }: { productos: Producto[];
                     <li key={c.id}>
                       <button
                         onClick={() => { setCliente(c); setBusqCliente(""); }}
-                        className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:bg-white/5"
+                        className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm hover:bg-ink/5"
                       >
                         <span>{c.nombre}</span>
                         <span className="text-xs text-muted">{c.compras} compras</span>
@@ -227,7 +227,7 @@ export function FormVenta({ productos, clientes, hoy }: { productos: Producto[];
             <ul className="mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line">
               {resultados.map((p) => (
                 <li key={p.sku}>
-                  <button onClick={() => agregar(p)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-white/5">
+                  <button onClick={() => agregar(p)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-ink/5">
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm">{p.producto}</span>
                       <span className="text-xs text-muted">

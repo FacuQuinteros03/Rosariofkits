@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { BotonTema } from "./BotonTema";
 import { LayoutDashboard, LogOut, Plus, ArrowLeftRight, Gift, Receipt, Users } from "lucide-react";
 
 /** Barra de arriba del panel, con los accesos de todos los días. */
-export function Barra({ email }: { email: string }) {
+export function Barra({ email, oscuro }: { email: string; oscuro: boolean }) {
   return (
     <header className="mb-6 flex items-center justify-between gap-3">
       <Link href="/admin" className="flex items-center gap-2.5">
@@ -33,6 +34,7 @@ export function Barra({ email }: { email: string }) {
         <Link href="/admin/venta" className="flex items-center gap-1.5 rounded-lg bg-gold px-2.5 py-2 text-sm sm:px-3 font-semibold text-ground">
           <Plus className="h-4 w-4" /> Venta
         </Link>
+        <BotonTema inicial={oscuro} />
         <form action="/admin/salir" method="post">
           <button aria-label="Salir" className="rounded-lg p-2 text-muted hover:text-ink">
             <LogOut className="h-4 w-4" />

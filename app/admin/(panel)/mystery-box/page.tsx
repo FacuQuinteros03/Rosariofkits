@@ -115,12 +115,12 @@ export default async function MysteryBoxes() {
               <div className="flex flex-wrap gap-2">
                 {b.comprobante && (
                   <a href={`/admin/comprobante/${b.id}`} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-ink hover:bg-white/5">
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-ink hover:bg-ink/5">
                     <FileText className="h-3.5 w-3.5" /> Ver comprobante
                   </a>
                 )}
                 <a href={`https://wa.me/${b.telefono}`} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-ink hover:bg-white/5">
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-ink hover:bg-ink/5">
                   <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
                 </a>
                 <RechazarBox box={b.id} />

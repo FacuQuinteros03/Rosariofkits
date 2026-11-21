@@ -4,16 +4,19 @@
  */
 import { plataCorta } from "../_lib/formato";
 
+/* Variables CSS del tema del panel (globals.css, .tema-panel): cambian solas con claro/oscuro. */
 export const COLORES = {
-  oro: "#e2b74a",
-  verde: "#25d366",
-  azul: "#5b8def",
-  rojo: "#e5484d",
-  violeta: "#a78bfa",
-  gris: "#8b9aa8",
-  linea: "#232c38",
+  azul: "var(--g-azul)",
+  verde: "var(--g-verde)",
+  celeste: "var(--g-celeste)",
+  turquesa: "var(--g-turquesa)",
+  marino: "var(--g-marino)",
+  rojo: "var(--g-rojo)",
+  violeta: "var(--g-violeta)",
+  gris: "var(--color-muted)",
+  linea: "var(--color-line)",
 };
-const PALETA = [COLORES.oro, COLORES.azul, COLORES.verde, COLORES.violeta, "#f59e0b", "#38bdf8", COLORES.gris];
+const PALETA = [COLORES.azul, COLORES.celeste, COLORES.verde, COLORES.turquesa, COLORES.violeta, COLORES.marino, COLORES.gris];
 
 type Serie = { nombre: string; color: string; valores: number[] };
 
@@ -59,7 +62,7 @@ export function BarrasMes({ etiquetas, series, linea }: { etiquetas: string[]; s
             <polyline fill="none" stroke={linea.color} strokeWidth="2.5" strokeLinejoin="round"
               points={linea.valores.map((v, i) => `${izq + ancho * i + ancho / 2},${y(v)}`).join(" ")} />
             {linea.valores.map((v, i) => (
-              <circle key={i} cx={izq + ancho * i + ancho / 2} cy={y(v)} r="4" fill="#12171f" stroke={linea.color} strokeWidth="2.5">
+              <circle key={i} cx={izq + ancho * i + ancho / 2} cy={y(v)} r="4" fill="var(--color-surface)" stroke={linea.color} strokeWidth="2.5">
                 <title>{`${linea.nombre} ${etiquetas[i]}: ${plataCorta(v)}`}</title>
               </circle>
             ))}
@@ -103,7 +106,7 @@ export function Dona({
           return el;
         })}
         <g>
-          <text x="70" y="70" textAnchor="middle" fontSize="22" fontWeight="800" fill="#e9edf2" className="font-display">{centro}</text>
+          <text x="70" y="70" textAnchor="middle" fontSize="22" fontWeight="800" fill="var(--color-ink)" className="font-display">{centro}</text>
           <text x="70" y="88" textAnchor="middle" fontSize="10" fill={COLORES.gris}>{sub}</text>
         </g>
       </svg>
@@ -123,7 +126,7 @@ export function Dona({
 /** Ranking en barras horizontales (equipos, talles, proveedores...). */
 export function Ranking({
   filas,
-  color = COLORES.oro,
+  color = COLORES.azul,
   formato = (n: number) => String(n),
 }: {
   filas: { nombre: string; valor: number; detalle?: string }[];
@@ -162,7 +165,7 @@ export function Avance({ valor, total, color = COLORES.verde }: { valor: number;
 }
 
 /** Linea finita sin ejes para las tarjetas de arriba. */
-export function Chispa({ valores, color = COLORES.oro }: { valores: number[]; color?: string }) {
+export function Chispa({ valores, color = COLORES.azul }: { valores: number[]; color?: string }) {
   if (valores.length < 2) return null;
   const W = 120, H = 32;
   const max = Math.max(...valores), min = Math.min(...valores);

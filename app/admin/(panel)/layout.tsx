@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { sesionAdmin } from "@/app/admin/_lib/sesion";
 import { Barra, SinAcceso } from "@/app/admin/_componentes/Marco";
 
@@ -7,7 +8,7 @@ export default async function LayoutPanel({ children }: { children: React.ReactN
   if (!esAdmin) return <SinAcceso email={email} />;
   return (
     <>
-      <Barra email={email} />
+      <Barra email={email} oscuro={(await cookies()).get("panel_tema")?.value === "oscuro"} />
       {children}
     </>
   );

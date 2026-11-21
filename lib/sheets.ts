@@ -369,7 +369,12 @@ export async function getCatalogo(): Promise<Producto[]> {
  * que la fecha sea la misma en la página que se arma y en la que ve la persona.
  */
 const LLEGA_EL = Date.parse(`${pedidoEnCamino.pedido.llega}T00:00:00-03:00`);
-const EN_CAMINO = new Set(pedidoEnCamino.modelos.map((m) => m.nombre.trim().toLowerCase()));
+/* sin_aviso: modelos que ya hay en casa y el pedido solo repone; el aviso confundiría. */
+const EN_CAMINO = new Set(
+  (pedidoEnCamino.modelos as { nombre: string; sin_aviso?: boolean }[])
+    .filter((m) => !m.sin_aviso)
+    .map((m) => m.nombre.trim().toLowerCase()),
+);
 
 function llegaDe(nombre: string): string | null {
   if (!EN_CAMINO.has(nombre.trim().toLowerCase()) || !(Date.now() < LLEGA_EL)) return null;

@@ -31,9 +31,9 @@ def main():
     for m in d["modelos"]:
         for talle, cant in m["talles"].items():
             filas.append(
-                "    (%s, %s, %s, %s, %s, %s, %d)"
+                "    (%s, %s, %s, %s, %s, %s, %d, %s)"
                 % (texto(m["nombre"]), texto(m["categoria"]), texto(m["tipo"]), texto(m["linea"]),
-                   texto(talle), m["precio"], cant)
+                   texto(talle), m["precio"], cant, texto(m["equipo"]) if m.get("equipo") else "null")
             )
 
     pesos = lambda n: f"{n:,}".replace(",", ".")
@@ -42,7 +42,7 @@ def main():
 -- NO editar a mano: cambiar el JSON y volver a generar.
 --
 -- Qué hace, todo junto o nada (si algo falla, no queda nada a medias):
---   1. Crea los modelos que no existen. Los que ya existen se reusan.
+--   1. Crea los modelos que no existen (con su equipo). Los que ya existen se reusan.
 --   2. Por cada talle: si el modelo ya tiene ese talle sin estampado, usa ese SKU;
 --      si no, crea uno nuevo desde el 8001, en Stock: se vende desde ya.
 --   3. Crea el pedido (estado Encargado) con el costo por unidad.
@@ -52,10 +52,10 @@ def main():
 begin;
 
 create temp table _carga (
-  nombre text, categoria text, tipo text, linea text, talle text, precio numeric, cantidad int, sku int
+  nombre text, categoria text, tipo text, linea text, talle text, precio numeric, cantidad int, equipo text, sku int
 ) on commit drop;
 
-insert into _carga (nombre, categoria, tipo, linea, talle, precio, cantidad) values
+insert into _carga (nombre, categoria, tipo, linea, talle, precio, cantidad, equipo) values
 {",\n".join(filas)};
 
 do $$
@@ -73,6 +73,13 @@ begin
       insert into modelos (nombre, categoria, tipo, linea, nuevo)
       values (f.nombre, f.categoria, f.tipo::tipo_producto, f.linea::linea, true)
       returning id into v_modelo;
+    end if;
+
+    -- El equipo, para las métricas por equipo: se crea si no existe y solo se pone si falta.
+    if f.equipo is not null then
+      insert into equipos (nombre) values (f.equipo) on conflict (nombre) do nothing;
+      update modelos set equipo_id = (select id from equipos where nombre = f.equipo)
+      where id = v_modelo and equipo_id is null;
     end if;
 
     select sku into v_sku from skus

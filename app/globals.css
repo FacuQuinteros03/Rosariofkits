@@ -213,11 +213,71 @@ html {
   color-scheme: dark;
 }
 
+/*
+  El panel de administración: blanco con azules como la web, y oscuro a elección
+  (botón de la barra, se guarda en la cookie panel_tema). Sin amarillo.
+  Los tokens de siempre cambian de sentido acá:
+    gold  -> el acento (azul): avisos, "a cobrar", botones principales
+    wa    -> lo que es plata a favor (verde): ganancia, cobrado
+  --g-* son los colores de los gráficos (SVG), que leen estas variables.
+  Los rojos y celestes de Tailwind que usa el panel se oscurecen en claro para
+  que se lean sobre blanco.
+*/
+.tema-panel {
+  --color-ground: #f3f6fa;
+  --color-surface: #ffffff;
+  --color-line: #dbe3ee;
+  --color-ink: #0b1a2e;
+  --color-muted: #5a6880;
+  --color-navy: #0f2340;
+  --color-navy-2: #1b3a66;
+  --color-wa: #12935a;
+  --color-wa-dark: #0e7a4a;
+  --color-gold: #1a5fd0;
+  --color-red-200: #b42318;
+  --color-red-300: #c0392b;
+  --color-sky-300: #0b72b9;
+  --color-violet-300: #6d4bd8;
+  --g-azul: #1a5fd0;
+  --g-verde: #16a36a;
+  --g-celeste: #38a9e8;
+  --g-turquesa: #14b8a6;
+  --g-marino: #1b3a66;
+  --g-violeta: #7c5cdb;
+  --g-rojo: #d64545;
+  color-scheme: light;
+}
+.tema-panel.oscuro {
+  --color-ground: #08111f;
+  --color-surface: #0f1b2e;
+  --color-line: #1e2d45;
+  --color-ink: #e8eef6;
+  --color-muted: #8fa1b8;
+  --color-navy: #10233b;
+  --color-navy-2: #1b3355;
+  --color-wa: #34d399;
+  --color-wa-dark: #22b885;
+  --color-gold: #5aa2ff;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-sky-300: #7dd3fc;
+  --color-violet-300: #c4b5fd;
+  --g-azul: #4f8ff7;
+  --g-verde: #34d399;
+  --g-celeste: #7cc4f5;
+  --g-turquesa: #2dd4bf;
+  --g-marino: #93b4e6;
+  --g-violeta: #a78bfa;
+  --g-rojo: #f87171;
+  color-scheme: dark;
+}
+
 /* los títulos del sistema nuevo van en cursiva, como la RF del logo */
 .font-display,
 .font-titulo {
   font-style: italic;
 }
+.tema-panel .font-display,
 .tema-oscuro .font-display {
   font-family: var(--fuente-display-recta), "Arial Narrow", sans-serif;
   font-style: normal;
