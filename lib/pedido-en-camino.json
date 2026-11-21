@@ -5,7 +5,7 @@
     "proveedor": "Balex Indumentaria",
     "costo_unit": 27000,
     "llega": "2026-11-24",
-    "notas": "Pedido a Balex (indumentaria-ba10) de 34 prendas versión jugador (24 camisetas y 10 shorts) a $ 27.000 cada una. Llega el martes 24/11."
+    "notas": "Pedido a Balex (indumentaria-ba10) de 34 prendas versión jugador (24 camisetas y 10 shorts) a $ 27.000 cada una. Llega el martes 24/11. Cargado como P-008; el River 1996 XXL se cambió por un short Tottenham XXL."
   },
   "modelos": [
     {
@@ -71,17 +71,15 @@
       "confirmar": "en la planilla del proveedor figura [V.F]; se cargó como jugador porque Facu dijo que todo es versión jugador"
     },
     {
-      "nombre": "Camiseta River Plate Retro 1996 Titular",
+      "nombre": "Camiseta River Plate Retro 1996 Titular (con escudos)",
       "tipo": "Retro",
       "linea": "Retro",
       "categoria": "Camiseta",
       "precio": 50000,
       "talles": {
-        "XL": 1,
-        "XXL": 1
+        "XL": 1
       },
-      "equipo": "River",
-      "sin_aviso": true
+      "equipo": "River"
     },
     {
       "nombre": "Camiseta AC Milan 06/07' Suplente",
@@ -175,12 +173,13 @@
       "categoria": "Short",
       "precio": 49000,
       "talles": {
-        "XL": 1
+        "XL": 1,
+        "XXL": 1
       },
       "equipo": "Tottenham"
     },
     {
-      "nombre": "Short Argentina (jugador)",
+      "nombre": "Short Argentina Mundial 2026 (jugador)",
       "tipo": "Short",
       "linea": "Shorts",
       "categoria": "Short",
@@ -189,8 +188,7 @@
         "L": 1,
         "XL": 2
       },
-      "equipo": "Argentina",
-      "confirmar": "sin foto en el catálogo del proveedor; 'L 2XL (3 unidades)' se tomó como L y dos XL"
+      "equipo": "Argentina"
     }
   ]
 }

@@ -28,8 +28,7 @@ insert into _carga (nombre, categoria, tipo, linea, talle, precio, cantidad, equ
     ('Camiseta Flamengo 26/27'' Titular', 'Camiseta', 'Jugador', 'Clubes', 'XL', 49000, 1, 'Flamengo'),
     ('Camiseta Boca Juniors Edición Aniversario', 'Camiseta', 'Jugador', 'Clubes', 'M', 49000, 1, 'Boca'),
     ('Camiseta Boca Juniors Edición Aniversario', 'Camiseta', 'Jugador', 'Clubes', 'L', 49000, 1, 'Boca'),
-    ('Camiseta River Plate Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'XL', 50000, 1, 'River'),
-    ('Camiseta River Plate Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'XXL', 50000, 1, 'River'),
+    ('Camiseta River Plate Retro 1996 Titular (con escudos)', 'Camiseta', 'Retro', 'Retro', 'XL', 50000, 1, 'River'),
     ('Camiseta AC Milan 06/07'' Suplente', 'Camiseta', 'Retro', 'Clubes', 'L', 50000, 1, 'AC Milan'),
     ('Camiseta AC Milan 06/07'' Suplente', 'Camiseta', 'Retro', 'Clubes', 'XL', 50000, 1, 'AC Milan'),
     ('Camiseta Boca Juniors Retro 1996 Titular', 'Camiseta', 'Retro', 'Retro', 'M', 50000, 1, 'Boca'),
@@ -46,8 +45,9 @@ insert into _carga (nombre, categoria, tipo, linea, talle, precio, cantidad, equ
     ('Short Bayern Munich (blanco)', 'Short', 'Short', 'Shorts', 'XL', 49000, 2, 'Bayern Munich'),
     ('Short Real Madrid (blanco)', 'Short', 'Short', 'Shorts', 'XL', 49000, 1, 'Real Madrid'),
     ('Short Tottenham', 'Short', 'Short', 'Shorts', 'XL', 49000, 1, 'Tottenham'),
-    ('Short Argentina (jugador)', 'Short', 'Short', 'Shorts', 'L', 49000, 1, 'Argentina'),
-    ('Short Argentina (jugador)', 'Short', 'Short', 'Shorts', 'XL', 49000, 2, 'Argentina');
+    ('Short Tottenham', 'Short', 'Short', 'Shorts', 'XXL', 49000, 1, 'Tottenham'),
+    ('Short Argentina Mundial 2026 (jugador)', 'Short', 'Short', 'Shorts', 'L', 49000, 1, 'Argentina'),
+    ('Short Argentina Mundial 2026 (jugador)', 'Short', 'Short', 'Shorts', 'XL', 49000, 2, 'Argentina');
 
 do $$
 declare
@@ -94,7 +94,7 @@ begin
   select id into v_prov from proveedores where nombre = 'Balex Indumentaria';
 
   insert into pedidos (fecha, proveedor_id, costo_mercaderia, notas)
-  values (date '2026-11-20', v_prov, 918000, 'Pedido a Balex (indumentaria-ba10) de 34 prendas versión jugador (24 camisetas y 10 shorts) a $ 27.000 cada una. Llega el martes 24/11.')
+  values (date '2026-11-20', v_prov, 918000, 'Pedido a Balex (indumentaria-ba10) de 34 prendas versión jugador (24 camisetas y 10 shorts) a $ 27.000 cada una. Llega el martes 24/11. Cargado como P-008; el River 1996 XXL se cambió por un short Tottenham XXL.')
   returning id into v_pedido;
 
   insert into pedido_items (pedido_id, sku, cantidad, costo_unit)
