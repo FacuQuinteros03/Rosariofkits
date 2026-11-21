@@ -41,7 +41,7 @@ create index mystery_boxes_telefono on mystery_boxes (telefono) where estado = '
 alter table mystery_boxes enable row level security;
 -- El panel solo lee; escribir es por las funciones de abajo (y la clave secreta,
 -- que pasa por encima de RLS, para crearlas desde la web).
-create policy admin_lee on mystery_boxes for select to authenticated using (es_admin());
+create policy admin_lee on mystery_boxes for select to authenticated using ((select es_admin()));
 revoke all on mystery_boxes from anon, authenticated;
 grant select on mystery_boxes to authenticated;
 grant all on mystery_boxes to service_role;

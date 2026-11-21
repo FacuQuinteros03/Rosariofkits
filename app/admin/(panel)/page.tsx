@@ -52,6 +52,13 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
       q("mystery_boxes", "id, nombre, talle").eq("estado", "Pendiente").order("creado_en"),
     ]);
 
+  // Si una consulta falla (por ejemplo, se corta por tiempo) sus números quedarían en 0
+  // sin aviso: mejor decirlo.
+  const fallas = Object.entries({
+    tablero, inversion, mercaderia, caja, meses, lineas, equipos, talles, pedidos, porEntregar, conSaldo, ultimas, clientes,
+  }).filter(([, r]) => r.error);
+  for (const [nombre, r] of fallas) console.error(`Panel: falló ${nombre}`, r.error);
+
   const t: Fila = tablero.data ?? {};
   const inv: Fila = inversion.data ?? {};
   const mer: Fila = mercaderia.data ?? {};
@@ -91,6 +98,12 @@ export default async function Inicio({ searchParams }: { searchParams: Promise<{
       {cargada && (
         <p className="flex items-center gap-2 rounded-xl border border-wa/40 bg-wa/10 px-4 py-3 text-sm text-wa">
           <CheckCircle2 className="h-4 w-4" /> Venta {cargada} cargada. El stock de la web ya se actualizó.
+        </p>
+      )}
+      {fallas.length > 0 && (
+        <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          No se pudieron cargar algunos números ({fallas.map(([n]) => n).join(", ")}): lo que figure en 0 puede no
+          ser real. Recargá la página.
         </p>
       )}
       {webAVerificar.length > 0 && (
